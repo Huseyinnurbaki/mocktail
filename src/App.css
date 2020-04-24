@@ -1,0 +1,101 @@
+body {
+  font-family: 'Open Sans', sans-serif;  
+  margin: 0px;
+}
+
+h1 {
+  font-weight: 300;
+  color: #111111
+}
+
+ul {
+  list-style-type: none;
+  padding: 10px;
+  margin: 0;
+}
+
+li {
+  display: inline-block;
+  padding: 10px;
+}
+
+button:focus {
+  outline: 0;
+}
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+    color: #111111;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.menu {
+  background-color: #F6F6F6;
+  box-shadow: 5px 5px 5px #EEEEEE;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.home-container {
+  padding: 10px;
+}
+
+.todo-container {
+  width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+}
+
+.todo-container input {  
+  width: calc(100% - 22px);
+  height: 50px;
+  font-size: 15px;
+  padding: 0 10px;
+}
+
+.todo-list {
+  border: 1px solid #ededed;
+  padding: 0;
+}
+
+.todo-list li {
+  width: calc(100% - 20px);
+  border-bottom: 1px solid #ededed;
+}
+
+.todo-list li:nth-child(odd) {
+  background-color: #EEEEEE;
+}
+
+.todo-list li div {
+  float: left;
+}
+
+.item-id {
+  width: 25px;
+}
+
+.item-text {
+  width: 410px;
+  padding: 0 5px;
+}
+
+.item-date {
+  font-size: 12px;
+  font-style: italic;
+  margin-left: 27px;
+  color: #737373
+}
+
+.todo-list .btn-icon {
+  background-color: #cc8d93;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+}
