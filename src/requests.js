@@ -23,11 +23,20 @@ export function postTemplate(data) {
         body: data.body
     })
         .then(function (response) {
-            debugger;
             console.log(response);
         })
         .catch(function (error) {
-            debugger;
+            console.log(error);
+        });
+}
+export function saveTemplate(data) {
+    axios.post('http://localhost:3000/savetemplate', {
+        body: data.body
+    })
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
             console.log(error);
         });
 }

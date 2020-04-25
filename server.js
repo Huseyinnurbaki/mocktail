@@ -20,36 +20,60 @@ app.use(bodyParser.json());
 // });
 
 
-var listener = app.listen(8080, function () {
+var listener = app.listen(7080, function () {
     console.log("Your app is listening on port " + listener.address().port);
 });
 
-app.get("/getall/", async function (req, res) {
-    res.send("all");
+app.get("/getall", async function (req, res) {
+    let vals = await db.fetch("allRequests");
+    res.send(vals);
 });
 
-app.post('/setall',function(req,res){
-    // console.log("User name = " + req.body);
+
+app.post("/savetemplate", async function (req, res) {
+    // validasyon yazılacak
+    let isThereAnyValue = await db.fetch("isThereAnyValue");
+    if (isThereAnyValue === null) {
+        await db.set('isThereAnyValue', true);
+        await db.push('allRequests', req.body);
+    } else {
+        await db.push('allRequests', req.body);
+    }
+    let vals = await db.fetch("allRequests");
+
+    // let all = await db.fetch("all");
+    res.send(vals);
+});
+
+app.get("/cascadeall", async function (req, res) {
+    // ne var ne yok temizler
+    await db.delete('allRequests');
+    await db.delete('isThereAnyValue');
+
+    res.send("Done..");
+});
+
+
+app.post('/updatetemplate',function(req,res){
+    // single delete ve update bununla yapılacak
     res.send(JSON.stringify(req.body));
 });
 
+app.post("/mocktail", async function (req, res) {
+    // validasyon yazılacak
+    let isThereAnyValue = await db.fetch("isThereAnyValue");
+    if (isThereAnyValue === null) {
+        await db.set('isThereAnyValue', true);
+        await db.push('allRequests', req.body);
+    } else {
+        await db.push('allRequests', req.body);
+    }
+    let vals = await db.fetch("allRequests");
+
+    // let all = await db.fetch("all");
+    res.send(vals);
+});
+
+
 // app.use('/', router);
 app.use(cors());
-
-// app.get("/", async function (request, response) {
-//     let a = await db.fetch("all");
-//     response.send(
-//         `${a.cases} cases are reported of the COVID-19 Novel Coronavirus strain<br> ${a.deaths} have died from it <br>\n${a.recovered} have recovered from it <br> Get the endpoint /all to get information for all cases <br> get the endpoint /countries for getting the data sorted country wise <br>get the endpoint /countries/[country-name] for getting the data for a specific country`
-//     );
-// });
-// app.get("/all/", async function (req, res) {
-//     let all = await db.fetch("all");
-//     res.send(all);
-// });
-
-
-
-
-// var getall = setInterval(async () => {
-
-// }, 1000);

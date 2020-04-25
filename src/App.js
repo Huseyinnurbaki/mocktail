@@ -12,7 +12,7 @@ class App extends Component {
 					<div className="menu">
 						<ul>
 							<li>
-								<Link to="/">HOME</Link>
+								<Link to="/">Mocktail Panel</Link>
 							</li>
 						</ul>
 					</div>

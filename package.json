@@ -11,19 +11,21 @@
         "build": "react-scripts build",
         "eject": "react-scripts eject"
     },
-    "proxy": "http://localhost:8080",
+    "proxy": "http://localhost:7080",
     "dependencies": {
         "axios": "^0.19.2",
+        "bootstrap": "^4.4.1",
+        "cheerio": "^0.22.0",
         "cors": "^2.8.5",
         "express": "^4.16.3",
-        "cheerio": "^0.22.0",
-        "quick.db": "^6.3.2",
-        "request": "*",
         "moment": "^2.24.0",
+        "quick.db": "^6.3.2",
         "react": "^16.8.6",
+        "react-bootstrap": "^1.0.1",
         "react-dom": "^16.8.6",
+        "react-router-dom": "^5.0.0",
         "react-scripts": "2.1.8",
-        "react-router-dom": "^5.0.0"
+        "request": "*"
     },
     "repository": {
         "url": "https://github.com/Huseyinnurbaki/mocktail"
@@ -36,5 +38,9 @@
         "not dead",
         "not ie <= 11",
         "not op_mini all"
-    ]
+    ],
+    "devDependencies": {
+        "eslint": "^6.8.0",
+        "eslint-plugin-react": "^7.19.0"
+    }
 }

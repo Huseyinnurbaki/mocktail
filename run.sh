@@ -9,5 +9,5 @@
 # aws ecs update-service --cluster default --service nobetcieczane-service --force-new-deployment
 
 
-# # docker run -p 30046:8080 -d hhaluk/nobeczapi:latest
+# # docker run -p 30046:7080 -d hhaluk/nobeczapi:latest
 
