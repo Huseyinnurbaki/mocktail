@@ -22,8 +22,6 @@
         "react"
     ],
     "rules": {
-        "semi": "error",
-        "indent": "warn"
     }
     
 }

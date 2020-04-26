@@ -13,7 +13,6 @@ const PrefixedInput = (props) => {
             <FormControl
                 id="basic-url"
                 aria-describedby="basic-addon3"
-                value={props.value}
                 onChange={props.onChange}
 
             />
@@ -24,6 +23,5 @@ const PrefixedInput = (props) => {
 
 export default PrefixedInput;
 
-{/* <input type="text" value={props.value} onChange={props.onChange} /> */}
 
 // formlar düzenleencek. validasonlar formlarla yapılcak

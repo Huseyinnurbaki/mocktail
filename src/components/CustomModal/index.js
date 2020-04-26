@@ -6,13 +6,14 @@ import Button from 'react-bootstrap/Button';
 
 
 const CustomModal = (props) => {
+    
     return (
         <Modal
             {...props}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
-            onHide={props.vals.onHide}
+            onHide={props.onHide}
         >
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
@@ -21,13 +22,11 @@ const CustomModal = (props) => {
             </Modal.Header>
             <Modal.Body>
                 <h4>{props.vals.header}</h4>
-                <p>
-                    {props.vals.desc}
-                </p>
+                <p> {props.vals.desc} </p>
             </Modal.Body>
             <Modal.Footer>
-                <Button onClick={props.vals.onHide}>Close</Button>
-                <Button onClick={props.vals.cleanAndSwitch}>clear</Button>
+                <Button onClick={props.onHide}>Cancel</Button>
+                <Button variant="danger" onClick={props.cascadem}>Cascade</Button>
             </Modal.Footer>
         </Modal>
     );

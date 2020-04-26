@@ -30,8 +30,10 @@ export function postTemplate(data) {
         });
 }
 export function saveTemplate(data) {
+    const body = data.body;
+    body.key = data.body.method + data.body.endpoint;
     axios.post('http://localhost:3000/savetemplate', {
-        body: data.body
+        body
     })
         .then(function (response) {
             console.log(response);

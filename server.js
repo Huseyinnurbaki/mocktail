@@ -3,9 +3,7 @@ var app = express();
 var cors = require("cors");
 var request = require("request");
 var axios = require("axios");
-var cheerio = require("cheerio");
 var db = require("quick.db");
-const path = require('path');
 // const router = express.Router();
 var bodyParser = require("body-parser");
 
@@ -32,23 +30,36 @@ app.get("/getall", async function (req, res) {
 
 app.post("/savetemplate", async function (req, res) {
     // validasyon yazılacak
-    let isThereAnyValue = await db.fetch("isThereAnyValue");
-    if (isThereAnyValue === null) {
-        await db.set('isThereAnyValue', true);
-        await db.push('allRequests', req.body);
+    // await db.push('allRequests', req.body.body);
+    let requestsWeOwn = await db.get('allRequests');
+    console.log(requestsWeOwn);
+    let updateFlag = false;
+    if(requestsWeOwn !== null){
+        for (let index = 0; index < requestsWeOwn.length; index++) {
+            if(requestsWeOwn[index].key === req.body.body.key){
+                requestsWeOwn[index] = req.body.body;
+                updateFlag = true;
+            }
+        }
     } else {
-        await db.push('allRequests', req.body);
+        requestsWeOwn = [];
     }
-    let vals = await db.fetch("allRequests");
+    if(!updateFlag){
+        requestsWeOwn.push(req.body.body);
+    }
+    await db.set('allRequests', requestsWeOwn);
 
+    let vals = await db.fetch("allRequests");
+    // let keyy = await db.fetch("keys");
+    console.log(vals);
     // let all = await db.fetch("all");
-    res.send(vals);
+    res.send(requestsWeOwn);
 });
 
 app.get("/cascadeall", async function (req, res) {
     // ne var ne yok temizler
     await db.delete('allRequests');
-    await db.delete('isThereAnyValue');
+    await db.delete('keys');
 
     res.send("Done..");
 });
@@ -77,3 +88,47 @@ app.post("/mocktail", async function (req, res) {
 
 // app.use('/', router);
 app.use(cors());
+
+
+
+// app.post("/savetemplate", async function (req, res) {
+//     // validasyon yazılacak
+//     // let allKeys = await db.fetch("keys");
+//     const updateParameter = await db.has('keys', [req.body.body.key]);
+//     console.log(updateParameter);
+//     const item = {
+//         [req.body.body.key]: req.body.body
+//     };
+//     if (updateParameter) {
+//         let vals = await db.fetch("allRequests");
+//         for (let index = 0; index < vals.length; index++) {
+//             console.log(vals[index]);
+//             let checkValue = vals[index].key;
+//             console.log(checkValue);
+
+
+//             if (checkValue === req.body.body.key) {
+//                 const upd = await db.delete(vals[index]);
+//                 let tmp = await db.fetch("allRequests");
+//                 console.log(tmp);
+
+//             }
+//             const element = array[index];
+
+//         }
+
+//     } else {
+//         await db.push('keys', req.body.body.key);
+//     }
+
+//     await db.push('allRequests', req.body.body);
+
+
+
+
+//     let vals = await db.fetch("allRequests");
+//     let keyy = await db.fetch("keys");
+//     console.log(keyy);
+//     // let all = await db.fetch("all");
+//     res.send(vals);
+// });
