@@ -1,6 +1,6 @@
 
 
-import React from 'react';
+import React, { textarea} from 'react';
 import axios from 'axios';
 
 import { getTemplate, saveTemplate } from '../../requests';
@@ -13,37 +13,36 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
+import Badge from 'react-bootstrap/Spinner';
 import PrefixedInput from '../../components/PrefixedInput';
 import CustomModal from '../../components/CustomModal';
 import BigTextInput from '../../components/BigTextInput';
 import MockList from '../../components/MockList';
 import MockItemDetail from '../../components/MockItemDetail';
+
 export default class Home extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             playing: false,
             get: {
-                endpoint: 'thanks123',
-                response: {"ab221c": 1212},
+                endpoint: '',
+                response: '',
                 method: 'get'
             },
             post: {
-				endpoint: 'testpost',
+				endpoint: '',
 				method: 'post',
-				response: {
-					"a": 133,
-					"b": 213
-				},
-				request: {
-					"abc": 12
-				},
+				response: {},
+				request: {},
             },
             modalValues: {},
             showModal: false,
             apis: [],
 			showLoader: true,
-			selectedApi: {}
+			selectedApi: {},
+			jsonValidatorInput: null,
+			isJsonValidatorInputValid: ''
         };
         this.getAllUrl = 'http://localhost:3000/getall';
 		this.cascadaAllUrl = 'http://localhost:3000/cascadeall';
@@ -59,6 +58,9 @@ export default class Home extends React.Component {
         this.cascadem = this.cascadem.bind(this);
         this.cascadeWarning = this.cascadeWarning.bind(this);
         this.setSelected = this.setSelected.bind(this);
+        this.validateJson = this.validateJson.bind(this);
+        this.jsonValidatorInputObserver = this.jsonValidatorInputObserver.bind(this);
+        this.clearJsonValidator = this.clearJsonValidator.bind(this);
     }
 
     componentDidMount() {
@@ -103,6 +105,7 @@ export default class Home extends React.Component {
 			const toBeSaved = { body: this.state[type] };
 			console.log(toBeSaved);
 			saveTemplate(toBeSaved);
+			this.clearInputs()
 			this.getApis();
         }
     }
@@ -167,8 +170,34 @@ export default class Home extends React.Component {
 		this.setState({selectedApi})
 	}
 
+	jsonValidatorInputObserver(event) {
+		let jsonValidatorInput = event.target.value;
+		this.setState({ jsonValidatorInput, isJsonValidatorInputValid: '' });
+	}
+	validateJson(value) {
+		let isJsonValidatorInputValid = 'JSON is not valid !!';
+		try {
+			JSON.parse(value);
+			isJsonValidatorInputValid = 'JSON is valid';
+		} catch (error) {
+			console.log(error);
+			console.log(error);
+			console.log(error);
+			console.log(error);
+			
+			
+		}
+		this.setState({isJsonValidatorInputValid})
+	}
+	clearJsonValidator(){
+		this.setState({ jsonValidatorInput: null, isJsonValidatorInputValid: '' });
+		this.refs.JsonLint.reset();
+	}
+
 
     render() {
+
+		 
         return (
             <Container fluid style={{width: '80%' }} >
                 <CustomModal
@@ -197,8 +226,8 @@ export default class Home extends React.Component {
 
                             </Row>
 								</Form>
-                            <Button onClick={() => this.save("get")} >Save</Button>
-							<Button style={{marginLeft: '20px'}} variant="warning" onClick={this.clearInputs} >Clear</Button>
+							<Button disabled={!this.state.get.endpoint || !this.state.get.response} onClick={() => this.save("get")} >Save</Button>
+							<Button disabled={!this.state.get.endpoint && !this.state.get.response} style={{marginLeft: '20px'}} variant="warning" onClick={this.clearInputs} >Clear</Button>
 							
 								
 
@@ -233,14 +262,55 @@ export default class Home extends React.Component {
                     </Tab>
                     <Tab eventKey="validator" title="JSON Validator">
                         <Jumbotron>
-                            {/* <h1 className="header">Cascade</h1>
-                            <h2 className="header">You can always make a clean start</h2>
-                            <h3 className="header">*This action is irreversible</h3>
+                             <h1 className="header">Json Validator</h1>
+							 <Row>
+								 <Col>
+								<Form ref="jsonvalidator">
+                           <BigTextInput label="JsonLint" onChange={this.jsonValidatorInputObserver} ></BigTextInput>
+								</Form>
+								 </Col>
+							<Col>
+							{
+								this.state.isJsonValidatorInputValid !== ''
+								?
+								<h1 className="header">{this.state.isJsonValidatorInputValid}</h1>
+								:
+								<h1 className="header">Got nothing to validate  </h1>
+								
+							}
+							{
+								this.state.isJsonValidatorInputValid
+								?
+								<Badge
+								variant={this.state.isJsonValidatorInputValid.includes('!') ? 'danger' : 'success'}>
+								{this.state.isJsonValidatorInputValid.includes('!') ? 'Failed' : 'Succeeded'}</Badge>
+								:
+								null
+								
+							}
+							{/* { buraya valid json ı beautify edip yaz - valid olmayanı da beautify edip yaz
+								this.state.jsonValidatorInput 
+								?
+								<pre>{ jsonBeautified }</pre>
+								:
+								null
+
+							} 
+							 {/* <textarea 
+								 type="text"
+								 style={{width: '500px'}}
+								 disabled
+								 label="JsonLintValue"
+								 value={this.state.jsonValidatorInput}
+							></textarea> */}
+							</Col>
+							 </Row>
                   
-							<Button variant="danger" onClick={() => this.cascadeWarning()} >Cascade</Button> */}
+							<Button variant="success" onClick={() => this.validateJson(this.state.jsonValidatorInput)} >Check</Button>
+							<Button variant="warning" onClick={() => this.clearJsonValidator()}>Clear</Button>
                         </Jumbotron>
                     </Tab>
-                    <Tab eventKey="export" title="Export">
+                    <Tab disabled eventKey="export" title="Export">
                         <Jumbotron>
                             {/* <h1 className="header">Cascade</h1>
                             <h2 className="header">You can always make a clean start</h2>
@@ -249,7 +319,7 @@ export default class Home extends React.Component {
 							<Button variant="danger" onClick={() => this.cascadeWarning()} >Cascade</Button> */}
                         </Jumbotron>
                     </Tab>
-                    <Tab eventKey="upload" title="Upload">
+                    <Tab disabled eventKey="import" title="Import">
                         <Jumbotron>
                             {/* <h1 className="header">Cascade</h1>
                             <h2 className="header">You can always make a clean start</h2>
@@ -301,3 +371,4 @@ export default class Home extends React.Component {
     }
 }
 
+// Todo validate json ekranında jsonın valid olmayan satırını yaz beautify edip. 
