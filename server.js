@@ -1,21 +1,13 @@
 var express = require("express");
 var app = express();
 var cors = require("cors");
-var request = require("request");
-var axios = require("axios");
 var db = require("quick.db");
-// const router = express.Router();
 var bodyParser = require("body-parser");
+var _ = require('lodash');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-
-// router.get('/selam', function (req, res) {
-//     res.sendFile(path.join(__dirname + '/panel/index.html'));
-//     //__dirname : It will resolve to your project folder.
-// });
 
 
 var listener = app.listen(7080, function () {
@@ -30,7 +22,6 @@ app.get("/getall", async function (req, res) {
 
 app.post("/savetemplate", async function (req, res) {
     // validasyon yazılacak
-    // await db.push('allRequests', req.body.body);
     let requestsWeOwn = await db.get('allRequests');
     console.log(requestsWeOwn);
     let updateFlag = false;
@@ -50,85 +41,59 @@ app.post("/savetemplate", async function (req, res) {
     await db.set('allRequests', requestsWeOwn);
 
     let vals = await db.fetch("allRequests");
-    // let keyy = await db.fetch("keys");
     console.log(vals);
-    // let all = await db.fetch("all");
     res.send(requestsWeOwn);
 });
 
 app.get("/cascadeall", async function (req, res) {
     // ne var ne yok temizler
     await db.delete('allRequests');
-    await db.delete('keys');
 
     res.send("Done..");
 });
 
 
-app.post('/updatetemplate',function(req,res){
-    // single delete ve update bununla yapılacak
-    res.send(JSON.stringify(req.body));
-});
 
-app.post("/mocktail", async function (req, res) {
+
+app.get("/mocktail/:endpoint", async function (req, res) {
     // validasyon yazılacak
-    let isThereAnyValue = await db.fetch("isThereAnyValue");
-    if (isThereAnyValue === null) {
-        await db.set('isThereAnyValue', true);
-        await db.push('allRequests', req.body);
-    } else {
-        await db.push('allRequests', req.body);
-    }
+    let potentialResponse = {"error": "404 endpoint does not exist."}
     let vals = await db.fetch("allRequests");
-
-    // let all = await db.fetch("all");
-    res.send(vals);
+    for (let index = 0; index < vals.length; index++) {
+        if (vals[index].method === 'get' && vals[index].endpoint === req.params.endpoint) {
+            potentialResponse = vals[index].response;
+            potentialResponse.status = "success";
+        }
+    }
+    res.send(potentialResponse);
 });
 
 
-// app.use('/', router);
+// shallowly checks the request body
+app.post("/mocktail/:endpoint", async function (req, res) {
+    let potentialResponse = {"error": "404 endpoint does not exist."}
+    let vals = await db.fetch("allRequests");
+    for (let index = 0; index < vals.length; index++) {
+        if (vals[index].method === 'post' && vals[index].endpoint === req.params.endpoint) {
+            const incomingRequestKeys = Object.keys(req.body); 
+            const templateRequestKeys = Object.keys(vals[index].request);
+            potentialResponse = vals[index].request;
+            potentialResponse.status = "success";
+
+            if(incomingRequestKeys.length === templateRequestKeys.length) {
+                for (let k = 0; k < incomingRequestKeys.length; k++) {
+                    if(incomingRequestKeys[k] !== templateRequestKeys[k]){
+                        potentialResponse = {"error": "Your request body does not match your request template. There might be a typo or irrelevant item/object in your request"};
+                        break;
+                    }
+                }
+            } else {
+                potentialResponse = {"error": "The number of keys in your request does not match your template. You are sending extra or less data."}
+            }
+        }
+    }
+    res.send(potentialResponse);
+});
+
+
 app.use(cors());
-
-
-
-// app.post("/savetemplate", async function (req, res) {
-//     // validasyon yazılacak
-//     // let allKeys = await db.fetch("keys");
-//     const updateParameter = await db.has('keys', [req.body.body.key]);
-//     console.log(updateParameter);
-//     const item = {
-//         [req.body.body.key]: req.body.body
-//     };
-//     if (updateParameter) {
-//         let vals = await db.fetch("allRequests");
-//         for (let index = 0; index < vals.length; index++) {
-//             console.log(vals[index]);
-//             let checkValue = vals[index].key;
-//             console.log(checkValue);
-
-
-//             if (checkValue === req.body.body.key) {
-//                 const upd = await db.delete(vals[index]);
-//                 let tmp = await db.fetch("allRequests");
-//                 console.log(tmp);
-
-//             }
-//             const element = array[index];
-
-//         }
-
-//     } else {
-//         await db.push('keys', req.body.body.key);
-//     }
-
-//     await db.push('allRequests', req.body.body);
-
-
-
-
-//     let vals = await db.fetch("allRequests");
-//     let keyy = await db.fetch("keys");
-//     console.log(keyy);
-//     // let all = await db.fetch("all");
-//     res.send(vals);
-// });

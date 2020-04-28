@@ -12,9 +12,12 @@ export default function MockList(props) {
         setSearchTerm(event.target.value);
     };
     useEffect(() => {
-        const results = props.apis.data.filter(val =>
+        setApis(props.apis.data);
+    }, [props.apis.data]);
+    useEffect(() => {
+        const results = props.apis.data ? props.apis.data.filter(val =>
             val.endpoint.toLowerCase().includes(searchTerm)
-        );
+        ) : undefined;
         setApis(results);
     }, [searchTerm]);
     return (

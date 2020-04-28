@@ -10,7 +10,7 @@ const MockItem = (props) => {
         bgc = '#17b027'
         method= method+'  .';
     }
-    let endpoint = 'https:localhost:3000/' + props.data.endpoint;
+    let endpoint = 'https:localhost:7084/mocktail/' + props.data.endpoint;
     return (
         <lu key={props.index} >
             <InputGroup className="mb-3" onClick={() => props.onPressAction(props.data)} >
