@@ -75,7 +75,7 @@ app.post("/mocktail/:endpoint", async function (req, res) {
     let vals = await db.fetch("allRequests");
     for (let index = 0; index < vals.length; index++) {
         if (vals[index].method === 'post' && vals[index].endpoint === req.params.endpoint) {
-            const incomingRequestKeys = Object.keys(req.body); 
+            const incomingRequestKeys = Object.keys(req.body.body); 
             const templateRequestKeys = Object.keys(vals[index].request);
             potentialResponse = vals[index].request;
             potentialResponse.status = "success";
