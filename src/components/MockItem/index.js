@@ -12,8 +12,8 @@ const MockItem = (props) => {
     }
     let endpoint = 'https:localhost:7084/mocktail/' + props.data.endpoint;
     return (
-        <lu key={props.index} >
-            <InputGroup className="mb-3" onClick={() => props.onPressAction(props.data)} >
+        <dt key={props.index} >
+            <InputGroup className="mb-3" onClick={!props.disabled ? () => props.onPressAction(props.data) : null} >
                 <InputGroup.Prepend  >
                     <InputGroup.Text style={{ backgroundColor: bgc, color: 'white', fontWeight: '600' }} id="basic-addon1">{method}</InputGroup.Text>
                 </InputGroup.Prepend>
@@ -25,7 +25,7 @@ const MockItem = (props) => {
                 />
             </InputGroup>
             
-        </lu>
+        </dt>
     );
 };
 

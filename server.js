@@ -57,12 +57,12 @@ app.get("/cascadeall", async function (req, res) {
 
 app.get("/mocktail/:endpoint", async function (req, res) {
     // validasyon yazılacak
-    let potentialResponse = {"error": "404 endpoint does not exist."}
+    let potentialResponse = {"status": "404 endpoint does not exist."}
     let vals = await db.fetch("allRequests");
     for (let index = 0; index < vals.length; index++) {
         if (vals[index].method === 'get' && vals[index].endpoint === req.params.endpoint) {
             potentialResponse = vals[index].response;
-            potentialResponse.status = "success";
+            potentialResponse = {"status": "success"};
         }
     }
     res.send(potentialResponse);
@@ -71,7 +71,7 @@ app.get("/mocktail/:endpoint", async function (req, res) {
 
 // shallowly checks the request body
 app.post("/mocktail/:endpoint", async function (req, res) {
-    let potentialResponse = {"error": "404 endpoint does not exist."}
+    let potentialResponse = {"status": "404 endpoint does not exist."}
     let vals = await db.fetch("allRequests");
     for (let index = 0; index < vals.length; index++) {
         if (vals[index].method === 'post' && vals[index].endpoint === req.params.endpoint) {
@@ -83,17 +83,31 @@ app.post("/mocktail/:endpoint", async function (req, res) {
             if(incomingRequestKeys.length === templateRequestKeys.length) {
                 for (let k = 0; k < incomingRequestKeys.length; k++) {
                     if(incomingRequestKeys[k] !== templateRequestKeys[k]){
-                        potentialResponse = {"error": "Your request body does not match your request template. There might be a typo or irrelevant item/object in your request"};
+                        potentialResponse = {"status": "Your request body does not match your request template. There might be a typo or irrelevant item/object in your request"};
                         break;
                     }
                 }
             } else {
-                potentialResponse = {"error": "The number of keys in your request does not match your template. You are sending extra or less data."}
+                potentialResponse = {"status": "The number of keys in your request does not match your template. You are sending extra or less data."}
             }
         }
     }
     res.send(potentialResponse);
 });
 
+app.get("/delete/:endpointkey", async function (req, res) {
+    let potentialResponse = { "status": "Could not delete." }
+    let requestsWeOwn = await db.fetch("allRequests");
+    for (let index = 0; index < requestsWeOwn.length; index++) {
+        if (requestsWeOwn[index].key === req.params.endpointkey) {
+            console.log(requestsWeOwn);
+            requestsWeOwn.splice(index,1);
+            console.log(requestsWeOwn);
+            await db.set('allRequests', requestsWeOwn);
+            potentialResponse = { "status": "success" }
+        }
+    }
+    res.send(potentialResponse);
+});
 
 app.use(cors());

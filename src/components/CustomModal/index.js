@@ -26,7 +26,7 @@ const CustomModal = (props) => {
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={props.onHide}>Cancel</Button>
-                <Button variant="danger" onClick={props.cascadem}>Cascade</Button>
+                <Button variant="danger" onClick={props[props.vals.secondary]}>{props.vals.header}</Button>
             </Modal.Footer>
         </Modal>
     );

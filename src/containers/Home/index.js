@@ -2,6 +2,7 @@
 
 import React from 'react';
 import axios from 'axios';
+import _ from 'lodash';
 import { getTemplate, saveTemplate } from '../../requests';
 import { Jumbotron, Container, Tabs, Tab, Row, Col, Button, Form, Spinner, Badge, } from 'react-bootstrap';
 import PrefixedInput from '../../components/PrefixedInput';
@@ -9,6 +10,7 @@ import CustomModal from '../../components/CustomModal';
 import BigTextInput from '../../components/BigTextInput';
 import MockList from '../../components/MockList';
 import MockItemDetail from '../../components/MockItemDetail';
+import CustomToast from '../../components/CustomToast';
 
 export default class Home extends React.Component {
     constructor(props) {
@@ -33,11 +35,19 @@ export default class Home extends React.Component {
 			selectedApi: {},
 			jsonValidatorInput: null,
 			isJsonValidatorInputValid: '',
-			apiCheck: {}
+			apiCheck: {},
+			deletionStatus: null,
+			showToast: true,
+			toastBody: ''
         };
 		this.getAllUrl = 'http://localhost:7084/getall';
 		this.cascadaAllUrl = 'http://localhost:7084/cascadeall';
-        this.setTabs = this.setTabs.bind(this);
+		this.defaultModalValues = {
+			type: '',
+			header: '',
+			desc: '',
+			secondary: ''
+		};
         this.save = this.save.bind(this);
         this.clearInputs = this.clearInputs.bind(this);
         this.handleChangeGetEndpoint = this.handleChangeGetEndpoint.bind(this);
@@ -54,10 +64,14 @@ export default class Home extends React.Component {
         this.jsonValidatorInputObserver = this.jsonValidatorInputObserver.bind(this);
         this.clearJsonValidator = this.clearJsonValidator.bind(this);
         this.testItem = this.testItem.bind(this);
+        this.deleteWarning = this.deleteWarning.bind(this);
+        this.deleteSelectedRequest = this.deleteSelectedRequest.bind(this);
+        this.anythingMissing = this.anythingMissing.bind(this);
+        this.onToastClose = this.onToastClose.bind(this);
     }
 
     componentDidMount() {
-        this.getApis(this.getAllUrl);
+        this.getApis();
     }
 
     async getApis() {
@@ -76,16 +90,41 @@ export default class Home extends React.Component {
 			})
 			.catch(function (error) {
 				console.log(error);
-				return {}
-			});		
-        this.setState({apis, showLoader: false});
-	}
+				return 'error'
+			});
+
+			if(apis === 'error') {
+				this.setState({
+					apis: {},
+					showLoader: false,
+					selectedApi: {},
+					deletionStatus: null,
+					modalValues: this.defaultModalValues,
+					showModal: false,
+					showToast: true,
+					toastBody: 'Error occured, endpoints could not be retrieved !'
+				})
+
+			} else {
+				this.setState({
+					apis,
+					showLoader: false,
+					selectedApi: {},
+					deletionStatus: null,
+					modalValues: this.defaultModalValues,
+					showModal: false,
+					showToast: true,
+					toastBody: 'Successfuly fetched mock endpoints.'
+				})
+
+			}
+
+		}
 	
 	async testItem() {
 		let apiCheck;
 		
 		const endpoint = 'http://localhost:7084/mocktail/' + this.state.selectedApi.endpoint;
-		debugger;
 		if(this.state.selectedApi.method === 'get') {
 			apiCheck = await axios
 			.get(endpoint, {
@@ -105,7 +144,6 @@ export default class Home extends React.Component {
 				return {}
 			});		
 		} else {
-			debugger;
 			apiCheck = await axios
 			.post(endpoint, {
 				body: this.state.selectedApi.request
@@ -124,14 +162,10 @@ export default class Home extends React.Component {
 				return {}
 			});	
 		}
-		this.setState({apiCheck})
+		this.setState({apiCheck, deletionStatus: null})
 
 	}
 
-
-    setTabs(key) {
-        this.setState({ tab: key });
-    }
 	
     validate(template) {
 		console.log(template);
@@ -150,16 +184,38 @@ export default class Home extends React.Component {
         return false;
 		
     }
-	
+	anythingMissing(data) {
+		if(data.method === 'get') {
+			if(data.endpoint === '' || data.response === {}) {
+				return true;
+			}
+		} else {
+			if(data.endpoint === '' || data.response === {} || data.request === {}) {
+				return true;
+			}
+		}
+		return false;
+
+	}
     save(type) {
+		const missingParts = this.anythingMissing(this.state[type]);
+		if(missingParts) {
+			console.log(missingParts);
+			return;
+			// burada kes servise gitme
+		}
 		const isValidBoolean = this.validate(this.state[type]);
+		console.log(isValidBoolean);
+		
         if(isValidBoolean){
 			const toBeSaved = { body: isValidBoolean };
 			console.log(toBeSaved);
 			saveTemplate(toBeSaved);
 			this.clearInputs()
 			this.getApis();
-        }
+        } else {
+			// hata verdir
+		}
 	}
 
     clearInputs() {
@@ -211,7 +267,7 @@ export default class Home extends React.Component {
     cascadeWarning() {
         const modalValues = {
             type: 'Warning',
-            header: 'Atttention',
+            header: 'Cascade',
             desc: 'You are about to delete every template you added. Are you sure ? this is irreversible',
             secondary: 'cascade'
         };
@@ -219,14 +275,12 @@ export default class Home extends React.Component {
 	}
 	
 	cascadem(){
-		console.log("yes");
 		this.onHide();
-		
 		getTemplate(this.cascadaAllUrl);
 	}
 
 	setSelected(selectedApi){
-		this.setState({selectedApi})
+		this.setState({selectedApi, apiCheck: {}, deletionStatus: null})
 	}
 
 	jsonValidatorInputObserver(event) {
@@ -253,24 +307,80 @@ export default class Home extends React.Component {
 		this.refs.JsonLint.reset();
 	}
 
+	async deleteSelectedRequest(){
+		const endpoint = 'http://localhost:7084/delete/' + this.state.selectedApi.key;
+
+		const deletionStatus = await axios
+			.get(endpoint, {
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+			.then(function (response) {
+				console.log(response);
+				if (response.data === "") {
+					return {}
+				}
+				return response;
+			})
+			.catch(function (error) {
+				console.log(error);
+				return {}
+			});
+		console.log(deletionStatus);
+		if(deletionStatus.data && deletionStatus.data.status && deletionStatus.data.status === 'success') {
+			this.getApis();
+		} else {
+			this.setState({
+				deletionStatus: deletionStatus.status,
+				modalValues: this.defaultModalValues,
+				showModal: false,
+				showToast: true,
+				toastBody: 'Could not delete the item. !'
+			})
+		}
+	}
+
+	deleteWarning() {
+		const modalValues = {
+			type: 'Warning',
+			header: 'Delete',
+			desc: 'You are about to delete selected api. Are you sure ? You can revert it if you wish.',
+			secondary: 'deleteSelectedRequest'
+		};
+		this.setState({ modalValues, showModal: true });
+	}
+
+	onToastClose() {
+		this.setState({showToast: false, toastBody: ''})
+	}
 
     render() {
 
 		 
         return (
+			<div>
+
+			
             <Container fluid style={{width: '80%' }} >
                 <CustomModal
 				show={this.state.showModal}
 				vals={this.state.modalValues}
 				onHide={this.onHide}
 				cascadem={this.cascadem}
+				deleteSelectedRequest={this.deleteSelectedRequest}
 				> </CustomModal>
                    
+				   <CustomToast
+				   onToastClose={this.onToastClose}
+				   showToast={this.state.showToast}
+				   toastBody={this.state.toastBody}
+				   />
                 <Tabs
                     id="controlled-tab-example"
                     activeKey={this.state.tab}
-                    onSelect={(k) => this.setTabs(k)}
-                >
+					onSelect={(key) => this.setState({ tab: key })}
+					>
                     <Tab eventKey="get" title="Get">
                         <Jumbotron>
                             <h1 className="header">Get Request Template</h1>
@@ -289,8 +399,8 @@ export default class Home extends React.Component {
 
                             </Row>
 								</Form>
-							<Button disabled={!this.state.get.endpoint || !this.state.get.response} onClick={() => this.save("get")} >Save</Button>
-							<Button disabled={!this.state.get.endpoint && !this.state.get.response} style={{marginLeft: '20px'}} variant="warning" onClick={this.clearInputs} >Clear</Button>
+							<Button disabled={!this.state.get.endpoint || _.isEmpty(this.state.get.response) } onClick={() => this.save("get")} >Save</Button>
+							<Button disabled={!this.state.get.endpoint && _.isEmpty(this.state.get.response)} style={{marginLeft: '20px'}} variant="warning" onClick={this.clearInputs} >Clear</Button>
 							
 								
 
@@ -307,16 +417,23 @@ export default class Home extends React.Component {
                             <Row>
                                 <BigTextInput
 								label="Request"
+								value={JSON.stringify(this.state.post.request)} 
 								onChange={this.handleChangePostRequest} 
 								/>
                                 <BigTextInput
+								value={JSON.stringify(this.state.post.response)} 
 								label="Response"
 								onChange={this.handleChangePostResponse} 
 								/>
                             </Row>
 							</Form>
-                            <Button onClick={() => this.save("post")} >Save</Button>
-							<Button style={{ marginLeft: '20px' }} variant="warning" onClick={this.clearInputs} >Clear</Button>
+							<Button disabled={!this.state.post.endpoint || _.isEmpty(this.state.post.request)  || _.isEmpty(this.state.post.response) }  onClick={() => this.save("post")} >Save</Button>
+							<Button
+							style={{ marginLeft: '20px' }}
+							variant="warning"
+							onClick={this.clearInputs}
+							disabled={!this.state.post.endpoint && _.isEmpty(this.state.post.request)  && _.isEmpty(this.state.post.response) }  onClick={() => this.save("post")}
+							>Clear</Button>
 
                         </Jumbotron>
                     </Tab>         
@@ -325,7 +442,7 @@ export default class Home extends React.Component {
                              <h1 className="header">Json Validator</h1>
 							 <Row>
 								 <Col>
-								<Form ref="jsonvalidator">
+								<Form ref="JsonLint">
                            <BigTextInput label="JsonLint" onChange={this.jsonValidatorInputObserver} ></BigTextInput>
 								</Form>
 								 </Col>
@@ -367,7 +484,7 @@ export default class Home extends React.Component {
 							 </Row>
                   
 							<Button variant="success" onClick={() => this.validateJson(this.state.jsonValidatorInput)} >Check</Button>
-							<Button variant="warning" onClick={() => this.clearJsonValidator()}>Clear</Button>
+							<Button style={{ marginLeft: '20px' }} variant="warning" onClick={() => this.clearJsonValidator()}>Clear</Button>
                         </Jumbotron>
                     </Tab>
                     <Tab disabled eventKey="export" title="Export">
@@ -418,19 +535,16 @@ export default class Home extends React.Component {
                     <Col>
                         <Jumbotron style={{ minHeight: '400px' }} >
                             <h1 className="header">Request Details</h1>
-							<MockItemDetail data={this.state.selectedApi} ></MockItemDetail>
-							{/* {this.state.selectedApi && this.state.selectedApi.method
-							?
-							<Button variant="danger" onClick={() => this.deleteItem()} >Delete</Button>
-							:
-							null
-							} */}
-							{this.state.selectedApi && this.state.selectedApi.method
-							?
-							<Button variant="success" onClick={() => this.testItem()} >Test</Button>
-							:
-							null
-							}
+							<MockItemDetail
+							disabled 
+							data={this.state.selectedApi}
+							deleteSelectedRequest={this.deleteWarning}
+							deletionStatus={this.state.deletionStatus}
+							testItem={this.testItem}
+							apiCheck={this.state.apiCheck}
+
+							
+							/>
 							{this.state.apiCheck && this.state.apiCheck.status
 							?
 							<Badge
@@ -443,6 +557,7 @@ export default class Home extends React.Component {
                     </Col>
                 </Row>
             </Container>
+			</div>
         );
     }
 }
