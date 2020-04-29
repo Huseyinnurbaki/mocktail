@@ -1,23 +1,17 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
 import Home from './containers/Home';
 import './App.css';
+import Header from './components/Header';
 
 class App extends Component {
 
     render() {
         return (
             <div className="App">
+                <Header>fgrtgr</Header>
                 <BrowserRouter>
-                    <div className="menu">
-                        <ul>
-                            <li>
-                                <Link to="/">Mocktail Panel</Link>
-                            </li>
-                        </ul>
-                    </div>
-                    <Route exact path="/" component={Home} />
-
+                    <Route  exact path="/" component={Home} />
                 </BrowserRouter>
             </div>
         );

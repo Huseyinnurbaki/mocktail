@@ -1,5 +1,5 @@
 body {
-  font-family: 'Open Sans', sans-serif;  
+  font-family: 'Verdana', sans-serif;  
   margin: 0px;
 
 }
@@ -7,6 +7,31 @@ body {
 h1 {
   font-weight: 300;
   color: #111111
+}
+
+.myheader {
+ 
+
+}
+
+.myheadersides {
+  width: 10%;
+  background-color: rgb(250, 250, 250);
+
+}
+.myheadermiddle {
+  display: block;
+  width: 80%;
+  flex: 1;
+  background-color: rgb(250, 250, 250);
+ 
+}
+
+.headerimg {
+    display: block;
+    margin-left: auto;
+  margin-right: auto;
+
 }
 
 ul {
@@ -36,6 +61,7 @@ a:active {
 
 .menu {
   background-color: #F6F6F6;
+  margin-bottom: '220px';
   
   box-shadow: 5px 5px 5px #EEEEEE;
 }
@@ -46,6 +72,8 @@ a:active {
 
 .home-container {
   padding: 10px;
+    font-family: 'Verdana', sans-serif;  
+
  
 }
 
@@ -64,11 +92,4 @@ a:active {
   font-style: italic;
   margin-left: 27px;
   color: #737373
-}
-
-.todo-list .btn-icon {
-  background-color: #cc8d93;
-  color: #fff;
-  width: 30px;
-  height: 30px;
 }

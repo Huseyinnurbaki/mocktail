@@ -219,10 +219,10 @@ export default class Home extends React.Component {
 	}
 
     clearInputs() {
-		const get = { endpoint: '', method: 'get', response: {} };
-		const post = { endpoint: '', method: 'post', response: {}, request: {} };
 		this.refs.formget.reset();
 		this.refs.formpost.reset();
+		const get = { endpoint: '', method: 'get', response: {} };
+		const post = { endpoint: '', method: 'post', response: {}, request: {} };
 		this.setState({ get, post, selectedApi: {}});
     }
 
@@ -234,7 +234,8 @@ export default class Home extends React.Component {
 
 	handleChangeGetResponse(event){
         let { get } = this.state;
-        get.response = event.target.value;
+		get.response = event.target.value;
+		debugger;
         this.setState({ get });
     }
 	handleChangePostEndpoint(event) {
@@ -359,7 +360,7 @@ export default class Home extends React.Component {
 
 		 
         return (
-			<div>
+			<div style={{backgroundColor: 'rgb(250, 250, 250)'}} >
 
 			
             <Container fluid style={{width: '80%' }} >
@@ -427,12 +428,15 @@ export default class Home extends React.Component {
 								/>
                             </Row>
 							</Form>
-							<Button disabled={!this.state.post.endpoint || _.isEmpty(this.state.post.request)  || _.isEmpty(this.state.post.response) }  onClick={() => this.save("post")} >Save</Button>
+							<Button
+							disabled={!this.state.post.endpoint || _.isEmpty(this.state.post.request)  || _.isEmpty(this.state.post.response) }
+							onClick={() => this.save("post")} >Save</Button>
 							<Button
 							style={{ marginLeft: '20px' }}
 							variant="warning"
 							onClick={this.clearInputs}
-							disabled={!this.state.post.endpoint && _.isEmpty(this.state.post.request)  && _.isEmpty(this.state.post.response) }  onClick={() => this.save("post")}
+							disabled={!this.state.post.endpoint && _.isEmpty(this.state.post.request)  && _.isEmpty(this.state.post.response) }
+							onClick={() => this.clearInputs()}
 							>Clear</Button>
 
                         </Jumbotron>

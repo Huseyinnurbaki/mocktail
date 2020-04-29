@@ -10,11 +10,13 @@ import {Toast} from 'react-bootstrap';
         <div
             aria-live="polite"
             aria-atomic="true"
-            style={{ position: 'relative', minHeight: '65px', }}
+            style={{ position: 'relative', minHeight: '65px',zIndex: 9 }}
         >
             <div style={{ position: 'absolute', top: 0, right: 0, }} >
                 <Toast
                 style={{
+                    minHeight: '100px',
+                    minWidth: '300px',
                     borderWidth: '1px',
                     borderRadius: '4px',
                     borderColor: props.toastBody.includes('!') ?  'red' : '#4BB543',
