@@ -3,6 +3,7 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 import MockItem from '../MockItem';
+import _ from 'lodash';
 
 export default function MockList(props) {
     const [displayedApis, setApis] = useState(props.apis.data);
@@ -29,7 +30,7 @@ export default function MockList(props) {
         </Form>
         <div className="scroller" >
 
-        { displayedApis ? 
+        { !_.isEmpty(displayedApis) ? 
         displayedApis.map((item, index) => 
         <MockItem data={item} key={index} onPressAction={props.onPressAction} ></MockItem>
         )
@@ -40,11 +41,4 @@ export default function MockList(props) {
         </ListGroup>
     );
 }
-
-
-
-
-
-
-
 

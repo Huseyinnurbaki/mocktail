@@ -437,7 +437,6 @@ export default class Home extends React.Component {
 							<Button
 							style={{ marginLeft: '20px' }}
 							variant="warning"
-							onClick={this.clearInputs}
 							disabled={!this.state.post.endpoint && _.isEmpty(this.state.post.request)  && _.isEmpty(this.state.post.response) }
 							onClick={() => this.clearInputs()}
 							>Clear</Button>

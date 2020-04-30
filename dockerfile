@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:lts-slim
 
 # Create app directory
 WORKDIR /
