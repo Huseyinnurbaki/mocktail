@@ -20,19 +20,23 @@ export default function MockList(props) {
         ) : undefined;
         setApis(results);
     }, [searchTerm]);
+
     return (
         <ListGroup>
                 <label htmlFor="basic-url">Type only the endpoint..</label>
         <Form inline style={{marginTop: '10px', marginBottom: '20px' }} >
             <FormControl disabled={!displayedApis} type="text" placeholder="Search" className="mr-sm-2" onChange={searchHandler} />
         </Form>
+        <div className="scroller" >
+
         { displayedApis ? 
         displayedApis.map((item, index) => 
-            <MockItem data={item} key={index} onPressAction={props.onPressAction} ></MockItem>
+        <MockItem data={item} key={index} onPressAction={props.onPressAction} ></MockItem>
         )
         :
-                <h1 className="header">Hey, Go Add Some Api</h1>
+        <h1 className="header">Hey, Go Add Some Api</h1>
     }
+    </div>
         </ListGroup>
     );
 }

@@ -1,16 +1,27 @@
+*{font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif};
+
 body {
-  font-family: 'Verdana', sans-serif;  
   margin: 0px;
-
 }
 
-h1 {
-  font-weight: 300;
-  color: #111111
+html {
+    scroll-behavior: smooth;
 }
 
-.myheader {
- 
+
+.smallDetail {
+  margin: 20px 10px 10px 14px;
+  font-weight: 500;
+}
+
+.jumboTop {
+  min-height: 600px;
+
+}
+.jumbos {
+  min-height: 600px;
+  align-items: center;
+   
 
 }
 
@@ -32,6 +43,10 @@ h1 {
     margin-left: auto;
   margin-right: auto;
 
+}
+
+.h1dr {
+  color: rgb(13, 60, 79);
 }
 
 ul {

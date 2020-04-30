@@ -11,6 +11,7 @@ import BigTextInput from '../../components/BigTextInput';
 import MockList from '../../components/MockList';
 import MockItemDetail from '../../components/MockItemDetail';
 import CustomToast from '../../components/CustomToast';
+import TipsNTricks from '../../components/TipsNTricks';
 
 export default class Home extends React.Component {
     constructor(props) {
@@ -370,7 +371,7 @@ export default class Home extends React.Component {
 				onHide={this.onHide}
 				cascadem={this.cascadem}
 				deleteSelectedRequest={this.deleteSelectedRequest}
-				> </CustomModal>
+				/>
                    
 				   <CustomToast
 				   onToastClose={this.onToastClose}
@@ -383,20 +384,22 @@ export default class Home extends React.Component {
 					onSelect={(key) => this.setState({ tab: key })}
 					>
                     <Tab eventKey="get" title="Get">
-                        <Jumbotron>
-                            <h1 className="header">Get Request Template</h1>
+                        <Jumbotron className="jumboTop" >
 								<Form ref="formget">
-                            <PrefixedInput ref="input" value={this.state.get.endpoint} onChange={this.handleChangeGetEndpoint}  ></PrefixedInput>
                             <Row>
+								<Col>
+                            <h1 className="h1dr">Get Request Template</h1>
+                            <PrefixedInput ref="input" value={this.state.get.endpoint} onChange={this.handleChangeGetEndpoint}  ></PrefixedInput>
 
 									<BigTextInput
 									  label="Response"
 									  value={JSON.stringify(this.state.get.response)} 
 									  onChange={this.handleChangeGetResponse}
-									  ></BigTextInput>
-                                <Col>
-                                    <h1 className="header">Get Request Template</h1>
-                                </Col>
+									  />
+									  </Col>
+									  
+											<TipsNTricks/>
+                              
 
                             </Row>
 								</Form>
@@ -409,8 +412,8 @@ export default class Home extends React.Component {
 							
                     </Tab>
                     <Tab eventKey="post" title="Post">
-                        <Jumbotron>
-                            <h1 className="header">Post Request Template</h1>
+                        <Jumbotron className="jumboTop" >
+								<h1 className="h1dr">Post Request Template</h1>
 							<Form ref="formpost">
 								
 							<PrefixedInput ref="input" value={this.state.post.endpoint} onChange={this.handleChangePostEndpoint}  ></PrefixedInput>
@@ -442,8 +445,8 @@ export default class Home extends React.Component {
                         </Jumbotron>
                     </Tab>         
                     <Tab eventKey="validator" title="JSON Validator">
-                        <Jumbotron>
-                             <h1 className="header">Json Validator</h1>
+                        <Jumbotron className="jumboTop" >
+								<h1 className="h1dr">Json Validator</h1>
 							 <Row>
 								 <Col>
 								<Form ref="JsonLint">
@@ -492,7 +495,7 @@ export default class Home extends React.Component {
                         </Jumbotron>
                     </Tab>
                     <Tab disabled eventKey="export" title="Export">
-                        <Jumbotron>
+                        <Jumbotron className="jumboTop" >
                             {/* <h1 className="header">Cascade</h1>
                             <h2 className="header">You can always make a clean start</h2>
                             <h3 className="header">*This action is irreversible</h3>
@@ -501,7 +504,7 @@ export default class Home extends React.Component {
                         </Jumbotron>
                     </Tab>
                     <Tab disabled eventKey="import" title="Import">
-                        <Jumbotron>
+                        <Jumbotron className="jumboTop" >
                             {/* <h1 className="header">Cascade</h1>
                             <h2 className="header">You can always make a clean start</h2>
                             <h3 className="header">*This action is irreversible</h3>
@@ -510,10 +513,10 @@ export default class Home extends React.Component {
                         </Jumbotron>
                     </Tab>
 					<Tab eventKey="cascade" title="Cascade">
-						<Jumbotron>
-							<h1 className="header">Cascade</h1>
-							<h2 className="header">You can always make a clean start</h2>
-							<h3 className="header">*This action is irreversible</h3>
+						<Jumbotron className="jumboTop" >
+							<h1 className="h1dr">Cascade</h1>
+							<h2 className="h1dr">You can always make a clean start</h2>
+							<h3 className="h1dr">*This action is irreversible</h3>
 
 							<Button variant="danger" onClick={() => this.cascadeWarning()} >Cascade</Button>
 						</Jumbotron>
@@ -522,8 +525,8 @@ export default class Home extends React.Component {
        
                 <Row>
                     <Col>
-						<Jumbotron style={{ alignItems: 'center', minHeight: '400px' }} >
-							<h1 className="header"> Total Requests {this.state.apis && this.state.apis.data ? this.state.apis.data.length : 0} </h1>
+						<Jumbotron className="jumbos">
+							<h1 className="h1dr"> Total Requests {this.state.apis && this.state.apis.data ? this.state.apis.data.length : 0} </h1>
                             {this.state.showLoader ? 
                                 <Col style={{  alignSelf: 'center' }}>
                                     <Row style={{  justifyContent: 'center' }} >
@@ -537,8 +540,8 @@ export default class Home extends React.Component {
                         </Jumbotron>
                     </Col>
                     <Col>
-                        <Jumbotron style={{ minHeight: '400px' }} >
-                            <h1 className="header">Request Details</h1>
+                        <Jumbotron className="jumbos" >
+                            <h1 className="h1dr">Request Details</h1>
 							<MockItemDetail
 							disabled 
 							data={this.state.selectedApi}
@@ -546,17 +549,7 @@ export default class Home extends React.Component {
 							deletionStatus={this.state.deletionStatus}
 							testItem={this.testItem}
 							apiCheck={this.state.apiCheck}
-
-							
 							/>
-							{this.state.apiCheck && this.state.apiCheck.status
-							?
-							<Badge
-								variant={this.state.apiCheck.status !== 'success' ? 'danger' : 'success'}>
-								{this.state.apiCheck.status !== 'success' ? this.state.apiCheck.error : 'Succeeded'}</Badge>
-							:
-							null
-							}
                         </Jumbotron>
                     </Col>
                 </Row>

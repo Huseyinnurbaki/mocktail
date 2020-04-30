@@ -10,8 +10,8 @@ const BigTextInput = (props) => {
                 <Form.Control
                 {...props}
                 as="textarea"
-                rows="6"
-                onChange={props.onChange}
+                rows="8"
+                onInput={props.onChange}
                 value={props.disabled ? props.value : undefined}
                 />
             </Form.Group>

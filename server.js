@@ -6,7 +6,7 @@ var bodyParser = require("body-parser");
 var _ = require('lodash');
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '40MB' }));
 
 
 
@@ -16,6 +16,9 @@ var listener = app.listen(7080, function () {
 
 app.get("/getall", async function (req, res) {
     let vals = await db.fetch("allRequests");
+    if(!_.isEmpty(vals)) {
+        vals = [].concat(vals).reverse();
+    }
     res.send(vals);
 });
 
@@ -38,10 +41,13 @@ app.post("/savetemplate", async function (req, res) {
     if(!updateFlag){
         requestsWeOwn.push(req.body.body);
     }
-    await db.set('allRequests', requestsWeOwn);
+    try {
+        await db.set('allRequests', requestsWeOwn);
+    } catch (err) {
+        console.log(err);
+        
+    }
 
-    let vals = await db.fetch("allRequests");
-    console.log(vals);
     res.send(requestsWeOwn);
 });
 
