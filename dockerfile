@@ -5,8 +5,9 @@ WORKDIR /
 
 # Install app dependencies
 COPY package*.json ./
-
+RUN curl -sf https://gobinaries.com/tj/node-prune | sh
 RUN npm install
+RUN node-prune ./node_modules
 
 # Bundle app source
 COPY . .

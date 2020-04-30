@@ -5,7 +5,8 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:prettier/recommended"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -22,6 +23,8 @@
         "react"
     ],
     "rules": {
+        "no-console": "warn",
+        "no-eval": "error"
     }
     
 }

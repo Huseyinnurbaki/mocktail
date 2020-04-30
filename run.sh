@@ -1,13 +1,11 @@
+# Build
+docker build -t hhaluk/mocktail .
 
-# # build
-# docker build -t hhaluk/nobeczapi .
+# Run
+docker run -p 7084:7084 -d hhaluk/mocktail
 
-# # push to docker hub
-# docker push hhaluk/nobeczapi:latest
-
-# # #update amazon
-# aws ecs update-service --cluster default --service nobetcieczane-service --force-new-deployment
+# Push
+docker push hhaluk/mocktail:latest
 
 
-# # docker run -p 30046:7080 -d hhaluk/nobeczapi:latest
 
