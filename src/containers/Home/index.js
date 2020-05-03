@@ -21,6 +21,7 @@ import MockList from "../../components/MockList"
 import MockItemDetail from "../../components/MockItemDetail"
 import CustomToast from "../../components/CustomToast"
 import TipsNTricks from "../../components/TipsNTricks"
+import CustomDropzone from "../../components/CustomDropzone"
 import Tips from "./Tips"
 
 export default class Home extends React.Component {
@@ -398,7 +399,33 @@ export default class Home extends React.Component {
     document.body.removeChild(link)
   }
 
-  upload() {}
+  async upload(fileValue) {
+    try {
+      const convertedFile = JSON.parse(fileValue)
+      const up = await axios
+        .post("http://localhost:7084/upload", {
+          body: convertedFile,
+        })
+        .then(function (response) {
+          console.log(response)
+          if (response.data === "") {
+            return {}
+          }
+          return response
+        })
+        .catch(function (error) {
+          console.log(error)
+          return {}
+        })      
+    } catch (error) {
+      // error verdir
+      
+    }
+  }
+
+
+
+    
 
   render() {
     return (
@@ -419,7 +446,7 @@ export default class Home extends React.Component {
           />
           <Tabs
             id="controlled-tab-example"
-            activeKey={this.state.tab}
+            activeKey={"import"}
             onSelect={(key) => this.setState({ tab: key })}
           >
             <Tab eventKey="get" title="Get">
@@ -658,12 +685,7 @@ export default class Home extends React.Component {
                     </Button>
                   </Col>
                   <Col>
-                    <img
-                      src="do.png"
-                      style={{ height: "250px", marginTop: "80px" }}
-                      className="headerimg"
-                      alt=""
-                    />
+                    <CustomDropzone upload={this.upload} />
                   </Col>
                 </Row>
               </Jumbotron>

@@ -51,6 +51,15 @@ html {
   color: rgb(13, 60, 79);
 }
 
+.dropzoneWrapper {
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  border: brown;
+  border-width: 2px;
+
+}
+
 ul {
   list-style-type: none;
   padding: 10px;

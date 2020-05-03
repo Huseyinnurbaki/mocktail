@@ -23,6 +23,19 @@ app.get("/getall", async function (req, res) {
   res.send(vals)
 })
 
+app.post("/upload", async function (req, res) {
+  // console.log(requestsWeOwn);
+ const val = req.body;
+  console.log(val);
+ 
+
+
+  res.send("true")
+})
+
+
+
+
 app.get("/exportall", async function (req, res) {
   const vals = await db.fetch("allRequests")
   var file = path.join(__dirname, "/public/mocktail.json")
@@ -40,7 +53,6 @@ app.get("/exportall", async function (req, res) {
   console.log(writoToJsonSuccessBoolean)
 
   res.sendFile(file)
-
 })
 
 app.post("/savetemplate", async function (req, res) {

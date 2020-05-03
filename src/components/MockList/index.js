@@ -27,30 +27,30 @@ export default function MockList(props) {
 
   return (
     <Col>
-    <ListGroup>
-      <Form inline style={{ marginTop: "10px", marginBottom: "20px" }}>
-        <FormControl
-          disabled={!displayedApis}
-          type="text"
-          placeholder="Type only the endpoint.."
-          className="mr-sm-2"
-          onChange={searchHandler}
+      <ListGroup>
+        <Form inline style={{ marginTop: "10px", marginBottom: "20px" }}>
+          <FormControl
+            disabled={!displayedApis}
+            type="text"
+            placeholder="Type only the endpoint.."
+            className="mr-sm-2"
+            onChange={searchHandler}
           />
-      </Form>
-      <div className="scroller">
-        {!_.isEmpty(displayedApis) ? (
-          displayedApis.map((item, index) => (
-            <MockItem
-            data={item}
-            key={index}
-            onPressAction={props.onPressAction}
-            ></MockItem>
+        </Form>
+        <div className="scroller">
+          {!_.isEmpty(displayedApis) ? (
+            displayedApis.map((item, index) => (
+              <MockItem
+                data={item}
+                key={index}
+                onPressAction={props.onPressAction}
+              ></MockItem>
             ))
-            ) : (
-              <h3 className="header">There is no endpoint..</h3>
-              )}
-      </div>
-    </ListGroup>
-              </Col>
+          ) : (
+            <h3 className="header">There is no endpoint..</h3>
+          )}
+        </div>
+      </ListGroup>
+    </Col>
   )
 }
