@@ -1,10 +1,12 @@
 /* eslint-disable no-undef */
 var express = require("express")
+var path = require("path")
 var app = express()
 var cors = require("cors")
 var db = require("quick.db")
 var bodyParser = require("body-parser")
 var _ = require("lodash")
+const jsonfile = require("jsonfile")
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: "40MB" }))
@@ -19,6 +21,26 @@ app.get("/getall", async function (req, res) {
     vals = [].concat(vals).reverse()
   }
   res.send(vals)
+})
+
+app.get("/exportall", async function (req, res) {
+  const vals = await db.fetch("allRequests")
+  var file = path.join(__dirname, "/public/mocktail.json")
+  const obj = { apis: vals }
+  const writoToJsonSuccessBoolean = await jsonfile.writeFile(
+    file,
+    obj,
+    { spaces: 2 },
+    function (err) {
+      if (err) {
+        console.error(err)
+      }
+    }
+  )
+  console.log(writoToJsonSuccessBoolean)
+
+  res.sendFile(file)
+
 })
 
 app.post("/savetemplate", async function (req, res) {
@@ -66,7 +88,7 @@ app.get("/mocktail/:endpoint", async function (req, res) {
       vals[index].endpoint === req.params.endpoint
     ) {
       potentialResponse = vals[index].response
-      potentialResponse = { status: "success" }
+      potentialResponse.status = "success"
     }
   }
   res.send(potentialResponse)

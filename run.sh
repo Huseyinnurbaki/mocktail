@@ -5,7 +5,7 @@ docker build -t hhaluk/mocktail .
 docker run -p 7084:7084 -d hhaluk/mocktail
 
 # Push
-docker push hhaluk/mocktail:latest
+# docker push hhaluk/mocktail:latest
 
 
 

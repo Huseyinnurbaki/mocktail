@@ -21,6 +21,7 @@ import MockList from "../../components/MockList"
 import MockItemDetail from "../../components/MockItemDetail"
 import CustomToast from "../../components/CustomToast"
 import TipsNTricks from "../../components/TipsNTricks"
+import Tips from "./Tips"
 
 export default class Home extends React.Component {
   constructor(props) {
@@ -49,9 +50,9 @@ export default class Home extends React.Component {
       deletionStatus: null,
       showToast: true,
       toastBody: "",
+      isgetResponseBodyValid: "",
+      tip: "",
     }
-    this.getAllUrl = "http://localhost:7084/getall"
-    this.cascadaAllUrl = "http://localhost:7084/cascadeall"
     this.defaultModalValues = {
       type: "",
       header: "",
@@ -76,8 +77,9 @@ export default class Home extends React.Component {
     this.testItem = this.testItem.bind(this)
     this.deleteWarning = this.deleteWarning.bind(this)
     this.deleteSelectedRequest = this.deleteSelectedRequest.bind(this)
-    this.anythingMissing = this.anythingMissing.bind(this)
     this.onToastClose = this.onToastClose.bind(this)
+    this.download = this.download.bind(this)
+    this.upload = this.upload.bind(this)
   }
 
   componentDidMount() {
@@ -85,8 +87,9 @@ export default class Home extends React.Component {
   }
 
   async getApis() {
+    let randomNumber = Math.floor(Math.random() * Tips.length)
     const apis = await axios
-      .get(this.getAllUrl, {
+      .get("http://localhost:7084/getall", {
         headers: {
           "content-type": "application/json",
         },
@@ -113,6 +116,7 @@ export default class Home extends React.Component {
         showModal: false,
         showToast: true,
         toastBody: "Error occured, endpoints could not be retrieved !",
+        tip: Tips[randomNumber],
       })
     } else {
       this.setState({
@@ -124,6 +128,7 @@ export default class Home extends React.Component {
         showModal: false,
         showToast: true,
         toastBody: "Successfuly fetched mock endpoints.",
+        tip: Tips[randomNumber],
       })
     }
   }
@@ -172,8 +177,12 @@ export default class Home extends React.Component {
   }
 
   validate(template) {
-    console.log(template)
+    // const expression = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+) (?:: (\d +))?(?: \/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/
+    // const regex = new RegExp(expression)
     try {
+      template.endpoint = template.endpoint.toLocaleLowerCase("en-US")
+      template.endpoint = template.endpoint.replace(/\s/g, "")
+
       template.response = JSON.parse(template.response)
       if (template.request) {
         template.request = JSON.parse(template.request)
@@ -187,25 +196,7 @@ export default class Home extends React.Component {
     return false
   }
 
-  anythingMissing(data) {
-    if (data.method === "get") {
-      if (data.endpoint === "" || data.response === {}) {
-        return true
-      }
-    } else {
-      if (data.endpoint === "" || data.response === {} || data.request === {}) {
-        return true
-      }
-    }
-    return false
-  }
   save(type) {
-    const missingParts = this.anythingMissing(this.state[type])
-    if (missingParts) {
-      console.log(missingParts)
-      return
-      // burada kes servise gitme
-    }
     const isValidBoolean = this.validate(this.state[type])
     console.log(isValidBoolean)
 
@@ -277,15 +268,29 @@ export default class Home extends React.Component {
     this.setState({ modalValues, showModal: true })
   }
 
-  cascade() {
+  async cascade() {
     this.onHide()
-    const success = getTemplate(this.cascadaAllUrl)
-    if (success) {
+    const success = await axios
+      .get("http://localhost:7084/cascadeall", {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      .then(function (response) {
+        console.log(response)
+        return response
+      })
+      .catch(function (error) {
+        console.log(error)
+        return error
+      })
+    if (success.data === "True") {
       this.getApis()
     } else {
       this.setState({
         showToast: true,
-        toastBody: "Could not delete - Pleade open an Issue on Github",
+        toastBody:
+          "Could not delete - Pleade create an Issue on Github - Huseyinnurbaki/mocktail",
       })
     }
   }
@@ -299,12 +304,21 @@ export default class Home extends React.Component {
     this.setState({ jsonValidatorInput, isJsonValidatorInputValid: "" })
   }
   validateJson(value) {
+    // json validator tab
     let isJsonValidatorInputValid = "JSON is not valid !!"
+    if (_.isEmpty(value)) {
+      isJsonValidatorInputValid = "Where is the json !"
+      this.setState({ isJsonValidatorInputValid })
+      return
+    }
     try {
       JSON.parse(value)
       isJsonValidatorInputValid = "JSON is valid"
     } catch (error) {
       console.log(error)
+      if (error.message) {
+        isJsonValidatorInputValid = error.message + " " + "!"
+      }
     }
     this.setState({ isJsonValidatorInputValid })
   }
@@ -366,6 +380,26 @@ export default class Home extends React.Component {
     this.setState({ showToast: false, toastBody: "" })
   }
 
+  async download() {
+    await axios
+      .get("http://localhost:7084/exportall")
+      .then(function (response) {
+        return response
+      })
+      .catch(function (error) {
+        console.log(error)
+        return error
+      })
+    const link = document.createElement("a")
+    link.href = "/mocktail.json"
+    link.download = "mocktail.json"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  upload() {}
+
   render() {
     return (
       <div style={{ backgroundColor: "rgb(250, 250, 250)" }}>
@@ -393,7 +427,9 @@ export default class Home extends React.Component {
                 <Form ref="formget">
                   <Row>
                     <Col>
-                      <h1 className="h1dr">Get Request Template</h1>
+                      <Col>
+                        <h1 className="h1dr">Get Request Template</h1>
+                      </Col>
                       <PrefixedInput
                         ref="input"
                         value={this.state.get.endpoint}
@@ -401,38 +437,54 @@ export default class Home extends React.Component {
                       ></PrefixedInput>
 
                       <BigTextInput
-                        label="Response"
+                        label="Response Body"
                         value={JSON.stringify(this.state.get.response)}
                         onChange={this.handleChangeGetResponse}
+                        style={
+                          this.state.isgetResponseBodyValid &&
+                          this.state.isgetResponseBodyValid.length > 0
+                            ? {
+                                borderColor: this.state.isgetResponseBodyValid.includes(
+                                  "!"
+                                )
+                                  ? "red"
+                                  : "#4BB543",
+                                borderWidth: 1.5,
+                              }
+                            : {}
+                        }
                       />
                     </Col>
-
-                    <TipsNTricks />
+                    <TipsNTricks tip={this.state.tip} />
                   </Row>
                 </Form>
-                <Button
-                  disabled={
-                    !this.state.get.endpoint || _.isEmpty(this.state.get.response)
-                  }
-                  onClick={() => this.save("get")}
-                >
-                  Save
-                </Button>
-                <Button
-                  disabled={
-                    !this.state.get.endpoint && _.isEmpty(this.state.get.response)
-                  }
-                  style={{ marginLeft: "20px" }}
-                  variant="warning"
-                  onClick={this.clearInputs}
-                >
-                  Clear
-                </Button>
+                <Col>
+                  <Button
+                    disabled={
+                      !this.state.get.endpoint || _.isEmpty(this.state.get.response)
+                    }
+                    onClick={() => this.save("get")}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    disabled={
+                      !this.state.get.endpoint && _.isEmpty(this.state.get.response)
+                    }
+                    style={{ marginLeft: "20px" }}
+                    variant="warning"
+                    onClick={this.clearInputs}
+                  >
+                    Clear
+                  </Button>
+                </Col>
               </Jumbotron>
             </Tab>
             <Tab eventKey="post" title="Post">
               <Jumbotron className="jumboTop">
-                <h1 className="h1dr">Post Request Template</h1>
+                <Col>
+                  <h1 className="h1dr">Post Request Template</h1>
+                </Col>
                 <Form ref="formpost">
                   <PrefixedInput
                     ref="input"
@@ -441,61 +493,81 @@ export default class Home extends React.Component {
                   ></PrefixedInput>
 
                   <Row>
-                    <BigTextInput
-                      label="Request"
-                      value={JSON.stringify(this.state.post.request)}
-                      onChange={this.handleChangePostRequest}
-                    />
-                    <BigTextInput
-                      value={JSON.stringify(this.state.post.response)}
-                      label="Response"
-                      onChange={this.handleChangePostResponse}
-                    />
+                    <Col>
+                      <BigTextInput
+                        label="Request Body"
+                        value={JSON.stringify(this.state.post.request)}
+                        onChange={this.handleChangePostRequest}
+                      />
+                    </Col>
+                    <Col>
+                      <BigTextInput
+                        value={JSON.stringify(this.state.post.response)}
+                        label="Response Body"
+                        onChange={this.handleChangePostResponse}
+                      />
+                    </Col>
                   </Row>
                 </Form>
-                <Button
-                  disabled={
-                    !this.state.post.endpoint ||
-                    _.isEmpty(this.state.post.request) ||
-                    _.isEmpty(this.state.post.response)
-                  }
-                  onClick={() => this.save("post")}
-                >
-                  Save
-                </Button>
-                <Button
-                  style={{ marginLeft: "20px" }}
-                  variant="warning"
-                  disabled={
-                    !this.state.post.endpoint &&
-                    _.isEmpty(this.state.post.request) &&
-                    _.isEmpty(this.state.post.response)
-                  }
-                  onClick={() => this.clearInputs()}
-                >
-                  Clear
-                </Button>
+                <Col>
+                  <Button
+                    disabled={
+                      !this.state.post.endpoint ||
+                      _.isEmpty(this.state.post.request) ||
+                      _.isEmpty(this.state.post.response)
+                    }
+                    onClick={() => this.save("post")}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    style={{ marginLeft: "20px" }}
+                    variant="warning"
+                    disabled={
+                      !this.state.post.endpoint &&
+                      _.isEmpty(this.state.post.request) &&
+                      _.isEmpty(this.state.post.response)
+                    }
+                    onClick={() => this.clearInputs()}
+                  >
+                    Clear
+                  </Button>
+                </Col>
               </Jumbotron>
             </Tab>
             <Tab eventKey="validator" title="JSON Validator">
               <Jumbotron className="jumboTop">
-                <h1 className="h1dr">Json Validator</h1>
                 <Row>
                   <Col>
+                    <Col>
+                      <h1 className="h1dr">Json Validator</h1>
+                    </Col>
                     <Form ref="JsonLint">
                       <BigTextInput
-                        label="JsonLint"
                         onChange={this.jsonValidatorInputObserver}
+                        style={
+                          this.state.isJsonValidatorInputValid &&
+                          this.state.isJsonValidatorInputValid.length > 0
+                            ? {
+                                borderColor: this.state.isJsonValidatorInputValid.includes(
+                                  "!"
+                                )
+                                  ? "red"
+                                  : "#4BB543",
+                                borderWidth: 1.5,
+                              }
+                            : {}
+                        }
                       ></BigTextInput>
                     </Form>
                   </Col>
                   <Col>
                     {this.state.isJsonValidatorInputValid !== "" ? (
-                      <h1 className="header">
+                      <h3 className="header">
                         {this.state.isJsonValidatorInputValid}
-                      </h1>
+                      </h3>
                     ) : (
-                      <h1 className="header">Got nothing to validate </h1>
+                      <h1 className="header">Put your json data on the left.</h1>
                     )}
                     {this.state.isJsonValidatorInputValid ? (
                       <Badge
@@ -510,66 +582,117 @@ export default class Home extends React.Component {
                           : "Succeeded"}
                       </Badge>
                     ) : null}
-                    {/* { buraya valid json ı beautify edip yaz - valid olmayanı da beautify edip yaz
-								this.state.jsonValidatorInput 
-								?
-								<pre>{ jsonBeautified }</pre>
-								:
-								null
-
-							} 
-							 {/* <textarea 
-								 type="text"
-								 style={{width: '500px'}}
-								 disabled
-								 label="JsonLintValue"
-								 value={this.state.jsonValidatorInput}
-							></textarea> */}
                   </Col>
                 </Row>
+                <Col>
+                  <Button
+                    variant="success"
+                    onClick={() => this.validateJson(this.state.jsonValidatorInput)}
+                  >
+                    Check
+                  </Button>
+                  <Button
+                    style={{ marginLeft: "20px" }}
+                    variant="warning"
+                    onClick={() => this.clearJsonValidator()}
+                  >
+                    Clear
+                  </Button>
+                </Col>
+              </Jumbotron>
+            </Tab>
+            <Tab eventKey="export" title="Export">
+              <Jumbotron className="jumboTop">
+                <Row>
+                  <Col>
+                    <h1 className="h1dr">Export</h1>
+                    <h2 className="h1dr">
+                      You can export all mock templates into a json file to easily
+                      distribute mock templates.{" "}
+                    </h2>
+                    <h3 className="h1dr">
+                      *Later this file can be uploaded using upload tab. all working
+                      endpoints.{" "}
+                    </h3>
 
-                <Button
-                  variant="success"
-                  onClick={() => this.validateJson(this.state.jsonValidatorInput)}
-                >
-                  Check
-                </Button>
-                <Button
-                  style={{ marginLeft: "20px" }}
-                  variant="warning"
-                  onClick={() => this.clearJsonValidator()}
-                >
-                  Clear
-                </Button>
+                    <Button
+                      style={{ marginTop: "30px" }}
+                      variant="danger"
+                      onClick={() => this.download()}
+                    >
+                      Download
+                    </Button>
+                  </Col>
+                  <Col>
+                    <img
+                      src="do.png"
+                      style={{ height: "250px", marginTop: "80px" }}
+                      className="headerimg"
+                      alt=""
+                    />
+                  </Col>
+                </Row>
               </Jumbotron>
             </Tab>
-            <Tab disabled eventKey="export" title="Export">
+            <Tab eventKey="import" title="Import">
               <Jumbotron className="jumboTop">
-                {/* <h1 className="header">Cascade</h1>
-                            <h2 className="header">You can always make a clean start</h2>
-                            <h3 className="header">*This action is irreversible</h3>
-                  
-							<Button variant="danger" onClick={() => this.cascadeWarning()} >Cascade</Button> */}
-              </Jumbotron>
-            </Tab>
-            <Tab disabled eventKey="import" title="Import">
-              <Jumbotron className="jumboTop">
-                {/* <h1 className="header">Cascade</h1>
-                            <h2 className="header">You can always make a clean start</h2>
-                            <h3 className="header">*This action is irreversible</h3>
-                  
-							<Button variant="danger" onClick={() => this.cascadeWarning()} >Cascade</Button> */}
+                <Row>
+                  <Col>
+                    <h1 className="h1dr">Import</h1>
+                    <h2 className="h1dr">
+                      You can import multiple endpoints from file exported by
+                      mocktail.{" "}
+                    </h2>
+                    <h3 className="h1dr">
+                      *You can create a json file by yourself but there are many
+                      rules, I wouldn not want you to waste your time with filling a
+                      json file with rules.{" "}
+                    </h3>
+
+                    <Button
+                      style={{ marginTop: "30px" }}
+                      variant="danger"
+                      onClick={() => this.upload()}
+                    >
+                      Upload
+                    </Button>
+                  </Col>
+                  <Col>
+                    <img
+                      src="do.png"
+                      style={{ height: "250px", marginTop: "80px" }}
+                      className="headerimg"
+                      alt=""
+                    />
+                  </Col>
+                </Row>
               </Jumbotron>
             </Tab>
             <Tab eventKey="cascade" title="Cascade">
               <Jumbotron className="jumboTop">
-                <h1 className="h1dr">Cascade</h1>
-                <h2 className="h1dr">You can always make a clean start</h2>
-                <h3 className="h1dr">*This action is irreversible</h3>
+                <Row>
+                  <Col>
+                    <h1 className="h1dr">Cascade</h1>
+                    <h2 className="h1dr">You can always make a clean start</h2>
+                    <h3 className="h1dr">*This action is irreversible</h3>
 
-                <Button variant="danger" onClick={() => this.cascadeWarning()}>
-                  Cascade
-                </Button>
+                    <Button
+                      style={{ marginTop: "30px" }}
+                      variant="danger"
+                      onClick={() => this.cascadeWarning()}
+                    >
+                      Cascade
+                    </Button>
+                  </Col>
+                  <Col>
+                    <img
+                      src="exp.png"
+                      style={{ height: "250px", marginTop: "80px" }}
+                      className="headerimg"
+                      alt=""
+                    />
+                  </Col>
+                </Row>
               </Jumbotron>
             </Tab>
           </Tabs>
@@ -577,13 +700,15 @@ export default class Home extends React.Component {
           <Row>
             <Col>
               <Jumbotron className="jumbos">
-                <h1 className="h1dr">
-                  {" "}
-                  Total Requests{" "}
-                  {this.state.apis && this.state.apis.data
-                    ? this.state.apis.data.length
-                    : 0}{" "}
-                </h1>
+                <Col>
+                  <h1 className="h1dr">
+                    {" "}
+                    Total Requests{" "}
+                    {this.state.apis && this.state.apis.data
+                      ? this.state.apis.data.length
+                      : 0}{" "}
+                  </h1>
+                </Col>
                 {this.state.showLoader ? (
                   <Col style={{ alignSelf: "center" }}>
                     <Row style={{ justifyContent: "center" }}>
@@ -604,7 +729,6 @@ export default class Home extends React.Component {
             </Col>
             <Col>
               <Jumbotron className="jumbos">
-                <h1 className="h1dr">Request Details</h1>
                 <MockItemDetail
                   disabled
                   data={this.state.selectedApi}

@@ -5,7 +5,17 @@ import MockItem from "../MockItem"
 
 const MockItemDetail = (props) => {
   if (!props.data.method) {
-    return <h3 className="header">Choose a template from left</h3>
+    return (
+      <Col style={{ minHeight: "400px" }}>
+        <h1 className="h1dr">Choose Template From Left</h1>
+        <img
+          style={{ height: "100px", marginTop: "60px", opacity: "0.5" }}
+          src="left.png"
+          className="rounded mr-2"
+          alt=""
+        />
+      </Col>
+    )
   }
   let method = props.data.method.toString().toUpperCase()
   let borders = {}
@@ -15,11 +25,13 @@ const MockItemDetail = (props) => {
       borderWidth: 1.5,
     }
   }
-  // console.log("mockitemdetail -->", JSON.stringify(props.data.request, null, 2));
 
   return (
-    <Col>
-      <MockItem disabled={props.disabled} data={props.data}></MockItem>
+    <div>
+      <Col>
+        <h1 className="h1dr">Request Details</h1>
+        <MockItem disabled={props.disabled} data={props.data}></MockItem>
+      </Col>
       {method === "POST" ? (
         <BigTextInput
           style={borders}
@@ -34,26 +46,28 @@ const MockItemDetail = (props) => {
         disabled
         value={JSON.stringify(props.data.response, null, 2)}
       ></BigTextInput>
-      <Button variant="danger" onClick={props.deleteSelectedRequest}>
-        Delete
-      </Button>
-      <Button
-        style={{ marginLeft: "20px" }}
-        variant="success"
-        onClick={props.testItem}
-      >
-        Test
-      </Button>
+      <Col>
+        <Button variant="danger" onClick={props.deleteSelectedRequest}>
+          Delete
+        </Button>
+        <Button
+          style={{ marginLeft: "20px" }}
+          variant="success"
+          onClick={props.testItem}
+        >
+          Test
+        </Button>
+      </Col>
       <Row>
         {borders.borderColor ? (
-          <h7 className={"smallDetail"} style={{ color: borders.borderColor }}>
+          <h6 className={"smallDetail"} style={{ color: borders.borderColor }}>
             {borders.borderColor === "red"
               ? "Please try deleting and re-adding your request template."
               : "Success"}
-          </h7>
+          </h6>
         ) : null}
       </Row>
-    </Col>
+    </div>
   )
 }
 

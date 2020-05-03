@@ -1,5 +1,4 @@
 *{font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif};
-
 body {
   margin: 0px;
 }
@@ -8,7 +7,6 @@ html {
     scroll-behavior: smooth;
 }
 
-
 .smallDetail {
   margin: 20px 10px 10px 14px;
   font-weight: 500;
@@ -16,13 +14,17 @@ html {
 
 .jumboTop {
   min-height: 600px;
-
+  box-shadow: 0 4px 8px 0 rgba(179, 179, 179, 0.4), 0 3px 10px 0 rgba(179, 179, 179, 0.4);
 }
 .jumbos {
+  box-shadow: 0 4px 8px 0 rgba(179, 179, 179, 0.4), 0 6px 20px 0 rgba(179, 179, 179, 0.4);
   min-height: 600px;
-  align-items: center;
-   
+}
 
+.tipsntricks {
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  margin-bottom: 10px;
+  font-style: italic;
 }
 
 .myheadersides {
@@ -39,8 +41,8 @@ html {
 }
 
 .headerimg {
-    display: block;
-    margin-left: auto;
+  display: block;
+  margin-left: auto;
   margin-right: auto;
 
 }

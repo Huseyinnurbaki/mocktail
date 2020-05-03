@@ -1,0 +1,1 @@
+{"mocktail":[{"endpoint":"test","response":{},"method":"get","key":"gettest"},{"endpoint":"fds","response":{},"method":"get","key":"getfds"},{"endpoint":"ev","response":{},"method":"get","key":"getev"}]}

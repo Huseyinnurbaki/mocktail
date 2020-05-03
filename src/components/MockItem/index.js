@@ -1,6 +1,7 @@
 import React from "react"
 import InputGroup from "react-bootstrap/InputGroup"
 import FormControl from "react-bootstrap/FormControl"
+import Button from "react-bootstrap/Button"
 
 const MockItem = (props) => {
   let method = props.data.method.toString().toUpperCase()
@@ -9,12 +10,12 @@ const MockItem = (props) => {
     bgc = "#17b027"
     method = method + "  ."
   }
-  let endpoint = "https:localhost:7084/mocktail/" + props.data.endpoint
+  let endpoint = "http://localhost:7084/mocktail/" + props.data.endpoint
   return (
-    <dt ref={props.ref ? props.ref : null} key={props.index}>
+    <dt key={props.index}>
       <InputGroup
-        className="mb-3"
         onClick={!props.disabled ? () => props.onPressAction(props.data) : null}
+        className="mb-3"
       >
         <InputGroup.Prepend>
           <InputGroup.Text
@@ -30,6 +31,26 @@ const MockItem = (props) => {
           aria-describedby="basic-addon1"
           disabled
         />
+        <InputGroup.Append>
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(endpoint)
+            }}
+            variant="outline-secondary"
+          >
+            Copy
+          </Button>
+          {!props.disabled ? (
+            <Button
+              onClick={
+                !props.disabled ? () => props.onPressAction(props.data) : null
+              }
+              variant="outline-info"
+            >
+              Details
+            </Button>
+          ) : null}
+        </InputGroup.Append>
       </InputGroup>
     </dt>
   )

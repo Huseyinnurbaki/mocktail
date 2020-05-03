@@ -4,6 +4,7 @@ import Form from "react-bootstrap/Form"
 import FormControl from "react-bootstrap/FormControl"
 import MockItem from "../MockItem"
 import _ from "lodash"
+import Col from "react-bootstrap/cjs/Col"
 
 export default function MockList(props) {
   const [displayedApis, setApis] = useState(props.apis.data)
@@ -25,30 +26,31 @@ export default function MockList(props) {
   }, [searchTerm])
 
   return (
+    <Col>
     <ListGroup>
-      <label htmlFor="basic-url">Type only the endpoint..</label>
       <Form inline style={{ marginTop: "10px", marginBottom: "20px" }}>
         <FormControl
           disabled={!displayedApis}
           type="text"
-          placeholder="Search"
+          placeholder="Type only the endpoint.."
           className="mr-sm-2"
           onChange={searchHandler}
-        />
+          />
       </Form>
       <div className="scroller">
         {!_.isEmpty(displayedApis) ? (
           displayedApis.map((item, index) => (
             <MockItem
-              data={item}
-              key={index}
-              onPressAction={props.onPressAction}
+            data={item}
+            key={index}
+            onPressAction={props.onPressAction}
             ></MockItem>
-          ))
-        ) : (
-          <h1 className="header">Hey, Go Add Some Api</h1>
-        )}
+            ))
+            ) : (
+              <h3 className="header">There is no endpoint..</h3>
+              )}
       </div>
     </ListGroup>
+              </Col>
   )
 }
