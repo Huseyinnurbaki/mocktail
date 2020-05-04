@@ -1,23 +1,10 @@
 {
   "apis": [
     {
-      "endpoint": "test",
-      "response": {
-        "qwe": 12
-      },
+      "endpoint": "th",
       "method": "get",
-      "key": "gettest"
-    },
-    {
-      "endpoint": "test",
-      "method": "post",
-      "response": {
-        "qwe": 12
-      },
-      "request": {
-        "qwe": 12
-      },
-      "key": "posttest"
+      "response": {},
+      "key": "getth"
     }
   ]
 }

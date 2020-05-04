@@ -14,7 +14,9 @@ const Tips = [
   "You can add Get & Post Templates for same endpoint",
   "If you have same template in the json file you are uploading, last one will be applied.",
   "Only valid request templates will be saved. Others will be rejected. If you are seeing some of your templates after uploading json file, check if your template format is suitable. You can find more about template formats on github.com/Huseyinnurbaki/mocktail ",
-  "You can upload a folder full of json files. All possible templates will be used."
+  "You can upload a folder full of json files. All possible templates will be used.",
+  "You can recover after cascade operation. If you save a mock template, you will lose your chance of recover.",
+  "You can update a template by using same endpoint",
 ]
 
 export default Tips

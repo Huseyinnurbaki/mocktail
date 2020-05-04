@@ -83,6 +83,7 @@ export default class Home extends React.Component {
     this.upload = this.upload.bind(this)
     this.recoverWarning = this.recoverWarning.bind(this)
     this.recover = this.recover.bind(this)
+    this.homeRef = React.createRef()
   }
 
   componentDidMount() {
@@ -108,7 +109,6 @@ export default class Home extends React.Component {
         console.log(error)
         return "error"
       })
-
     if (apis === "error") {
       this.setState({
         apis: {},
@@ -210,7 +210,10 @@ export default class Home extends React.Component {
       this.clearInputs()
       this.getApis()
     } else {
-      // hata verdir
+      this.setState({
+        showToast: true,
+        toastBody: "Please Correct Your Json Object !",
+      })
     }
   }
 
@@ -301,7 +304,7 @@ export default class Home extends React.Component {
     } else {
       this.setState({
         showToast: true,
-        toastBody: "You can only recover after cascading. !",
+        toastBody: "You can only recover once after cascading. !",
       })
     }
   }
@@ -481,6 +484,11 @@ export default class Home extends React.Component {
     return (
       <div style={{ backgroundColor: "rgb(250, 250, 250)" }}>
         <Container fluid style={{ width: "80%" }}>
+          <CustomToast
+            onToastClose={this.onToastClose}
+            showToast={this.state.showToast}
+            toastBody={this.state.toastBody}
+          />
           <CustomModal
             show={this.state.showModal}
             vals={this.state.modalValues}
@@ -490,11 +498,6 @@ export default class Home extends React.Component {
             recover={this.recover}
           />
 
-          <CustomToast
-            onToastClose={this.onToastClose}
-            showToast={this.state.showToast}
-            toastBody={this.state.toastBody}
-          />
           <Tabs
             id="controlled-tab-example"
             activeKey={this.state.activeKey}

@@ -1,6 +1,7 @@
 *{font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif};
 body {
   margin: 0px;
+  display: flex;
 }
 
 html {
