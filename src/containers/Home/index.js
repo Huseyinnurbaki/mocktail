@@ -81,6 +81,8 @@ export default class Home extends React.Component {
     this.onToastClose = this.onToastClose.bind(this)
     this.download = this.download.bind(this)
     this.upload = this.upload.bind(this)
+    this.recoverWarning = this.recoverWarning.bind(this)
+    this.recover = this.recover.bind(this)
   }
 
   componentDidMount() {
@@ -269,6 +271,41 @@ export default class Home extends React.Component {
     this.setState({ modalValues, showModal: true })
   }
 
+  recoverWarning() {
+    const modalValues = {
+      type: "Warning",
+      header: "Recover",
+      desc: "You are about to recover to the moment before you cascaded",
+      secondary: "recover",
+    }
+    this.setState({ modalValues, showModal: true })
+  }
+  async recover() {
+    this.onHide()
+    const success = await axios
+      .get("http://localhost:7084/recover", {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      .then(function (response) {
+        console.log(response)
+        return response
+      })
+      .catch(function (error) {
+        console.log(error)
+        return error
+      })
+    if (success.data) {
+      this.getApis()
+    } else {
+      this.setState({
+        showToast: true,
+        toastBody: "You can only recover after cascading. !",
+      })
+    }
+  }
+
   async cascade() {
     this.onHide()
     const success = await axios
@@ -285,7 +322,7 @@ export default class Home extends React.Component {
         console.log(error)
         return error
       })
-    if (success.data === "True") {
+    if (success.data) {
       this.getApis()
     } else {
       this.setState({
@@ -400,32 +437,45 @@ export default class Home extends React.Component {
   }
 
   async upload(fileValue) {
+    let convertedFile
     try {
-      const convertedFile = JSON.parse(fileValue)
-      const up = await axios
-        .post("http://localhost:7084/upload", {
-          body: convertedFile,
-        })
-        .then(function (response) {
-          console.log(response)
-          if (response.data === "") {
-            return {}
-          }
-          return response
-        })
-        .catch(function (error) {
-          console.log(error)
-          return {}
-        })      
+      convertedFile = JSON.parse(fileValue)
     } catch (error) {
-      // error verdir
-      
+      convertedFile = false
+      console.log(error)
+    }
+    if (!convertedFile) {
+      this.setState({
+        showToast: true,
+        toastBody: "Please only upload single json file !",
+      })
+      return
+    }
+    const up = await axios
+      .post("http://localhost:7084/upload", {
+        body: convertedFile,
+      })
+      .then(function (response) {
+        console.log(response)
+        if (response.data === "") {
+          return {}
+        }
+        return response
+      })
+      .catch(function (error) {
+        console.log(error)
+        return {}
+      })
+
+    if (up.data) {
+      this.getApis()
+    } else {
+      this.setState({
+        showToast: true,
+        toastBody: "Your jsonfile is not valid !",
+      })
     }
   }
-
-
-
-    
 
   render() {
     return (
@@ -437,6 +487,7 @@ export default class Home extends React.Component {
             onHide={this.onHide}
             cascade={this.cascade}
             deleteSelectedRequest={this.deleteSelectedRequest}
+            recover={this.recover}
           />
 
           <CustomToast
@@ -446,7 +497,7 @@ export default class Home extends React.Component {
           />
           <Tabs
             id="controlled-tab-example"
-            activeKey={"import"}
+            activeKey={this.state.activeKey}
             onSelect={(key) => this.setState({ tab: key })}
           >
             <Tab eventKey="get" title="Get">
@@ -633,13 +684,12 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Export</h1>
-                    <h2 className="h1dr">
+                    <h2 className="h2dr">
                       You can export all mock templates into a json file to easily
                       distribute mock templates.{" "}
                     </h2>
                     <h3 className="h1dr">
-                      *Later this file can be uploaded using upload tab. all working
-                      endpoints.{" "}
+                      *Later this file can be uploaded using upload tab.{" "}
                     </h3>
 
                     <Button
@@ -653,7 +703,7 @@ export default class Home extends React.Component {
                   <Col>
                     <img
                       src="do.png"
-                      style={{ height: "250px", marginTop: "80px" }}
+                      style={{ height: "250px", marginTop: "80px", opacity: "0.85" }}
                       className="headerimg"
                       alt=""
                     />
@@ -666,23 +716,15 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Import</h1>
-                    <h2 className="h1dr">
+                    <h2 className="h2dr">
                       You can import multiple endpoints from file exported by
                       mocktail.{" "}
                     </h2>
                     <h3 className="h1dr">
                       *You can create a json file by yourself but there are many
-                      rules, I wouldn not want you to waste your time with filling a
+                      rules, I would not want you to waste your time with filling a
                       json file with rules.{" "}
                     </h3>
-
-                    <Button
-                      style={{ marginTop: "30px" }}
-                      variant="danger"
-                      onClick={() => this.upload()}
-                    >
-                      Upload
-                    </Button>
                   </Col>
                   <Col>
                     <CustomDropzone upload={this.upload} />
@@ -695,8 +737,10 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Cascade</h1>
-                    <h2 className="h1dr">You can always make a clean start</h2>
-                    <h3 className="h1dr">*This action is irreversible</h3>
+                    <h2 className="h2dr">You can always make a clean start</h2>
+                    <h3 className="h1dr">
+                      *This action can be reverted from Recover tab
+                    </h3>
 
                     <Button
                       style={{ marginTop: "30px" }}
@@ -709,7 +753,38 @@ export default class Home extends React.Component {
                   <Col>
                     <img
                       src="exp.png"
-                      style={{ height: "250px", marginTop: "80px" }}
+                      style={{ height: "250px", marginTop: "80px", opacity: "0.85" }}
+                      className="headerimg"
+                      alt=""
+                    />
+                  </Col>
+                </Row>
+              </Jumbotron>
+            </Tab>
+            <Tab eventKey="recover" title="Recover">
+              <Jumbotron className="jumboTop">
+                <Row>
+                  <Col>
+                    <h1 className="h1dr">Recover</h1>
+                    <h2 className="h2dr">You can recover after cascading.</h2>
+                    <h3 className="h1dr">
+                      *This action reverts cascade operation.Can only be used right
+                      after cascade operation. If you save any template after
+                      cascading, you cannot recover.
+                    </h3>
+
+                    <Button
+                      style={{ marginTop: "30px" }}
+                      variant="danger"
+                      onClick={() => this.recoverWarning()}
+                    >
+                      Recover
+                    </Button>
+                  </Col>
+                  <Col>
+                    <img
+                      src="he.png"
+                      style={{ height: "250px", marginTop: "80px", opacity: "0.85" }}
                       className="headerimg"
                       alt=""
                     />

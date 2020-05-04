@@ -1,3 +1,23 @@
 {
-  "apis": null
+  "apis": [
+    {
+      "endpoint": "test",
+      "response": {
+        "qwe": 12
+      },
+      "method": "get",
+      "key": "gettest"
+    },
+    {
+      "endpoint": "test",
+      "method": "post",
+      "response": {
+        "qwe": 12
+      },
+      "request": {
+        "qwe": 12
+      },
+      "key": "posttest"
+    }
+  ]
 }

@@ -50,6 +50,11 @@ html {
 .h1dr {
   color: rgb(13, 60, 79);
 }
+.h2dr {
+  color: rgb(13, 60, 79);
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
 
 .dropzoneWrapper {
   justify-content: center;

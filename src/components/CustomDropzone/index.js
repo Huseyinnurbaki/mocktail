@@ -29,15 +29,16 @@ export default function CustomDropzone(props) {
       <input {...getInputProps()} />
       <img
         style={{
-          height: "300px",
+          height: "250px",
           marginTop: "80px",
           alignSelf: "center",
-          opacity: "0.7",
+          opacity: "0.85",
         }}
         src="up.png"
         className="headerimg"
         alt=""
       ></img>
+      <h3 className='h2dr' style={{ textAlign: 'center',paddingTop: '5px'}} >Drop or Click Here</h3>
     </Col>
   )
 }

@@ -13,10 +13,7 @@ const MockItem = (props) => {
   let endpoint = "http://localhost:7084/mocktail/" + props.data.endpoint
   return (
     <dt key={props.index}>
-      <InputGroup
-        onClick={!props.disabled ? () => props.onPressAction(props.data) : null}
-        className="mb-3"
-      >
+      <InputGroup className="mb-3">
         <InputGroup.Prepend>
           <InputGroup.Text
             style={{ backgroundColor: bgc, color: "white", fontWeight: "600" }}

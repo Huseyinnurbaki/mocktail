@@ -19,7 +19,7 @@ const CustomToast = (props) => {
           }}
           onClose={() => props.onToastClose(false)}
           show={props.showToast}
-          delay={props.delay || 5000}
+          delay={props.delay || 3500}
           autohide={props.autohide || true}
         >
           <Toast.Header
