@@ -70,12 +70,13 @@ function patternCheck(mock) {
           return false
         }
       } else {
-        if (!isString(toBereturnedObj[getTemplateKeys[index]])) {
+        if (_.isEmpty(toBereturnedObj[getTemplateKeys[index]]) || !isString(toBereturnedObj[getTemplateKeys[index]])) {
           return false
         }
       }
     }
     // keys are very important. Must be validated carefully
+    toBereturnedObj.endpoint = toBereturnedObj.endpoint.replace(/\s/g, "")
     toBereturnedObj.key = toBereturnedObj.method + toBereturnedObj.endpoint
 
     return toBereturnedObj
@@ -98,6 +99,7 @@ function patternCheck(mock) {
       }
     }
     // keys are very important. Must be validated carefully
+    toBereturnedObj.endpoint = toBereturnedObj.endpoint.replace(/\s/g, "")
     toBereturnedObj.key = toBereturnedObj.method + toBereturnedObj.endpoint
     return toBereturnedObj
   }

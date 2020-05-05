@@ -62,7 +62,7 @@ Optimal Json Object
 
 ```json
 {
-"test": 123
+  "test": 123
 }
 ```
 
@@ -70,6 +70,31 @@ Optimal Json Object
 # Upcoming Features
 
 - Mock server will be accessible from other devices in same network
+
+# Warnings
+
+- Since the application is running inside an ephemeral container, if you delete your container, you will lose your data. If you just stop it, you won't lose your data.
+- Your data will not disappear if you quit docker. You can restart your container later.
+
+Use following commands to restart your stopped docker container.
+
+```console
+$ docker container ls -a
+```
+
+expected output:
+
+```console
+CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS                        PORTS                 
+29b9bc61f97a        hhaluk/mocktail       "docker-entrypoint.s…"   20 hours ago        Exited (255) 23 seconds ago   0.0.0.0:7084->7084/tcp
+```
+> No need to use the run command after restarting your container.
+```console
+$ docker restart <CONTAINER-ID>
+```
+
+
+
 
 
 ## Troubleshooting

@@ -304,7 +304,7 @@ export default class Home extends React.Component {
     } else {
       this.setState({
         showToast: true,
-        toastBody: "You can only recover once after cascading. !",
+        toastBody: "You can only recover once after cascading !",
       })
     }
   }
@@ -695,18 +695,19 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Export</h1>
-                    <h2 className="h2dr">
+                    <h3 className="h2dr">
                       You can export all mock templates into a json file to easily
                       distribute mock templates.{" "}
-                    </h2>
-                    <h3 className="h1dr">
-                      *Later this file can be uploaded using upload tab.{" "}
                     </h3>
+                    <h4 className="h1dr">
+                      *Later this file can be uploaded using upload tab.{" "}
+                    </h4>
 
                     <Button
                       style={{ marginTop: "30px" }}
                       variant="danger"
                       onClick={() => this.download()}
+                      size="lg"
                     >
                       Download
                     </Button>
@@ -727,15 +728,15 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Import</h1>
-                    <h2 className="h2dr">
+                    <h3 className="h2dr">
                       You can import multiple endpoints from file exported by
                       mocktail.{" "}
-                    </h2>
-                    <h3 className="h1dr">
+                    </h3>
+                    <h4 className="h1dr">
                       *You can create a json file by yourself but there are many
                       rules, I would not want you to waste your time with filling a
                       json file with rules.{" "}
-                    </h3>
+                    </h4>
                   </Col>
                   <Col>
                     <CustomDropzone upload={this.upload} />
@@ -748,15 +749,16 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Cascade</h1>
-                    <h2 className="h2dr">You can always make a clean start</h2>
-                    <h3 className="h1dr">
+                    <h3 className="h2dr">You can always make a clean start</h3>
+                    <h4 className="h1dr">
                       *This action can be reverted from Recover tab
-                    </h3>
+                    </h4>
 
                     <Button
                       style={{ marginTop: "30px" }}
                       variant="danger"
                       onClick={() => this.cascadeWarning()}
+                      size="lg"
                     >
                       Cascade
                     </Button>
@@ -777,17 +779,18 @@ export default class Home extends React.Component {
                 <Row>
                   <Col>
                     <h1 className="h1dr">Recover</h1>
-                    <h2 className="h2dr">You can recover after cascading.</h2>
-                    <h3 className="h1dr">
+                    <h3 className="h2dr">You can recover after cascading.</h3>
+                    <h4 className="h1dr">
                       *This action reverts cascade operation.Can only be used right
                       after cascade operation. If you save any template after
                       cascading, you cannot recover.
-                    </h3>
+                    </h4>
 
                     <Button
                       style={{ marginTop: "30px" }}
                       variant="danger"
                       onClick={() => this.recoverWarning()}
+                      size="lg"
                     >
                       Recover
                     </Button>

@@ -1,10 +1,31 @@
 {
   "apis": [
     {
-      "endpoint": "th",
+      "endpoint": "test",
+      "response": {
+        "test": 123
+      },
       "method": "get",
-      "response": {},
-      "key": "getth"
+      "key": "gettest"
+    },
+    {
+      "endpoint": "other-test",
+      "method": "post",
+      "response": {
+        "test": 123
+      },
+      "request": {
+        "test": 123
+      },
+      "key": "postother-test"
+    },
+    {
+      "endpoint": "new",
+      "response": {
+        "test": 333
+      },
+      "method": "get",
+      "key": "getnew"
     }
   ]
 }
