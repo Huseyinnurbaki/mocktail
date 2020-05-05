@@ -1,7 +1,7 @@
 import React from "react"
 import axios from "axios"
 import _ from "lodash"
-import { getTemplate, saveTemplate } from "../../requests"
+import { saveTemplate } from "../../requests"
 import {
   Jumbotron,
   Container,
@@ -268,7 +268,7 @@ export default class Home extends React.Component {
       type: "Warning",
       header: "Cascade",
       desc:
-        "You are about to delete every template you added. Are you sure ? this is irreversible",
+        "You are about to delete every template you added. Are you sure ? This can be reverted from recover tab",
       secondary: "cascade",
     }
     this.setState({ modalValues, showModal: true })
@@ -348,7 +348,7 @@ export default class Home extends React.Component {
     // json validator tab
     let isJsonValidatorInputValid = "JSON is not valid !!"
     if (_.isEmpty(value)) {
-      isJsonValidatorInputValid = "Where is the json !"
+      isJsonValidatorInputValid = "Input seems empty !"
       this.setState({ isJsonValidatorInputValid })
       return
     }
@@ -358,7 +358,7 @@ export default class Home extends React.Component {
     } catch (error) {
       console.log(error)
       if (error.message) {
-        isJsonValidatorInputValid = error.message + " " + "!"
+        isJsonValidatorInputValid = error.message + " !"
       }
     }
     this.setState({ isJsonValidatorInputValid })
@@ -643,29 +643,15 @@ export default class Home extends React.Component {
                     </Form>
                   </Col>
                   <Col>
-                    {this.state.isJsonValidatorInputValid !== "" ? (
-                      <h3 className="header">
-                        {this.state.isJsonValidatorInputValid}
-                      </h3>
-                    ) : (
-                      <h1 className="header">Put your json data on the left.</h1>
-                    )}
-                    {this.state.isJsonValidatorInputValid ? (
-                      <Badge
-                        variant={
-                          this.state.isJsonValidatorInputValid.includes("!")
-                            ? "danger"
-                            : "success"
-                        }
-                      >
-                        {this.state.isJsonValidatorInputValid.includes("!")
-                          ? "Failed"
-                          : "Succeeded"}
-                      </Badge>
-                    ) : null}
+                    <img
+                      src="hm.png"
+                      style={{ height: "250px", marginTop: "80px", opacity: "0.85" }}
+                      className="headerimg"
+                      alt=""
+                    />
                   </Col>
                 </Row>
-                <Col>
+                <Col style={{ width: "50%" }}>
                   <Button
                     variant="success"
                     onClick={() => this.validateJson(this.state.jsonValidatorInput)}
@@ -679,6 +665,28 @@ export default class Home extends React.Component {
                   >
                     Clear
                   </Button>
+                  <Row style={{ marginTop: '25px' }}>
+                    <Col>
+                      {this.state.isJsonValidatorInputValid !== "" ? (
+                        <h4 className="h1dr">
+                          {this.state.isJsonValidatorInputValid}
+                        </h4>
+                      ) : null}
+                    </Col>
+                  </Row>
+                  {this.state.isJsonValidatorInputValid ? (
+                    <Badge
+                      variant={
+                        this.state.isJsonValidatorInputValid.includes("!")
+                          ? "danger"
+                          : "success"
+                      }
+                    >
+                      {this.state.isJsonValidatorInputValid.includes("!")
+                        ? "Failed"
+                        : "Succeeded"}
+                    </Badge>
+                  ) : null}
                 </Col>
               </Jumbotron>
             </Tab>

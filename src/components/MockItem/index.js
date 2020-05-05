@@ -10,7 +10,8 @@ const MockItem = (props) => {
     bgc = "#17b027"
     method = method + "  ."
   }
-  let endpoint = "http://localhost:7084/mocktail/" + props.data.endpoint
+  let endpoint = '/' + props.data.endpoint
+  let copyEndpoint = "http://localhost:7084/mocktail/" + props.data.endpoint
   return (
     <dt key={props.index}>
       <InputGroup className="mb-3">
@@ -31,7 +32,7 @@ const MockItem = (props) => {
         <InputGroup.Append>
           <Button
             onClick={() => {
-              navigator.clipboard.writeText(endpoint)
+              navigator.clipboard.writeText(copyEndpoint)
             }}
             variant="outline-secondary"
           >
