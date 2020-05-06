@@ -93,7 +93,7 @@ export default class Home extends React.Component {
   async getApis() {
     let randomNumber = Math.floor(Math.random() * Tips.length)
     const apis = await axios
-      .get("http://localhost:7084/getall", {
+      .get("/getall", {
         headers: {
           "content-type": "application/json",
         },
@@ -140,7 +140,7 @@ export default class Home extends React.Component {
     let apiCheck
 
     const endpoint =
-      "http://localhost:7084/mocktail/" + this.state.selectedApi.endpoint
+      "/mocktail/" + this.state.selectedApi.endpoint
     if (this.state.selectedApi.method === "get") {
       apiCheck = await axios
         .get(endpoint, {
@@ -286,7 +286,7 @@ export default class Home extends React.Component {
   async recover() {
     this.onHide()
     const success = await axios
-      .get("http://localhost:7084/recover", {
+      .get("/recover", {
         headers: {
           "content-type": "application/json",
         },
@@ -312,7 +312,7 @@ export default class Home extends React.Component {
   async cascade() {
     this.onHide()
     const success = await axios
-      .get("http://localhost:7084/cascadeall", {
+      .get("/cascadeall", {
         headers: {
           "content-type": "application/json",
         },
@@ -369,7 +369,7 @@ export default class Home extends React.Component {
   }
 
   async deleteSelectedRequest() {
-    const endpoint = "http://localhost:7084/delete/" + this.state.selectedApi.key
+    const endpoint = "/delete/" + this.state.selectedApi.key
 
     const deletionStatus = await axios
       .get(endpoint, {
@@ -423,7 +423,7 @@ export default class Home extends React.Component {
 
   async download() {
     await axios
-      .get("http://localhost:7084/exportall")
+      .get("/exportall")
       .then(function (response) {
         return response
       })
@@ -455,7 +455,7 @@ export default class Home extends React.Component {
       return
     }
     const up = await axios
-      .post("http://localhost:7084/upload", {
+      .post("/upload", {
         body: convertedFile,
       })
       .then(function (response) {

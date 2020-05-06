@@ -2,4 +2,9 @@ node_modules
 npm-debug.log
 .vscode
 .git
-build
+mt.png
+readme.node_modulesrun.sh
+client
+.vscode
+.github
+howto

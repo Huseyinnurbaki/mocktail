@@ -17,10 +17,10 @@ You must have **docker** installed on the machine which **Mocktail** will run.
 
 #### Run the following command and you are all set.
 ```console
-$ docker run -p 7084:7084 -d hhaluk/mocktail
+$ docker run -p 7080:7080 -d hhaluk/mocktail
 ```
 
-#### Go to **localhost:7084**  
+#### Go to **localhost:7080**  
 
 ![alt text](./howto/mocktail.gif "tn")
 
@@ -49,7 +49,7 @@ There are 7 tabs on top and two section at the bottom.
 
 # Tips
 
-- Your base url is http://localhost:7084 so make your requests to this url.
+- Your base url is http://localhost:7080 so make your requests to this url.
 - Mocktail is not currently availbale from other devices in the network.
 - Use same endpoint to update a mock request template.
 - Whitespaces inside endpoints are automatically deleted .
@@ -86,7 +86,7 @@ expected output:
 
 ```console
 CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS                        PORTS                 
-29b9bc61f97a        hhaluk/mocktail       "docker-entrypoint.s…"   20 hours ago        Exited (255) 23 seconds ago   0.0.0.0:7084->7084/tcp
+29b9bc61f97a        hhaluk/mocktail       "docker-entrypoint.s…"   20 hours ago        Exited (255) 23 seconds ago   0.0.0.0:7080->7080/tcp
 ```
 > No need to use the run command after restarting your container.
 ```console

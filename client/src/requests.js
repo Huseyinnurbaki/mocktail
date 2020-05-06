@@ -32,7 +32,7 @@ export function saveTemplate(data) {
   const body = data.body
   body.key = data.body.method + data.body.endpoint
   axios
-    .post("http://localhost:7084/savetemplate", {
+    .post("/savetemplate", {
       body,
     })
     .then(function (response) {

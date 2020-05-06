@@ -2,52 +2,22 @@
     "name": "Mocktail",
     "version": "1.0.0",
     "author": "Hüseyin Nurbaki",
-    "description": "Just Mock",
+    "description": "Mocktail Server",
     "main": "server.js",
     "license": "MIT",
     "scripts": {
-        "nstart": "node server.js",
-        "start": "PORT=7084 react-scripts start",
-        "build": "react-scripts build",
-        "lint": "eslint .",
-        "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md|vue)\""
+        "start": "node server.js"
     },
-    "proxy": "http://localhost:7080",
     "dependencies": {
         "axios": "^0.19.2",
-        "bootstrap": "^4.4.1",
-        "cheerio": "^0.22.0",
+        "compression": "^1.7.4",
         "cors": "^2.8.5",
         "express": "^4.16.3",
         "jsonfile": "^6.0.1",
         "lodash": "^4.17.15",
-        "moment": "^2.24.0",
-        "quick.db": "7.1.1",
-        "react": "^16.8.6",
-        "react-bootstrap": "^1.0.1",
-        "react-dom": "^16.8.6",
-        "react-dropzone": "^11.0.1",
-        "react-router-dom": "^5.0.0",
-        "react-scripts": "2.1.8",
-        "request": "*"
+        "quick.db": "7.1.1"
     },
     "repository": {
         "url": "https://github.com/Huseyinnurbaki/mocktail"
-    },
-    "eslintConfig": {
-        "extends": "react-app"
-    },
-    "browserslist": [
-        ">0.2%",
-        "not dead",
-        "not ie <= 11",
-        "not op_mini all"
-    ],
-    "devDependencies": {
-        "eslint": "^5.12.0",
-        "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-prettier": "^3.1.3",
-        "eslint-plugin-react": "^7.19.0",
-        "prettier": "^2.0.5"
     }
 }

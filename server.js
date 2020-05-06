@@ -2,6 +2,7 @@
 var express = require("express")
 var path = require("path")
 var app = express()
+var compression = require("compression")
 var cors = require("cors")
 var db = require("quick.db")
 var bodyParser = require("body-parser")
@@ -11,9 +12,17 @@ const jsonfile = require("jsonfile")
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: "40MB" }))
 app.use(cors())
+app.use(compression())
+
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, "/client/build")))
 
 var listener = app.listen(7080, function () {
   console.log("Your app is listening on port " + listener.address().port)
+})
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname + "/client/build/index.html"))
 })
 
 app.get("/getall", async function (req, res) {
@@ -70,7 +79,10 @@ function patternCheck(mock) {
           return false
         }
       } else {
-        if (_.isEmpty(toBereturnedObj[getTemplateKeys[index]]) || !isString(toBereturnedObj[getTemplateKeys[index]])) {
+        if (
+          _.isEmpty(toBereturnedObj[getTemplateKeys[index]]) ||
+          !isString(toBereturnedObj[getTemplateKeys[index]])
+        ) {
           return false
         }
       }

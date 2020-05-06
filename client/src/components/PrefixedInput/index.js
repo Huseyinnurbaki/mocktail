@@ -10,7 +10,7 @@ const PrefixedInput = (props) => {
       <InputGroup className="mb-3">
         <InputGroup.Prepend>
           <InputGroup.Text id="basic-addon3">
-            http://localhost:7084/mocktail/
+            http://localhost:7080/mocktail/
           </InputGroup.Text>
         </InputGroup.Prepend>
         <FormControl

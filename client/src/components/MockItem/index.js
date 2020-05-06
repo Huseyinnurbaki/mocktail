@@ -11,7 +11,7 @@ const MockItem = (props) => {
     method = method + "  ."
   }
   let endpoint = '/' + props.data.endpoint
-  let copyEndpoint = "http://localhost:7084/mocktail/" + props.data.endpoint
+  let copyEndpoint = "http://localhost:7080/mocktail/" + props.data.endpoint
   return (
     <dt key={props.index}>
       <InputGroup className="mb-3">

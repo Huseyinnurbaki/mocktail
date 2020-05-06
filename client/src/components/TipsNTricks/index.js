@@ -15,7 +15,7 @@ const TipsNTricks = (props) => {
       <Col style={{ marginTop: '38px'}} >
         <Card.Title className="h1dr">Sample Get Request </Card.Title>
         <Card>
-          <Card.Body>http://localhost:7084/mocktail/your-endpoint</Card.Body>
+          <Card.Body>http://localhost:7080/mocktail/your-endpoint</Card.Body>
         </Card>
       </Col>
     </Col>
