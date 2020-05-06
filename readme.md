@@ -1,30 +1,34 @@
-![alt text](./mt.png "mt")
+![alt text](./howto/mt.png "mt")
 
 
 # Mocktail
 
-### Mocktail is a totally free, ready to run dockerized local mock server with a nice interface. There are no limitations or restrictions unlike most mock servers. You can create single/multiple get & post request templates. Templates can be exported and easily distributed. Learn more on  [Capabilities](#capabilities) section. Checking [Tips](#tips) & [Rules](#rules) section will take extra 5 minutes, but it is quite useful. 
+### Mocktail is a totally free, lightweight ready to run dockerized local mock server with a nice interface. There are no limitations or restrictions unlike most mock servers. You can create single/multiple get & post request templates at once. Templates can be exported and easily distributed. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
 
 ---
 
-> Mocktail means non-alcoholic drink consisting of a mixture of fruit juices or other soft drinks. 🍎 🍏 🍊 🍋 🍇 🍍 🥭 🥥
+> Mocktail means non-alcoholic drink consisting of a mixture of fruit juices or other soft drinks. 🍎 🍏 🍊 🍋 🍇 🍍 🥭
 
-## Prerequisites
+## Prerequisites 🧱
 
 You must have **docker** installed on the machine which **Mocktail** will run.
 
-# Quickstart
+# Quickstart 🚀
 
 #### Run the following command and you are all set.
 ```console
 $ docker run -p 7080:7080 -d hhaluk/mocktail
 ```
 
-#### Go to **localhost:7080**  
+#### Go to **localhost:7080**
 
-![alt text](./howto/mocktail.gif "tn")
+<p align="center">
+  <img src="./howto/mocktail.gif" alt="mocktail_gif" />
+</p>
 
-# Capabilities
+
+
+# Capabilities 😎
 
 There are 7 tabs on top and two section at the bottom. 
 
@@ -32,49 +36,42 @@ There are 7 tabs on top and two section at the bottom.
     - Write only the endpoint you wish to call into **endpoint** input.
     - Write the response you wish to obtain when you make a get request for the endpoint you just provided.
     - There are random tips every the page is refreshed.
-    - There is a full endpoitn sample.
+    - There is a full endpoint sample.
+    - If you are making your requests to another machine in your local network, change localhost to device's local ip. 
+```
+http://<device-local-ip>:/7080
+```
 - **Post** tab allows adding post requests.
     - Same as Get request, additionally provide **mandatory** fields inside request object. Later you will get an exception if you do not provide same keys in your request body.
-- **JSON Validator** Does what you expect it to do. ⚖️
-- **Export** Exports all stored mock request templates into a json file, so that you can share them with your teammates. 
-- **Import** Place the json file or files (can be a folder full of json files) on the area and witness pure magic.
-- **Cascade** You can **delete** 🗑️ all mock request templates at a moment. 
-- **Recover** If you are just curios and wondered what cascade can do to your requests, let's save the cat 🐈 , you can **revert** the cascade operation. 
+- **JSON Validator** ⚖️ Does what you expect it to do.
+- **Export** 	🌐 Exports all stored mock request templates into a json file, so that you can share them with your teammates. 
+- **Import** ⬇️ Place the json file or files (can be a folder full of json files) on the area and witness pure magic.
+- **Cascade** ☠️ You can **delete** 🗑️ all mock request templates at once. 
+- **Recover** 💊 If you are just curios and wondered what cascade can do to your requests, let's save the cat 🐈 , you can **revert** the cascade operation. 
 > You can recover only if you didn't add any new mock requests. After you add a request, recover option will be off the table.  ☠️
-- There is a list of available mock request items at the bottom left. A search bar is included. Type only the endpoint. 📋 Copy will copy full endpoint.
-- View details of a mock request by clicking details. You can test if your endpoint works ✅ or or delete it. 🗑️
-
-![alt text](./howto/second.png "tn")
+- There is a list of available mock request items at the bottom left. A search bar is included. Type only the endpoint. 📋 **Copy** will copy full endpoint.
+- View details of a mock request by clicking **details**. You can test if your endpoint works ✅ or delete it. 🗑️
 
 
-# Tips
+
+# Tips ✅
 
 - Your base url is http://localhost:7080 so make your requests to this url.
-- Mocktail is not currently availbale from other devices in the network.
+- You can publish your Mocktail on another port if your Port 7080 is occuppied by another process.
 - Use same endpoint to update a mock request template.
 - Whitespaces inside endpoints are automatically deleted .
 - Only http requests are allowed. 
+- Mocktail image is only 57 mb.
+- Kill docker container, to remove everything related to Mocktail Server. Zero mess. Pretty easy.
 
 
-# Rules
+# Warnings ⚠️
 
-Optimal Json Object
-
-```json
-{
-  "test": 123
-}
-```
+- Your data will **not** disappear if you quit docker. You can restart your container later.
+- If you somehow manage to break the application, please open a ticket. 
 
 
-# Upcoming Features
-
-- Mock server will be accessible from other devices in same network
-
-# Warnings
-
-- Since the application is running inside an ephemeral container, if you delete your container, you will lose your data. If you just stop it, you won't lose your data.
-- Your data will not disappear if you quit docker. You can restart your container later.
+# Troubleshooting 🔫
 
 Use following commands to restart your stopped docker container.
 
@@ -93,11 +90,17 @@ CONTAINER ID        IMAGE                 COMMAND                  CREATED      
 $ docker restart <CONTAINER-ID>
 ```
 
+---
+"Mocktail constantly prompts me to validate my json."
+Optimal Json Object.
 
+```json
+{
+  "test": 123
+}
+```
+----
 
-
-
-## Troubleshooting
 
 License
 ----
