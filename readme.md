@@ -38,7 +38,7 @@ There are 7 tabs on top and two section at the bottom.
 - **Get** tab allows adding get requests.
     - Write only the endpoint you wish to call into **endpoint** input.
     - Write the response you wish to obtain when you make a get request for the endpoint you just provided.
-    - There are random tips every the page is refreshed.
+    - There are random tips every time page is refreshed.
     - There is a full endpoint sample.
     - If you are making your requests to another machine in your local network, change localhost to device's local ip. 
 ```
