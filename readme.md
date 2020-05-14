@@ -1,3 +1,7 @@
+![alt text](./howto/mt.png "mt")
+
+----
+
 # Mocktail ![React CI](https://github.com/Huseyinnurbaki/mocktail/workflows/React%20CI/badge.svg)
 
 
