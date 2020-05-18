@@ -23,7 +23,7 @@ import CustomToast from "../../components/CustomToast"
 import TipsNTricks from "../../components/TipsNTricks"
 import CustomDropzone from "../../components/CustomDropzone"
 import Tips from "./Tips"
-
+import app_url from "../../paths"
 export default class Home extends React.Component {
   constructor(props) {
     super(props)
@@ -92,8 +92,9 @@ export default class Home extends React.Component {
 
   async getApis() {
     let randomNumber = Math.floor(Math.random() * Tips.length)
+    let path = app_url + "getall"
     const apis = await axios
-      .get("/getall", {
+      .get(path, {
         headers: {
           "content-type": "application/json",
         },
@@ -139,8 +140,7 @@ export default class Home extends React.Component {
   async testItem() {
     let apiCheck
 
-    const endpoint =
-      "/mocktail/" + this.state.selectedApi.endpoint
+    const endpoint = app_url + "mocktail/" + this.state.selectedApi.endpoint
     if (this.state.selectedApi.method === "get") {
       apiCheck = await axios
         .get(endpoint, {
@@ -285,8 +285,9 @@ export default class Home extends React.Component {
   }
   async recover() {
     this.onHide()
+    let path = app_url + "recover"
     const success = await axios
-      .get("/recover", {
+      .get(path, {
         headers: {
           "content-type": "application/json",
         },
@@ -311,8 +312,9 @@ export default class Home extends React.Component {
 
   async cascade() {
     this.onHide()
+    let path = app_url + "cascadeall"
     const success = await axios
-      .get("/cascadeall", {
+      .get(path, {
         headers: {
           "content-type": "application/json",
         },
@@ -369,7 +371,7 @@ export default class Home extends React.Component {
   }
 
   async deleteSelectedRequest() {
-    const endpoint = "/delete/" + this.state.selectedApi.key
+    const endpoint = app_url + "delete/" + this.state.selectedApi.key
 
     const deletionStatus = await axios
       .get(endpoint, {
@@ -422,8 +424,9 @@ export default class Home extends React.Component {
   }
 
   async download() {
+    let path = app_url + "exportall"
     await axios
-      .get("/exportall")
+      .get(path)
       .then(function (response) {
         return response
       })
@@ -454,8 +457,9 @@ export default class Home extends React.Component {
       })
       return
     }
+    let path = app_url + "upload"
     const up = await axios
-      .post("/upload", {
+      .post(path, {
         body: convertedFile,
       })
       .then(function (response) {
@@ -665,7 +669,7 @@ export default class Home extends React.Component {
                   >
                     Clear
                   </Button>
-                  <Row style={{ marginTop: '25px' }}>
+                  <Row style={{ marginTop: "25px" }}>
                     <Col>
                       {this.state.isJsonValidatorInputValid !== "" ? (
                         <h4 className="h1dr">
