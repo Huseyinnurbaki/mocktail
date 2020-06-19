@@ -5,7 +5,7 @@
 # Mocktail ![React CI](https://github.com/Huseyinnurbaki/mocktail/workflows/React%20CI/badge.svg)
 
 
-### Mocktail is a totally free, lightweight ready to run dockerized local mock server with a nice interface. There are no limitations or restrictions unlike most mock servers. You can create single/multiple get & post request templates at once. Templates can be exported and easily distributed. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
+### Mocktail is completely free, lightweight ready to run dockerized mock server with a nice interface. There are no limitations or restrictions unlike most mock servers. You can create single/multiple get & post request templates at once. Templates can be exported and easily distributed. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
 
 ---
 
