@@ -63,7 +63,7 @@ http://<device-local-ip>:/7080
 - Use same endpoint to update a mock request template.
 - Whitespaces inside endpoints are automatically deleted .
 - Only http requests are allowed. 
-- Mocktail image is only 57 mb.
+- Mocktail image is only 28 mb.
 - Kill docker container, to remove everything related to Mocktail Server. Zero mess. Pretty easy.
 
 
