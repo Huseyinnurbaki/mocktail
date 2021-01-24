@@ -13,13 +13,13 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: "40MB" }))
 app.use(cors())
 app.use(compression())
+const PORT = 7080;
+const HOST = '0.0.0.0';
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, "/build")))
 
-var listener = app.listen(7080, function () {
-  console.log("Your app is listening on port " + listener.address().port)
-})
+app.listen(PORT, HOST)
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/build/index.html"))
