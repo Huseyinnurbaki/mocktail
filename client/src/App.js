@@ -9,7 +9,7 @@ class App extends Component {
     console.log(process.env.NODE_ENV);
     return (
       <div className="App">
-        <Header>fgrtgr</Header>
+        <Header>Mocktail</Header>
         <BrowserRouter>
           <Route exact path="/" component={Home} />
         </BrowserRouter>
