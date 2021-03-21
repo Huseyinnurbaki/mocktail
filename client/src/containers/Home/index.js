@@ -199,16 +199,16 @@ export default class Home extends React.Component {
     return false
   }
 
-  save(type) {
+  async save(type) {
     const isValidBoolean = this.validate(this.state[type])
     console.log(isValidBoolean)
 
     if (isValidBoolean) {
       const toBeSaved = { body: isValidBoolean }
       console.log(toBeSaved)
-      saveTemplate(toBeSaved)
+      await saveTemplate(toBeSaved)
       this.clearInputs()
-      this.getApis()
+      await this.getApis()
     } else {
       this.setState({
         showToast: true,
