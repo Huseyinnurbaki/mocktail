@@ -1,6 +1,18 @@
-# Repository is not maintained for a long time, therefore build issues present. Also there are deprecated modules, which will be refactored soon.
+# Mocktail V2 is under development !
+
+# New Version Keynotes:
+
+- NodeJS replaced with Go Fiber.
+- UI will be upgraded.
+- Deployment scripts will be updated.
+- Helm support.
 
 
+# Long Run
+
+- Mocking PUT - DELETE requests
+- Graphql support
+- Multiple DB support (SQLite, Postgre, Mongo)
 ---
 ![alt text](./howto/mt.png "mt")
 
