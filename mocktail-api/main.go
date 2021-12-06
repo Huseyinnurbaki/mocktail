@@ -2,6 +2,7 @@ package main
 
 import (
 	"mocktail-api/core"
+	"mocktail-api/mocktail"
 	"mocktail-api/database"
 	"fmt"
 	"log"
@@ -13,10 +14,14 @@ import (
 )
 
 func setupRoutes(app *fiber.App) {
-	api := app.Group("/mocktail/v1")
-	api.Post("/api", core.NewApi)
-	api.Delete("/api/:id", core.DeleteApiByKey)
-	api.Get("/apis", core.Apis)
+	coreApi := app.Group("/core/v1")
+	coreApi.Post("/api", core.NewApi)
+	coreApi.Delete("/api/:id", core.DeleteApiByKey)
+	coreApi.Get("/apis", core.Apis)
+
+	moctailApi := app.Group("/mocktail")
+	moctailApi.Get("/:endpoint", mocktail.GetHandler)
+	moctailApi.Post("/:endpoint", mocktail.PostHandler)
 
 }
 

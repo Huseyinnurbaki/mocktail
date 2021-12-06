@@ -6,7 +6,6 @@ require (
 	github.com/gofiber/fiber/v2 v2.22.0
 	github.com/jinzhu/gorm v1.9.16
 	gorm.io/datatypes v1.0.4
-	gorm.io/gorm v1.22.4
 )
 
 require (
@@ -25,4 +24,5 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	gorm.io/driver/mysql v1.2.1 // indirect
+	gorm.io/gorm v1.22.4 // indirect
 )

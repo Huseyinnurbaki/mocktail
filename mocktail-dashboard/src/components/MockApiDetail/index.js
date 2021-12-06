@@ -2,8 +2,9 @@ import React from "react"
 import { Col, Button, Row } from "react-bootstrap"
 import TextInput from "../TextInput"
 import MockItem from "../MockItem"
+import { testApi } from "../../utils/request"
 
-const MockApiDetail = (props) => {
+function MockApiDetail(props) {
   const { catalog, deleteSelectedApi } = props;
   const { selectedApi } = catalog;
   console.log("seses",selectedApi);
@@ -19,6 +20,11 @@ const MockApiDetail = (props) => {
         />
       </Col>
     )
+  }
+  async function testEndpoint() {
+    debugger;
+    const res = await testApi(selectedApi)
+    console.log("res", res);
   }
   let method = selectedApi.Method
   let borders = {}
@@ -56,7 +62,7 @@ const MockApiDetail = (props) => {
         <Button
           style={{ marginLeft: "20px" }}
           variant="success"
-          onClick={props.testItem}
+          onClick={() => testEndpoint()}
         >
           Test
         </Button>

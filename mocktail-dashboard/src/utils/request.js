@@ -1,3 +1,5 @@
+import { API_MOCKTAIL_URL } from "./paths";
+
 /**
  * Parses the JSON returned by a network request
  *
@@ -63,6 +65,16 @@ export function del(url, body={}) {
 export function get(url) {
   const options = {
     method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  };
+  return request(url, options);
+}
+
+export function testApi(data) {
+  const url = `${API_MOCKTAIL_URL}/${data.Endpoint}`
+  const options = {
+    method: data.Method,
+    body: data.RequestParams,
     headers: { 'Content-Type': 'application/json' },
   };
   return request(url, options);
