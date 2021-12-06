@@ -22,9 +22,7 @@ function MockApiDetail(props) {
     )
   }
   async function testEndpoint() {
-    debugger;
-    const res = await testApi(selectedApi)
-    console.log("res", res);
+    await testApi(selectedApi)
   }
   let method = selectedApi.Method
   let borders = {}

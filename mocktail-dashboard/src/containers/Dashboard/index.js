@@ -10,7 +10,8 @@ import MockApiDetail from "../../components/MockApiDetail"
 import useApis from "../../hooks/useApis"
 import { ALL_APIS, DELETE_API } from "../../utils/paths"
 import { del, get, post } from "../../utils/request"
-export default function Dashboad() {
+export default function Dashboad(props) {
+    const { frenchToast } = props;
     const catalog = useApis()
 
 
@@ -38,6 +39,7 @@ export default function Dashboad() {
                 <Col style={{ backgroundColor: 'red' }}>1 of 2</Col>
                 <Col style={{ backgroundColor: 'green' }}>2 of 2</Col>
             </Row>
+            <Button onClick={() => frenchToast.setToastProps("asd")} />
             <Row>
                 <Catalog catalog={catalog} />
                 <MockApiDetail catalog={catalog} deleteSelectedApi={deleteSelectedApi} />
