@@ -1,5 +1,2 @@
-let app_url = "/"
-if (process.env.NODE_ENV === "development") {
-  app_url = "/"
-}
+const app_url = "http://localhost:3200/mocktail/v1"
 export default app_url

@@ -5,7 +5,7 @@
     "description": "Mocktail Client",
     "license": "MIT",
     "scripts": {
-        "start": "react-scripts start",
+        "start": "PORT=3001 react-scripts start",
         "build": "react-scripts build",
         "lint": "eslint .",
         "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md|vue)\""

@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jinzhu/gorm"
-	"gorm.io/datatypes"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"gorm.io/datatypes"
 )
 
 type Api struct {
@@ -45,13 +45,13 @@ func NewApi(c *fiber.Ctx) error {
 }
 
 func DeleteApiByKey(c *fiber.Ctx) error {
-	key := c.Params("key")
+	key := c.Params("id")
 	db := database.DBConn
 
 	var api Api
 	db.First(&api, key)
 	if api.Key == "" {
-		return c.Status(500).SendString("No api Found with Key")
+		return c.Status(500).SendString("No api Found with id")
 	}
 	db.Delete(&api)
 	return c.SendString("api Successfully deleted")

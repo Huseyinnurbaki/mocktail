@@ -13,13 +13,10 @@ import (
 )
 
 func setupRoutes(app *fiber.App) {
-	// app.Get("/api/v1/book", book.GetBooks)
-	// app.Get("/api/v1/book/:id", book.GetBook)
-	// app.Post("/api/v1/book", book.NewBook)
-	// app.Delete("/api/v1/book/:id", book.DeleteBook)
-	
-	app.Post("/api/v1/api", core.NewApi)
-	app.Get("/api/v1/apis", core.Apis)
+	api := app.Group("/mocktail/v1")
+	api.Post("/api", core.NewApi)
+	api.Delete("/api/:id", core.DeleteApiByKey)
+	api.Get("/apis", core.Apis)
 
 }
 

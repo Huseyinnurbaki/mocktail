@@ -267,8 +267,7 @@ export default class Home extends React.Component {
     const modalValues = {
       type: "Warning",
       header: "Cascade",
-      desc:
-        "You are about to delete every template you added. Are you sure ? This can be reverted from recover tab",
+      desc: "You are about to delete every template you added. Are you sure ? This can be reverted from recover tab",
       secondary: "cascade",
     }
     this.setState({ modalValues, showModal: true })
@@ -412,8 +411,7 @@ export default class Home extends React.Component {
     const modalValues = {
       type: "Warning",
       header: "Delete",
-      desc:
-        "You are about to delete selected api. Are you sure ? You can revert it if you wish.",
+      desc: "You are about to delete selected api. Are you sure ? You can revert it if you wish.",
       secondary: "deleteSelectedRequest",
     }
     this.setState({ modalValues, showModal: true })
@@ -529,11 +527,10 @@ export default class Home extends React.Component {
                           this.state.isgetResponseBodyValid &&
                           this.state.isgetResponseBodyValid.length > 0
                             ? {
-                                borderColor: this.state.isgetResponseBodyValid.includes(
-                                  "!"
-                                )
-                                  ? "red"
-                                  : "#4BB543",
+                                borderColor:
+                                  this.state.isgetResponseBodyValid.includes("!")
+                                    ? "red"
+                                    : "#4BB543",
                                 borderWidth: 1.5,
                               }
                             : {}
@@ -634,11 +631,10 @@ export default class Home extends React.Component {
                           this.state.isJsonValidatorInputValid &&
                           this.state.isJsonValidatorInputValid.length > 0
                             ? {
-                                borderColor: this.state.isJsonValidatorInputValid.includes(
-                                  "!"
-                                )
-                                  ? "red"
-                                  : "#4BB543",
+                                borderColor:
+                                  this.state.isJsonValidatorInputValid.includes("!")
+                                    ? "red"
+                                    : "#4BB543",
                                 borderWidth: 1.5,
                               }
                             : {}
