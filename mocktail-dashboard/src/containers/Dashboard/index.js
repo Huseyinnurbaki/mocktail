@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from "react"
 import {
   Container,
@@ -25,13 +26,15 @@ export default function Dashboad(props) {
 
     async function deleteSelectedApi(selectedApi) {
         const url = `${DELETE_API}/${selectedApi.ID}`
-        await del(url)
+        const delResponse = await del(url)
+        frenchToast.setToastProps(delResponse)
+
+        catalog.clearSelectedApi()
         const allApis = await get(ALL_APIS)
         catalog.setApis(allApis)
     }
 
 
-    console.log(catalog.apis);
 
     return (
         <Container  >
@@ -39,7 +42,7 @@ export default function Dashboad(props) {
                 <Col style={{ backgroundColor: 'red' }}>1 of 2</Col>
                 <Col style={{ backgroundColor: 'green' }}>2 of 2</Col>
             </Row>
-            <Button onClick={() => frenchToast.setToastProps("asd")} />
+            {/* <Button onClick={() => frenchToast.setToastProps("asd")} /> */}
             <Row>
                 <Catalog catalog={catalog} />
                 <MockApiDetail catalog={catalog} deleteSelectedApi={deleteSelectedApi} />

@@ -17,7 +17,7 @@ export default function Catalog(props) {
   }, [apis])
 
   useEffect(() => {
-    const results = apis &&  apis.filter((val) =>
+    const results = apis &&  apis?.filter((val) =>
         val.Endpoint.toLowerCase().includes(searchTerm.toLowerCase())
       )
     setApis(results)

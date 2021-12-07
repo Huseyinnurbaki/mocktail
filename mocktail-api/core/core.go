@@ -51,8 +51,8 @@ func DeleteApiByKey(c *fiber.Ctx) error {
 	var api Api
 	db.First(&api, key)
 	if api.Key == "" {
-		return c.Status(500).SendString("No api Found with id")
+		return c.JSON(fiber.Map{"toastType": "error", "message": "No api Found with id"})
 	}
 	db.Delete(&api)
-	return c.SendString("api Successfully deleted")
+	return c.JSON(fiber.Map{"toastType": "success", "message": "Succesfully Deleted"})
 }

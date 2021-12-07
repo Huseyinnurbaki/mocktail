@@ -7,7 +7,6 @@ import { testApi } from "../../utils/request"
 function MockApiDetail(props) {
   const { catalog, deleteSelectedApi } = props;
   const { selectedApi } = catalog;
-  console.log("seses",selectedApi);
   if (!selectedApi.Method) {
     return (
       <Col style={{ minHeight: "400px" }}>

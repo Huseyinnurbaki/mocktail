@@ -11,12 +11,21 @@ function App() {
   const frenchToast = useToastify()
 
   useEffect(() => {
-    frenchToast.toastProps && toast(frenchToast.toastProps);
+    frenchToast.toastProps && toast[frenchToast.toastProps.toastType](frenchToast.toastProps.message);
     frenchToast.reset()
   }, [frenchToast, frenchToast.toastProps])
   return (
     <div>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover />
       <Header />
       <Dashboad frenchToast={frenchToast} />
     </div>
