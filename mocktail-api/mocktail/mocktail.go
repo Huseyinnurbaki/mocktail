@@ -19,6 +19,7 @@ type Api struct {
 }
 
 func GetHandler(c *fiber.Ctx) error {
+	// return c.JSON(fiber.Map{"toastType": "error", "message": "No api Found with id"})
 	key := "GET"+c.Params("endpoint")
 	db := database.DBConn
 	var api Api

@@ -13,7 +13,7 @@ const TextInput = (props) => {
           as="textarea"
           rows="8"
           onInput={props.onChange}
-          value={props.disabled ? props.value : undefined}
+          value={props.value}
         />
       </Form.Group>
     </Col>

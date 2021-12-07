@@ -3,14 +3,13 @@ import React, { useEffect } from "react"
 import {
   Container,
   Row,
-  Col,
-  Button
 } from "react-bootstrap"
+import DashboadTabs from "../DashboardTabs"
 import Catalog from "../../components/Catalog"
 import MockApiDetail from "../../components/MockApiDetail"
 import useApis from "../../hooks/useApis"
 import { ALL_APIS, DELETE_API } from "../../utils/paths"
-import { del, get, post } from "../../utils/request"
+import { del, get } from "../../utils/request"
 export default function Dashboad(props) {
     const { frenchToast } = props;
     const catalog = useApis()
@@ -28,7 +27,10 @@ export default function Dashboad(props) {
         const url = `${DELETE_API}/${selectedApi.ID}`
         const delResponse = await del(url)
         frenchToast.setToastProps(delResponse)
+        await refetch()
+    }
 
+    async function refetch() {
         catalog.clearSelectedApi()
         const allApis = await get(ALL_APIS)
         catalog.setApis(allApis)
@@ -37,15 +39,11 @@ export default function Dashboad(props) {
 
 
     return (
-        <Container  >
-            <Row >
-                <Col style={{ backgroundColor: 'red' }}>1 of 2</Col>
-                <Col style={{ backgroundColor: 'green' }}>2 of 2</Col>
-            </Row>
-            {/* <Button onClick={() => frenchToast.setToastProps("asd")} /> */}
+        <Container >
+            <DashboadTabs refetch={refetch} frenchToast={frenchToast} />
             <Row>
                 <Catalog catalog={catalog} />
-                <MockApiDetail catalog={catalog} deleteSelectedApi={deleteSelectedApi} />
+                <MockApiDetail catalog={catalog} deleteSelectedApi={deleteSelectedApi} frenchToast={frenchToast} />
             </Row>
         </Container>
     )

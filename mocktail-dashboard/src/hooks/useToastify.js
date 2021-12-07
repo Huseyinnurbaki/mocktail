@@ -6,7 +6,15 @@ function useToastify() {
     function reset() {
         setToastProps(undefined)
     }
-    return { toastProps, setToastProps, reset };
+
+    function setToastPropsHandler(response) {
+        if(response.status === 200) {
+            setToastProps(defaultSuccessToast)
+            return
+        }
+        setToastProps(defaultErrorToast)
+    }
+    return { toastProps, setToastProps, reset, setToastPropsHandler };
 }
 export default useToastify;
 
@@ -21,4 +29,13 @@ export const TOASTTYPES = {
 const defaultToastProps = {
     toastType: TOASTTYPES.DEFAULT,
     message: "Mocktail Rocks 💣💣",
+}
+
+export const defaultSuccessToast = {
+    toastType: TOASTTYPES.SUCCESS,
+    message: "Success 🎉🎉",
+}
+export const defaultErrorToast = {
+    toastType: TOASTTYPES.ERROR,
+    message: "Something went wrong ☹️☹️	",
 }

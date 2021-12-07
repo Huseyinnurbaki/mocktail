@@ -25,14 +25,6 @@ func Apis(c *fiber.Ctx) error {
 	return c.JSON(apis)
 }
 
-func ApiByKey(c *fiber.Ctx) error {
-	key := c.Params("key")
-	db := database.DBConn
-	var api Api
-	db.Find(&api, key)
-	return c.JSON(api)
-}
-
 func NewApi(c *fiber.Ctx) error {
 	db := database.DBConn
 	api := new(Api)
@@ -41,7 +33,8 @@ func NewApi(c *fiber.Ctx) error {
 	}
 	api.Key = api.Method+api.Endpoint
 	db.Create(&api)
-	return c.JSON(api)
+	return c.JSON(fiber.Map{"toastType": "success", "message": "Succesfully Created"})
+	// return c.JSON(api)
 }
 
 func DeleteApiByKey(c *fiber.Ctx) error {

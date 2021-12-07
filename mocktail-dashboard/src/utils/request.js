@@ -7,11 +7,14 @@ import { API_MOCKTAIL_URL } from "./paths";
  *
  * @return {object}          The parsed JSON from the request
  */
-function parseJSON(response) {
+async function parseJSON(response) {
   if (response.status === 204 || response.status === 205) {
     return null;
   }
-  return response.json();
+  const resp = await response.json()
+  resp.status = response.status;
+  return resp;
+
 }
 
 /**
@@ -45,7 +48,7 @@ function request(url, options) {
 export function post(url, body) {
   const options = {
     method: 'POST',
-    body,
+    body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
   };
   return request(url, options);

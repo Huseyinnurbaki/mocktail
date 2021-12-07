@@ -3,9 +3,10 @@ import { Col, Button, Row } from "react-bootstrap"
 import TextInput from "../TextInput"
 import MockItem from "../MockItem"
 import { testApi } from "../../utils/request"
+import { defaultErrorToast, defaultSuccessToast } from "../../hooks/useToastify"
 
 function MockApiDetail(props) {
-  const { catalog, deleteSelectedApi } = props;
+  const { catalog, deleteSelectedApi, frenchToast } = props;
   const { selectedApi } = catalog;
   if (!selectedApi.Method) {
     return (
@@ -21,17 +22,11 @@ function MockApiDetail(props) {
     )
   }
   async function testEndpoint() {
-    await testApi(selectedApi)
-  }
-  let method = selectedApi.Method
-  let borders = {}
-  if (props.apiCheck && props.apiCheck.data) {
-    borders = {
-      borderColor: props.apiCheck.data.status === "success" ? "#4BB543" : "red",
-      borderWidth: 1.5,
-    }
+    const resp = await testApi(selectedApi)
+    frenchToast.setToastPropsHandler(resp)
   }
 
+  let method = selectedApi.Method
   return (
     <Col>
       <Col>
@@ -40,14 +35,12 @@ function MockApiDetail(props) {
       </Col>
       {method === "POST" ? (
         <TextInput
-          style={borders}
           label={"Request"}
           disabled
           value={JSON.stringify(selectedApi.RequestParams, null, 2)}
         ></TextInput>
       ) : null}
       <TextInput
-        style={borders}
         label={"Reponse"}
         disabled
         value={JSON.stringify(selectedApi.Response, null, 2)}
@@ -64,15 +57,6 @@ function MockApiDetail(props) {
           Test
         </Button>
       </Col>
-      <Row>
-        {borders.borderColor ? (
-          <h6 className={"smallDetail"} style={{ color: borders.borderColor }}>
-            {borders.borderColor === "red"
-              ? "Please try deleting and re-adding your request template."
-              : "Success"}
-          </h6>
-        ) : null}
-      </Row>
     </Col>
   )
 }
