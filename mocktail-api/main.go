@@ -1,11 +1,11 @@
 package main
 
 import (
-	"mocktail-api/core"
-	"mocktail-api/mocktail"
-	"mocktail-api/database"
 	"fmt"
 	"log"
+	"mocktail-api/core"
+	"mocktail-api/database"
+	"mocktail-api/mocktail"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -20,8 +20,10 @@ func setupRoutes(app *fiber.App) {
 	coreApi.Get("/apis", core.Apis)
 
 	moctailApi := app.Group("/mocktail")
-	moctailApi.Get("/:endpoint", mocktail.GetHandler)
-	moctailApi.Post("/:endpoint", mocktail.PostHandler)
+	moctailApi.Get("/:endpoint", mocktail.MockApiHandler)
+	moctailApi.Post("/:endpoint", mocktail.MockApiHandler)
+	moctailApi.Put("/:endpoint", mocktail.MockApiHandler)
+	moctailApi.Delete("/:endpoint", mocktail.MockApiHandler)
 
 }
 

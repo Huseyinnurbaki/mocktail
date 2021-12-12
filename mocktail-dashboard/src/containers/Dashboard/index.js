@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Container, Row } from 'react-bootstrap';
 import DashboadTabs from '../DashboardTabs';
-import Catalog from '../../components/Catalog';
+import Catalog from '../Catalog';
 import MockApiDetail from '../../components/MockApiDetail';
 import useApis from '../../hooks/useApis';
 import { ALL_APIS, DELETE_API } from '../../utils/paths';
@@ -34,7 +34,7 @@ export default function Dashboad(props) {
   }
 
   return (
-    <Container>
+    <Container style={{ backgroundColor: 'white', paddingBottom: '24px' }}>
       <DashboadTabs refetch={refetch} frenchToast={frenchToast} />
       <Row>
         <Catalog catalog={catalog} />

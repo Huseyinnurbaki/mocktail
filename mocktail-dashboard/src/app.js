@@ -16,7 +16,7 @@ function App() {
     frenchToast.reset();
   }, [frenchToast, frenchToast.toastProps]);
   return (
-    <div>
+    <div style={{ backgroundColor: 'whitesmoke' }}>
       <ToastContainer
         position="top-right"
         autoClose={5000}

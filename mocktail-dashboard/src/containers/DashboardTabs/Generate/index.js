@@ -2,20 +2,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BaseTab from '../../../components/BaseTab';
 import TipsNTricks from '../../../components/TipsNTricks';
-import Get from './get';
+import GenerateTab from './generateTab';
 
-function GetTab(props) {
+function Generate(props) {
   const { tip } = props;
   return (
     <BaseTab>
-      <Get {...props} />
+      <GenerateTab {...props} />
       <TipsNTricks tip={tip} />
     </BaseTab>
   );
 }
 
-export default GetTab;
+export default Generate;
 
-GetTab.propTypes = {
+Generate.propTypes = {
   tip: PropTypes.string
 };

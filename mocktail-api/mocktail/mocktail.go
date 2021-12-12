@@ -11,24 +11,15 @@ import (
 
 type Api struct {
 	gorm.Model
-	Endpoint  string
-	Method string
-	Key string `gorm:"unique;not null";"primaryKey;autoIncrement:false`
-	Response datatypes.JSON
+	Endpoint      string
+	Method        string
+	Key           string `gorm:"unique;not null";"primaryKey;autoIncrement:false`
+	Response      datatypes.JSON
 	RequestParams datatypes.JSON
 }
 
-func GetHandler(c *fiber.Ctx) error {
-	// return c.JSON(fiber.Map{"toastType": "error", "message": "No api Found with id"})
-	key := "GET"+c.Params("endpoint")
-	db := database.DBConn
-	var api Api
-	db.Where("key = ?", key).First(&api)
-	return c.JSON(api.Response)
-}
-func PostHandler(c *fiber.Ctx) error {
-	// TODO: validate req params ??
-	key := "POST"+c.Params("endpoint")
+func MockApiHandler(c *fiber.Ctx) error {
+	key := c.Method() + c.Params("endpoint")
 	db := database.DBConn
 	var api Api
 	db.Where("key = ?", key).First(&api)

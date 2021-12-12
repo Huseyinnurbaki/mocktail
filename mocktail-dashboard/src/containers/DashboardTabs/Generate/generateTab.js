@@ -6,11 +6,18 @@ import { SAVE_API } from '../../../utils/paths';
 import { post } from '../../../utils/request';
 import PropTypes from 'prop-types';
 
-function Get(props) {
+const HTTP_METHODS = {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  DELETE: 'DELETE'
+};
+function GenerateTab(props) {
   const { refetch, frenchToast } = props;
   const formRef = useRef(null);
   const [endpointValue, setEndpointValue] = useState('');
   const [responseValue, setResponseValueValue] = useState();
+  const [selectedMethod, setSelectedMethod] = useState(HTTP_METHODS.GET);
 
   function clearAll() {
     formRef.current.reset();
@@ -21,7 +28,7 @@ function Get(props) {
   async function save() {
     const body = {
       Endpoint: endpointValue,
-      Method: 'GET',
+      Method: selectedMethod,
       Response: JSON.parse(responseValue)
     };
 
@@ -41,7 +48,11 @@ function Get(props) {
         <Form ref={formRef}>
           <PrefixedInput
             value={endpointValue}
-            onChange={(e) => setEndpointValue(e.target.value)}></PrefixedInput>
+            onChange={(e) => setEndpointValue(e.target.value)}
+            selectedMethod={selectedMethod}
+            setSelectedMethod={setSelectedMethod}
+            HTTP_METHODS={HTTP_METHODS}
+          />
           <TextInput
             label="Response Body"
             value={responseValue}
@@ -65,9 +76,9 @@ function Get(props) {
   );
 }
 
-export default Get;
+export default GenerateTab;
 
-Get.propTypes = {
+GenerateTab.propTypes = {
   frenchToast: PropTypes.any,
   refetch: PropTypes.func
 };
