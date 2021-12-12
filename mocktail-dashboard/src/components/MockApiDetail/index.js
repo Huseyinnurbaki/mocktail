@@ -31,7 +31,7 @@ function MockApiDetail(props) {
     <Col>
       <Col>
         <h3 className="h3dr">Request Details</h3>
-        <MockItem disabled={props.disabled} data={selectedApi}></MockItem>
+        <MockItem disabled data={selectedApi}></MockItem>
       </Col>
       {method === "POST" ? (
         <TextInput

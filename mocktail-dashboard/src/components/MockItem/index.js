@@ -3,25 +3,23 @@ import React from "react"
 import InputGroup from "react-bootstrap/InputGroup"
 import FormControl from "react-bootstrap/FormControl"
 import Button from "react-bootstrap/Button"
+import { API_MOCKTAIL_URL } from '../../utils/paths';
+import { RestProfiles } from "../../styles/profiles";
 
 const MockItem = (props) => {
+  const { data } = props;
+  const { Method } = data;
   console.log("mockitem",props);
-  let method = props.data.Method;
-  let bgc = "orange"
-  if (method === "GET") {
-    bgc = "#17b027"
-    method = method + "  ."
-  }
   let endpoint = '/' + props.data.Endpoint
-  let copyEndpoint = "http://localhost:7080/mocktail/" + props.data.Endpoint
+  let copyEndpoint = API_MOCKTAIL_URL + props.data.Endpoint
   return (
     <dt key={props.index}>
       <InputGroup className="mb-3">
           <InputGroup.Text
-            style={{ backgroundColor: bgc, color: "white", fontWeight: "600" }}
+            style={{ backgroundColor: RestProfiles[Method], color: "white", fontWeight: "600" }}
             id="basic-addon1"
           >
-            {method}
+            {Method}
           </InputGroup.Text>
         <FormControl
           placeholder={endpoint}
@@ -39,8 +37,7 @@ const MockItem = (props) => {
           </Button>
           {!props.disabled ? (
             <Button
-              onClick={
-                !props.disabled ? () => props.onPressAction(props.data) : null
+              onClick={() => props.onPressAction(props.data)
               }
               variant="outline-info"
             >
