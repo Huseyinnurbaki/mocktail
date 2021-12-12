@@ -1,37 +1,35 @@
-import React, { useState, useEffect } from "react"
-import ListGroup from "react-bootstrap/ListGroup"
-import Form from "react-bootstrap/Form"
-import FormControl from "react-bootstrap/FormControl"
-import MockItem from "../MockItem"
-import _ from "lodash"
-import Col from "react-bootstrap/cjs/Col"
+import React, { useState, useEffect } from 'react';
+import ListGroup from 'react-bootstrap/ListGroup';
+import Form from 'react-bootstrap/Form';
+import FormControl from 'react-bootstrap/FormControl';
+import MockItem from '../MockItem';
+import Col from 'react-bootstrap/cjs/Col';
+import PropTypes from 'prop-types';
 
 export default function Catalog(props) {
-  const { catalog } = props
-  const { apis, setSelectedApi } = catalog
-  const [displayedApis, setApis] = useState(apis)
-  const [searchTerm, setSearchTerm] = useState("")
+  const { catalog } = props;
+  const { apis, setSelectedApi } = catalog;
+  const [displayedApis, setApis] = useState(apis);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    setApis(apis)
-  }, [apis])
+    setApis(apis);
+  }, [apis]);
 
   useEffect(() => {
-    const results = apis &&  apis?.filter((val) =>
-        val.Endpoint.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    setApis(results)
-  }, [apis, searchTerm])
+    const results =
+      apis && apis?.filter((val) => val.Endpoint.toLowerCase().includes(searchTerm.toLowerCase()));
+    setApis(results);
+  }, [apis, searchTerm]);
 
   const searchHandler = (event) => {
-    setSearchTerm(event.target.value)
-  }
-
+    setSearchTerm(event.target.value);
+  };
 
   return (
     <Col>
       <ListGroup>
-        <Form inline style={{ marginTop: "10px", marginBottom: "20px" }}>
+        <Form inline style={{ marginTop: '10px', marginBottom: '20px' }}>
           <FormControl
             disabled={!displayedApis}
             type="text"
@@ -46,8 +44,7 @@ export default function Catalog(props) {
               <MockItem
                 data={item}
                 key={index}
-                onPressAction={() => setSelectedApi(item)}
-              ></MockItem>
+                onPressAction={() => setSelectedApi(item)}></MockItem>
             ))
           ) : (
             <h3 className="header">There is no endpoint..</h3>
@@ -55,5 +52,11 @@ export default function Catalog(props) {
         </div>
       </ListGroup>
     </Col>
-  )
+  );
 }
+
+Catalog.propTypes = {
+  catalog: PropTypes.any,
+  apis: PropTypes.array,
+  setSelectedApi: PropTypes.func
+};

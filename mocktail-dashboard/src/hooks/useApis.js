@@ -4,9 +4,9 @@ function useApis() {
   const [selectedApi, setSelectedApi] = useState({});
 
   function clearSelectedApi() {
-    setSelectedApi({})
+    setSelectedApi({});
   }
 
-  return { apis, setApis, selectedApi, setSelectedApi, clearSelectedApi};
+  return { apis, setApis, selectedApi, setSelectedApi, clearSelectedApi };
 }
 export default useApis;

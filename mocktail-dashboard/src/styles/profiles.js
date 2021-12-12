@@ -1,6 +1,6 @@
-import { Colors } from "./colors";
+import { Colors } from './colors';
 
 export const RestProfiles = {
-    GET: Colors.green,
-    POST: Colors.orange
-}
+  GET: Colors.green,
+  POST: Colors.orange
+};

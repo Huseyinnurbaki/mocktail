@@ -1,7 +1,7 @@
-import React from "react"
-import Form from "react-bootstrap/Form"
-import Col from "react-bootstrap/Col"
-import PropTypes from "prop-types"
+import React from 'react';
+import Form from 'react-bootstrap/Form';
+import Col from 'react-bootstrap/Col';
+import PropTypes from 'prop-types';
 
 const TextInput = (props) => {
   return (
@@ -17,14 +17,14 @@ const TextInput = (props) => {
         />
       </Form.Group>
     </Col>
-  )
-}
+  );
+};
 
 TextInput.propTypes = {
   label: PropTypes.string,
   onChange: PropTypes.func,
   disabled: PropTypes.bool,
-  value: PropTypes.object,
-}
+  value: PropTypes.object
+};
 
-export default TextInput
+export default TextInput;

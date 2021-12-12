@@ -1,29 +1,31 @@
-import React from "react"
-import { Col, Card } from "react-bootstrap"
+import React from 'react';
+import { Col, Card } from 'react-bootstrap';
 import { API_MOCKTAIL_URL } from '../../utils/paths.js';
+import PropTypes from 'prop-types';
 
-
- const TipsNTricks = ({tip}) => {
+const TipsNTricks = ({ tip }) => {
   return (
     <Col>
       <Col>
         <h3 className="h1dr">Tips & Tricks</h3>
       </Col>
-      <Col style={{ marginTop: '18px'}} >
+      <Col style={{ marginTop: '18px' }}>
         <Card>
           <Card.Body>{tip}</Card.Body>
         </Card>
       </Col>
-      <Col style={{ marginTop: '38px'}} >
+      <Col style={{ marginTop: '38px' }}>
         <Card.Title className="h1dr">Sample Get Request </Card.Title>
         <Card>
           <Card.Body>{API_MOCKTAIL_URL}/your-endpoint</Card.Body>
         </Card>
       </Col>
     </Col>
-  )
-}
+  );
+};
 
-export default TipsNTricks
+export default TipsNTricks;
 
-// TODO :fix the static amrgin
+TipsNTricks.propTypes = {
+  tip: PropTypes.string
+};

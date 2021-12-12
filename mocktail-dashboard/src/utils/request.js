@@ -1,4 +1,4 @@
-import { API_MOCKTAIL_URL } from "./paths";
+import { API_MOCKTAIL_URL } from './paths';
 
 /**
  * Parses the JSON returned by a network request
@@ -11,10 +11,9 @@ async function parseJSON(response) {
   if (response.status === 204 || response.status === 205) {
     return null;
   }
-  const resp = await response.json()
+  const resp = await response.json();
   resp.status = response.status;
   return resp;
-
 }
 
 /**
@@ -40,24 +39,22 @@ function checkStatus(response) {
  * @return {object}           The response data
  */
 function request(url, options) {
-  return fetch(url, options)
-    .then(checkStatus)
-    .then(parseJSON);
+  return fetch(url, options).then(checkStatus).then(parseJSON);
 }
 
 export function post(url, body) {
   const options = {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' }
   };
   return request(url, options);
 }
-export function del(url, body={}) {
+export function del(url, body = {}) {
   const options = {
     method: 'Delete',
     body,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' }
   };
   return request(url, options);
 }
@@ -65,17 +62,17 @@ export function del(url, body={}) {
 export function get(url) {
   const options = {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' }
   };
   return request(url, options);
 }
 
 export function testApi(data) {
-  const url = `${API_MOCKTAIL_URL}/${data.Endpoint}`
+  const url = `${API_MOCKTAIL_URL}/${data.Endpoint}`;
   const options = {
     method: data.Method,
     body: data.RequestParams,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' }
   };
   return request(url, options);
 }
