@@ -16,13 +16,13 @@ function GenerateTab(props) {
   const { refetch, frenchToast } = props;
   const formRef = useRef(null);
   const [endpointValue, setEndpointValue] = useState('');
-  const [responseValue, setResponseValueValue] = useState();
+  const [responseValue, setResponseValueValue] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(HTTP_METHODS.GET);
 
   function clearAll() {
     formRef.current.reset();
     setEndpointValue('');
-    setResponseValueValue();
+    setResponseValueValue('');
   }
 
   async function save() {
@@ -41,7 +41,7 @@ function GenerateTab(props) {
   return (
     <Col style={{ backgroundColor: 'white' }}>
       <Col style={{ backgroundColor: 'white' }}>
-        <h3 className="h1dr">Get Request Template</h3>
+        <h3 className="h1dr">Request Template</h3>
       </Col>
 
       <Col style={{ minHeight: '100px', paddingBottom: '12px' }}>
@@ -52,6 +52,7 @@ function GenerateTab(props) {
             selectedMethod={selectedMethod}
             setSelectedMethod={setSelectedMethod}
             HTTP_METHODS={HTTP_METHODS}
+            isInvalid={!endpointValue}
           />
           <TextInput
             label="Response Body"

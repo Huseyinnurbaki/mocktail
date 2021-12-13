@@ -6,14 +6,28 @@ function useToastify() {
     setToastProps(undefined);
   }
 
-  function setToastPropsHandler(response) {
+  function setToastPropsApiResponseHandler(response) {
     if (response.status === 200) {
       setToastProps(defaultSuccessToast);
       return;
     }
     setToastProps(defaultErrorToast);
   }
-  return { toastProps, setToastProps, reset, setToastPropsHandler };
+
+  function setToastPropsHandler(toastType, message) {
+    setToastProps({
+      toastType: toastType,
+      message: message
+    });
+  }
+
+  return {
+    toastProps,
+    setToastProps,
+    reset,
+    setToastPropsApiResponseHandler,
+    setToastPropsHandler
+  };
 }
 export default useToastify;
 

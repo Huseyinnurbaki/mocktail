@@ -1,14 +1,15 @@
 import React from 'react';
 import Form from 'react-bootstrap/Form';
+import FormControl from 'react-bootstrap/FormControl';
 import Col from 'react-bootstrap/Col';
 import PropTypes from 'prop-types';
 
 const TextInput = (props) => {
   return (
     <Col>
-      <Form.Group controlId="exampleForm.ControlTextarea1">
+      <Form.Group>
         <Form.Label className="TextInputLabel">{props.label}</Form.Label>
-        <Form.Control
+        <FormControl
           {...props}
           as="textarea"
           rows="8"
@@ -24,7 +25,7 @@ TextInput.propTypes = {
   label: PropTypes.string,
   onChange: PropTypes.func,
   disabled: PropTypes.bool,
-  value: PropTypes.object
+  value: PropTypes.oneOfType[(PropTypes.object, PropTypes.string)]
 };
 
 export default TextInput;

@@ -4,6 +4,7 @@ import TextInput from '../TextInput';
 import MockItem from '../MockItem';
 import { testApi } from '../../utils/request';
 import PropTypes from 'prop-types';
+import { TOASTTYPES } from '../../hooks/useToastify';
 
 function MockApiDetail(props) {
   const { catalog, deleteSelectedApi, frenchToast } = props;
@@ -22,8 +23,8 @@ function MockApiDetail(props) {
     );
   }
   async function testEndpoint() {
-    const resp = await testApi(selectedApi);
-    frenchToast.setToastPropsHandler(resp);
+    await testApi(selectedApi);
+    frenchToast.setToastPropsHandler(TOASTTYPES.INFO, 'See devtools/network tab');
   }
 
   let method = selectedApi.Method;
@@ -45,7 +46,7 @@ function MockApiDetail(props) {
         value={JSON.stringify(selectedApi.Response, null, 2)}></TextInput>
       <Col>
         <Button variant="danger" onClick={() => deleteSelectedApi(selectedApi)}>
-          Delete
+          Remove
         </Button>
         <Button style={{ marginLeft: '20px' }} variant="success" onClick={() => testEndpoint()}>
           Test
