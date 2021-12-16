@@ -49,3 +49,10 @@ func DeleteApiByKey(c *fiber.Ctx) error {
 	db.Delete(&api)
 	return c.JSON(fiber.Map{"toastType": "success", "message": "Succesfully Deleted"})
 }
+
+func Export(c *fiber.Ctx) error {
+	db := database.DBConn
+	var apis []Api
+	db.Find(&apis)
+	return c.JSON(apis)
+}
