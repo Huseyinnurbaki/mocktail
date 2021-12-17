@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
-import { Container, Row } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 import DashboadTabs from '../DashboardTabs';
-import Catalog from '../Catalog';
-import MockApiDetail from '../../components/MockApiDetail';
-import Divider from '../../components/Divider';
 import useApis from '../../hooks/useApis';
 import { ALL_APIS, DELETE_API } from '../../utils/paths';
 import { del, get } from '../../utils/request';
@@ -35,17 +32,13 @@ export default function Dashboad(props) {
   }
 
   return (
-    <Container style={{ backgroundColor: 'white', paddingBottom: '24px' }}>
-      <DashboadTabs refetch={refetch} frenchToast={frenchToast} />
-      <Divider />
-      <Row>
-        <Catalog catalog={catalog} />
-        <MockApiDetail
-          catalog={catalog}
-          deleteSelectedApi={deleteSelectedApi}
-          frenchToast={frenchToast}
-        />
-      </Row>
+    <Container>
+      <DashboadTabs
+        refetch={refetch}
+        frenchToast={frenchToast}
+        deleteSelectedApi={deleteSelectedApi}
+        catalog={catalog}
+      />
     </Container>
   );
 }

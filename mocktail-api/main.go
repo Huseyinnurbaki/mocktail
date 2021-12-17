@@ -14,6 +14,7 @@ import (
 )
 
 func setupRoutes(app *fiber.App) {
+	app.Static("/", "./build")
 	coreApi := app.Group("/core/v1")
 	coreApi.Post("/api", core.NewApi)
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Row, Tabs, Tab } from 'react-bootstrap';
 import Generate from './Generate';
 import Export from './Export';
+import Catalog from './Catalog';
+import MockApiDetail from '../../components/MockApiDetail';
 import Tips from './Tips';
 import PropTypes from 'prop-types';
 import Import from './Import';
 
 export default function DashboadTabs(props) {
-  const { refetch, frenchToast } = props;
+  const { refetch, frenchToast, deleteSelectedApi, catalog } = props;
 
   const [tip] = useState(Tips[Math.floor(Math.random() * Tips.length)]);
 
@@ -17,8 +19,15 @@ export default function DashboadTabs(props) {
         <Tab eventKey="generate" title="Generate">
           <Generate refetch={refetch} tip={tip} frenchToast={frenchToast} />
         </Tab>
-        <Tab disabled eventKey="validator" title="Validator">
-          <h3>Coming Soon...</h3>
+        <Tab eventKey="catalog" title="Catalog">
+          <Row>
+            <Catalog catalog={catalog} />
+            <MockApiDetail
+              catalog={catalog}
+              deleteSelectedApi={deleteSelectedApi}
+              frenchToast={frenchToast}
+            />
+          </Row>
         </Tab>
         <Tab eventKey="export" title="Export">
           <Export />
@@ -29,6 +38,9 @@ export default function DashboadTabs(props) {
         <Tab disabled eventKey="cascade" title="Cascade">
           <h3>Coming Soon...</h3>
         </Tab>
+        <Tab disabled eventKey="settings" title="Settings">
+          <h3>Coming Soon...</h3>
+        </Tab>
       </Tabs>
     </Row>
   );
@@ -36,5 +48,7 @@ export default function DashboadTabs(props) {
 
 DashboadTabs.propTypes = {
   refetch: PropTypes.func,
-  frenchToast: PropTypes.func
+  deleteSelectedApi: PropTypes.func,
+  frenchToast: PropTypes.object,
+  catalog: PropTypes.object
 };

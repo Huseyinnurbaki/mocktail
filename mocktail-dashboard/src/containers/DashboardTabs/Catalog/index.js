@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
-import MockItem from '../../components/MockItem';
+import MockItem from '../../../components/MockItem';
 import Col from 'react-bootstrap/cjs/Col';
 import PropTypes from 'prop-types';
 
@@ -31,9 +31,8 @@ export default function Catalog(props) {
       <ListGroup>
         <Form inline={'true'} style={{ marginTop: '10px', marginBottom: '20px' }}>
           <FormControl
-            disabled={!displayedApis.length}
             type="text"
-            placeholder="Type only the endpoint.."
+            placeholder="Search endpoint.."
             className="mr-sm-2"
             onChange={searchHandler}
           />

@@ -25,7 +25,7 @@ TextInput.propTypes = {
   label: PropTypes.string,
   onChange: PropTypes.func,
   disabled: PropTypes.bool,
-  value: PropTypes.oneOfType[(PropTypes.object, PropTypes.string)]
+  value: PropTypes.any
 };
 
 export default TextInput;

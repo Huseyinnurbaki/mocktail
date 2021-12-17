@@ -4,8 +4,8 @@ import Header from './components/Header';
 import { ToastContainer, toast } from 'react-toastify';
 import useToastify from './hooks/useToastify';
 
-import './styles/global.css';
 import 'react-toastify/dist/ReactToastify.css';
+import './styles/global.css';
 
 function App() {
   const frenchToast = useToastify();
@@ -16,7 +16,7 @@ function App() {
     frenchToast.reset();
   }, [frenchToast, frenchToast.toastProps]);
   return (
-    <div style={{ backgroundColor: 'whitesmoke' }}>
+    <div>
       <ToastContainer
         position="top-right"
         autoClose={5000}

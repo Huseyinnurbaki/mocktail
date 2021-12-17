@@ -10,36 +10,19 @@ function MockApiDetail(props) {
   const { catalog, deleteSelectedApi, frenchToast } = props;
   const { selectedApi } = catalog;
   if (!selectedApi.Method) {
-    return (
-      <Col style={{ minHeight: '400px' }}>
-        <h3 className="h3dr">Choose Template From Left</h3>
-        <img
-          style={{ height: '100px', marginTop: '60px', opacity: '0.5' }}
-          src="left.png"
-          className="rounded mr-2"
-          alt=""
-        />
-      </Col>
-    );
+    return <Col style={{ minHeight: '400px' }} />;
   }
   async function testEndpoint() {
     await testApi(selectedApi);
     frenchToast.setToastPropsHandler(TOASTTYPES.INFO, 'See devtools/network tab');
   }
 
-  let method = selectedApi.Method;
   return (
     <Col>
       <Col>
         <h3 className="h3dr">Request Details</h3>
         <MockItem disabled data={selectedApi}></MockItem>
       </Col>
-      {method === 'POST' ? (
-        <TextInput
-          label={'Request'}
-          disabled
-          value={JSON.stringify(selectedApi.RequestParams, null, 2)}></TextInput>
-      ) : null}
       <TextInput
         label={'Reponse'}
         disabled
