@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Tabs, Tab } from 'react-bootstrap';
 import Generate from './Generate';
+import Export from './Export';
 import Tips from './Tips';
 import PropTypes from 'prop-types';
 
@@ -18,8 +19,8 @@ export default function DashboadTabs(props) {
         <Tab disabled eventKey="validator" title="Validator">
           <h3>Coming Soon...</h3>
         </Tab>
-        <Tab disabled eventKey="export" title="Export">
-          <h3>Coming Soon...</h3>
+        <Tab eventKey="export" title="Export">
+          <Export />
         </Tab>
         <Tab disabled eventKey="import" title="Import">
           <h3>Coming Soon...</h3>
