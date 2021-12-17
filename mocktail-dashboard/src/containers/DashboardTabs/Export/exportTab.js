@@ -22,7 +22,7 @@ function ExportTab() {
     <Row>
       <Col>
         <h2>Export </h2>
-        <h4>Export all mock apis into a json file. </h4>
+        <h5>Export all mock apis into a json file. </h5>
         <Button onClick={() => exportApis()}>Download</Button>
       </Col>
       <Col>
