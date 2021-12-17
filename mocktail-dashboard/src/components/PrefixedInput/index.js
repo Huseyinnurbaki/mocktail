@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import React from 'react';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
@@ -9,6 +10,7 @@ import PropTypes from 'prop-types';
 
 const PrefixedInput = (props) => {
   const { HTTP_METHODS, selectedMethod, setSelectedMethod } = props;
+
   return (
     <Col>
       <label htmlFor="basic-url">Your Mock Endpoint</label>
@@ -19,10 +21,12 @@ const PrefixedInput = (props) => {
           id="input-group-dropdown-2"
           align="end"
           onSelect={(key) => setSelectedMethod(key)}>
-          <Dropdown.Item eventKey={HTTP_METHODS?.GET}>{HTTP_METHODS?.GET}</Dropdown.Item>
-          <Dropdown.Item eventKey={HTTP_METHODS?.POST}>{HTTP_METHODS?.POST}</Dropdown.Item>
-          <Dropdown.Item eventKey={HTTP_METHODS?.PUT}>{HTTP_METHODS?.PUT}</Dropdown.Item>
-          <Dropdown.Item eventKey={HTTP_METHODS?.DELETE}>{HTTP_METHODS?.DELETE}</Dropdown.Item>
+          {HTTP_METHODS &&
+            Object.keys(HTTP_METHODS)?.map((item) => (
+              <Dropdown.Item key={item} eventKey={item}>
+                {item}
+              </Dropdown.Item>
+            ))}
         </DropdownButton>
         <InputGroup.Text id="basic-addon3">{API_MOCKTAIL_URL}</InputGroup.Text>
         <FormControl
