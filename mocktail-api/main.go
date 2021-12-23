@@ -39,8 +39,9 @@ func initDatabase() {
 	database.DBConn.AutoMigrate(&core.Api{})
 	fmt.Println("Database Migrated")
 }
-
+// TODO: read addr from env
 func main() {
+	// addr := `:` + os.Getenv("PORT")
 	app := fiber.New()
 	app.Use(cors.New())
 
@@ -49,5 +50,5 @@ func main() {
 
 	setupRoutes(app)
 
-	log.Fatal(app.Listen(":3200"))
+	log.Fatal(app.Listen(":4002"))
 }
