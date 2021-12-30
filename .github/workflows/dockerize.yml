@@ -27,14 +27,11 @@ jobs:
         node-version: 14.x
     - run: npm ci
     - run: npm run build --if-present
-    
-    - name: Cache
-      id: dashboard
-      uses: actions/cache@v2.1.7
+
+    - uses: actions/upload-artifact@v2
       with:
+        name: build
         path: ./build
-        key: ${{ github.sha }}
-        
 
 
   build-n-push:
@@ -46,16 +43,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
-    - uses: actions/cache@v2
-      id: dashboard-build
+
+    - uses: actions/download-artifact@v2
       with:
-        path: ./build
-        key: ${{ github.sha }}
+        name: build
 
     - name: Build the Docker image
       run: |
-        cp -R steps.dashboard-build.outputs .
         ls
         docker build . --file Dockerfile --tag $IMAGE_NAME
       
