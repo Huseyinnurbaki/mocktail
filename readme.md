@@ -1,18 +1,22 @@
-# Mocktail V2 is under development !
+# Mocktail V2 is almost here !
 
 # New Version Keynotes:
 
-- NodeJS replaced with Go Fiber.
-- UI will be upgraded.
-- Deployment scripts will be updated.
-- Helm support.
+- [x] NodeJS replaced with Go Fiber.
+- [x] React Upgrade
+- [ ] Containerize Mocktail
+- [ ] Update Readme
+- [ ] Build Scripts
+- [ ] Generate Deployment scripts.
+   - [ ] Docker
+   - [ ] Kubernetes
+   - [ ] Kubernetes (Helm)
 
+## Long Run
 
-# Long Run
+- [ ] Multiple DB Support
+- [ ] Graphql support
 
-- Mocking PUT - DELETE requests
-- Graphql support
-- Multiple DB support (SQLite, Postgre, Mongo)
 ---
 ![alt text](./howto/mt.png "mt")
 
