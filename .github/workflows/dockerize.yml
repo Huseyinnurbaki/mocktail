@@ -40,7 +40,7 @@ jobs:
     needs: [build-dashboard]
     defaults:
       run:
-        working-directory: $GITHUB_WORKSPACE/mocktail-api
+        working-directory: ./mocktail-api
 
     steps:
     - uses: actions/checkout@v2
