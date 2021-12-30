@@ -13,6 +13,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mocktail-dashboard
 
     strategy:
       matrix:
@@ -24,7 +27,5 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-
-    - run: cd mocktail-dashboard
     - run: npm ci
     - run: npm run build --if-present
