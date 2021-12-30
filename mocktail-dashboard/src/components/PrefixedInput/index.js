@@ -33,7 +33,9 @@ const PrefixedInput = (props) => {
           id="basic-url"
           aria-describedby="basic-addon3"
           onChange={props.onChange}
+          value={props.value}
           autoComplete="off"
+          required={props.required}
         />
       </InputGroup>
     </Col>
@@ -44,7 +46,9 @@ export default PrefixedInput;
 
 PrefixedInput.propTypes = {
   onChange: PropTypes.func,
+  value: PropTypes.any,
   setSelectedMethod: PropTypes.func,
   HTTP_METHODS: PropTypes.object,
-  selectedMethod: PropTypes.string
+  selectedMethod: PropTypes.string,
+  required: PropTypes.bool
 };

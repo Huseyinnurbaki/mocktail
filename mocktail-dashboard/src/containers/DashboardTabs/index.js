@@ -35,9 +35,6 @@ export default function DashboadTabs(props) {
         <Tab eventKey="import" title="Import">
           <Import frenchToast={frenchToast} />
         </Tab>
-        <Tab disabled eventKey="cascade" title="Cascade">
-          <h3>Coming Soon...</h3>
-        </Tab>
         <Tab disabled eventKey="settings" title="Settings">
           <h3>Coming Soon...</h3>
         </Tab>

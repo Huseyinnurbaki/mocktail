@@ -7,7 +7,7 @@ function useToastify() {
   }
 
   function setToastPropsApiResponseHandler(response) {
-    if (response.status === 200) {
+    if (response?.status === 200) {
       setToastProps(defaultSuccessToast);
       return;
     }
@@ -23,7 +23,6 @@ function useToastify() {
 
   return {
     toastProps,
-    setToastProps,
     reset,
     setToastPropsApiResponseHandler,
     setToastPropsHandler

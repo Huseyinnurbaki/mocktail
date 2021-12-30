@@ -21,7 +21,6 @@ function GenerateTab(props) {
   const [selectedMethod, setSelectedMethod] = useState(HTTP_METHODS.GET);
 
   function clearAll() {
-    formRef.current.reset();
     setEndpointValue('');
     setResponseValueValue('');
   }
@@ -30,11 +29,12 @@ function GenerateTab(props) {
     const body = {
       Endpoint: endpointValue,
       Method: selectedMethod,
-      Response: JSON.parse(responseValue)
+      Response: responseValue
     };
 
     const res = await post(SAVE_API, body);
-    frenchToast.setToastProps(res);
+    frenchToast.setToastPropsApiResponseHandler(res);
+    clearAll();
 
     await refetch();
   }
@@ -49,11 +49,12 @@ function GenerateTab(props) {
         <Form ref={formRef}>
           <PrefixedInput
             value={endpointValue}
-            onChange={(e) => setEndpointValue(e.target.value)}
+            onChange={(e) => setEndpointValue(e.target.value.replace(/\s/g, ''))}
             selectedMethod={selectedMethod}
             setSelectedMethod={setSelectedMethod}
             HTTP_METHODS={HTTP_METHODS}
             isInvalid={!endpointValue}
+            required
           />
           <TextInput
             label="Response Body"
@@ -63,7 +64,7 @@ function GenerateTab(props) {
         </Form>
       </Col>
       <Col>
-        <Button disabled={false} onClick={() => save()}>
+        <Button type="submit" onClick={() => save()}>
           Save
         </Button>
         <Button

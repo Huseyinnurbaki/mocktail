@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:4002' : '';
+const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '';
 
 const API_CORE_URL = `${BASE_URL}/core/v1`;
 
