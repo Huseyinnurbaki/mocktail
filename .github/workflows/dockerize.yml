@@ -48,10 +48,10 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: build
-        path: ./mocktail-api
+        path: ./mocktail-api/build
 
     - name: Build the Docker image
-      run: ls
+      run: docker build --tag $IMAGE_NAME .
       
     - name: Login to Docker Hub
       uses: docker/login-action@v1
