@@ -4,7 +4,7 @@
 
 - [x] NodeJS replaced with Go Fiber.
 - [x] React Upgrade
-- [ ] Containerize Mocktail
+- [x] Containerize Mocktail
 - [ ] Update Readme
 - [ ] Build Scripts
 - [ ] Generate Deployment scripts.
