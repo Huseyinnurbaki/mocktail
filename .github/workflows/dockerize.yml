@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: $GITHUB_WORKSPACE/mocktail-dashboard
+        working-directory: ./mocktail-dashboard
 
     steps:
     - uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
         key: ${{ github.sha }}
 
     - name: Build the Docker image
-      working-directory: $GITHUB_WORKSPACE/mocktail-api
+      working-directory: ./mocktail-api
       run: | 
         ls
         docker build . --file Dockerfile --tag $IMAGE_NAME
