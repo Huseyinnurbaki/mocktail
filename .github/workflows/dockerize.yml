@@ -51,7 +51,9 @@ jobs:
         path: ./mocktail-api
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag $IMAGE_NAME
+      run: |
+        ls
+        docker build . --file Dockerfile --tag $IMAGE_NAME
       
     - name: Login to Docker Hub
       uses: docker/login-action@v1
