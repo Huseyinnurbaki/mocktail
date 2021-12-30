@@ -31,7 +31,8 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: build
-        path: ./build
+        path: ./mocktail-dashboard/build
+    - run: ls
 
 
   build-n-push:
