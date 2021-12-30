@@ -32,7 +32,7 @@ jobs:
       id: dashboard
       uses: actions/cache@v2.1.7
       with:
-        path: ./build
+        path: build
         key: ${{ github.sha }}
         
 
@@ -50,14 +50,13 @@ jobs:
     - uses: actions/cache@v2
       id: dashboard
       with:
-        path: ./
+        path: build
         key: ${{ github.sha }}
-    - run: ls
 
     - name: Build the Docker image
       run: |
         pwd
-        cp -R steps.dashboard .
+        cp -R build .
         ls
         docker build . --file Dockerfile --tag $IMAGE_NAME
       
