@@ -6,7 +6,7 @@
 - [x] React Upgrade
 - [x] Containerize Mocktail
 - [ ] Update Readme
-- [ ] Build Scripts
+- [ ] Build Scripts (GitHub Actions)
 - [ ] Generate Deployment scripts.
    - [ ] Docker
    - [ ] Kubernetes
