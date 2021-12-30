@@ -1,3 +1,7 @@
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/hhaluk/mocktail?color=blue&logo=docker)
+![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/hhaluk/mocktail?color=B4D4A55&logo=docker)
+![Docker Pulls](https://img.shields.io/docker/pulls/hhaluk/mocktail?color=gray&logo=docker)
+
 # Mocktail V2 is almost here !
 
 # New Version Keynotes:
