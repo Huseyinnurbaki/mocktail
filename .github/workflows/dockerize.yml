@@ -3,10 +3,8 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
-  release:
-    types: [published]
-    branches:
-      - master
+  pull_request:
+    branches: [ master ]
 
 env:
   IMAGE_NAME: hhaluk/mocktail-test
