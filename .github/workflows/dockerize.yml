@@ -1,6 +1,8 @@
 name: Docker Image CI
 
 on:
+  push:
+    branches: [ master ]
   release:
     types: [published]
     branches:
@@ -60,10 +62,6 @@ jobs:
         
     - name: Push DockerHub
       run: |
-        # Strip git ref prefix from version
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-        # Strip "v" prefix from tag name
-        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-        docker tag $IMAGE_NAME:latest $IMAGE_NAME:$VERSION
-        docker image push $IMAGE_NAME:$VERSION
-        docker image push $IMAGE_NAME:latest
+          SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$SHORT_SHA
+          docker image push --all-tags $IMAGE_NAME
