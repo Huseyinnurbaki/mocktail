@@ -9,8 +9,8 @@
 - [x] NodeJS replaced with Go Fiber.
 - [x] React Upgrade
 - [x] Containerize Mocktail
+- [x] Build Scripts (GitHub Actions)
 - [ ] Update Readme
-- [ ] Build Scripts (GitHub Actions)
 - [ ] Generate Deployment scripts.
    - [ ] Docker
    - [ ] Kubernetes
@@ -21,17 +21,6 @@
 - [ ] Multiple DB Support
 - [ ] Graphql support
 
-- NodeJS replaced with Go Fiber.
-- UI will be upgraded.
-- Deployment scripts will be updated.
-- Helm support.
-
-
-# Long Run
-
-- Mocking PUT - DELETE requests
-- Graphql support
-- Multiple DB support (SQLite, Postgre, Mongo)
 ---
 
 ![alt text](./howto/mt.png "mt")
