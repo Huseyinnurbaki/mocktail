@@ -17,8 +17,8 @@ export default function CoolDropzone(props) {
       reader.onload = () => {
         const convertedToJson = reader.result;
         try {
-          JSON.parse(convertedToJson);
-          upload(convertedToJson);
+          const body = { Apis: JSON.parse(convertedToJson) };
+          upload(body);
         } catch (error) {
           frenchToast.setToastPropsHandler(TOASTTYPES.ERROR, 'Json File is not parsable');
         }

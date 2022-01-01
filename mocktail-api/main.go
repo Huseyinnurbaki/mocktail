@@ -16,10 +16,11 @@ import (
 func setupRoutes(app *fiber.App) {
 	app.Static("/", "./build")
 	coreApi := app.Group("/core/v1")
-	coreApi.Post("/api", core.NewApi)
-	coreApi.Delete("/api/:id", core.DeleteApiByKey)
-	coreApi.Get("/apis", core.Apis)
-	coreApi.Get("/export", core.Export)
+	coreApi.Get("/apis", core.GetApis)
+	coreApi.Get("/export", core.ExportApis)
+	coreApi.Post("/api", core.CreateApi)
+	coreApi.Post("/import", core.ImportApis)
+	coreApi.Delete("/api/:key", core.DeleteApiByKey)
 
 	moctailApi := app.Group("/mocktail")
 	moctailApi.Get("/:endpoint", mocktail.MockApiHandler)

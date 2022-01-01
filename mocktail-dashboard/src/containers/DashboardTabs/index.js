@@ -33,7 +33,7 @@ export default function DashboadTabs(props) {
           <Export />
         </Tab>
         <Tab eventKey="import" title="Import">
-          <Import frenchToast={frenchToast} />
+          <Import frenchToast={frenchToast} refetch={refetch} />
         </Tab>
         <Tab disabled eventKey="settings" title="Settings">
           <h3>Coming Soon...</h3>

@@ -2,17 +2,21 @@ import React from 'react';
 import { Row } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import CoolDropzone from '../../../components/Dropzone';
+import { post } from '../../../utils/request';
+import { IMPORT_API } from '../../../utils/paths';
 
 function ImportTab(props) {
-  const { frenchToast } = props;
-  async function upload() {
-    console.log('upload');
+  const { frenchToast, refetch } = props;
+  async function upload(list) {
+    const res = await post(IMPORT_API, list);
+    frenchToast.setToastPropsApiResponseHandler(res);
+    await refetch();
   }
 
   return (
     <Row>
-      <h2>Import </h2>
-      <CoolDropzone frenchToast={frenchToast} upload={() => upload()} />
+      <h2>Import</h2>
+      <CoolDropzone frenchToast={frenchToast} upload={(list) => upload(list)} />
     </Row>
   );
 }
@@ -20,5 +24,6 @@ function ImportTab(props) {
 export default ImportTab;
 
 ImportTab.propTypes = {
-  frenchToast: PropTypes.any
+  frenchToast: PropTypes.any,
+  refetch: PropTypes.any
 };

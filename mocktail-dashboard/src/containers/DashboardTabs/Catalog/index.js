@@ -29,6 +29,7 @@ export default function Catalog(props) {
   return (
     <Col>
       <ListGroup>
+        <h2>Catalog</h2>
         <Form inline={'true'} style={{ marginTop: '10px', marginBottom: '20px' }}>
           <FormControl
             type="text"
