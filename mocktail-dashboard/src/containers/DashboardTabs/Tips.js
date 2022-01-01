@@ -7,9 +7,6 @@ const Tips = [
   'Apis are listed under Catalog tab.',
   'You can import exported apis.',
   'Image size is only 36mb.',
-  'Contributions & suggestions are welcomed!',
-  'Contributions & suggestions are welcomed!',
-  'Contributions & suggestions are welcomed!',
   'Contributions & suggestions are welcomed!'
 ];
 
