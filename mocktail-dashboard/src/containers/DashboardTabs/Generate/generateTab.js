@@ -5,6 +5,7 @@ import TextInput from '../../../components/TextInput';
 import { SAVE_API } from '../../../utils/paths';
 import { post } from '../../../utils/request';
 import PropTypes from 'prop-types';
+import { TOASTTYPES } from '../../../hooks/useToastify';
 
 const HTTP_METHODS = {
   GET: 'GET',
@@ -25,11 +26,20 @@ function GenerateTab(props) {
     setResponseValueValue('');
   }
 
+  async function proceed() {
+    try {
+      if (typeof JSON.parse(responseValue) !== 'object') throw 'Unparsable Json';
+      save();
+    } catch (error) {
+      frenchToast.setToastPropsHandler(TOASTTYPES.ERROR, error.message || error);
+    }
+  }
+
   async function save() {
     const body = {
       Endpoint: endpointValue,
       Method: selectedMethod,
-      Response: responseValue
+      Response: JSON.parse(responseValue)
     };
 
     const res = await post(SAVE_API, body);
@@ -64,7 +74,7 @@ function GenerateTab(props) {
         </Form>
       </Col>
       <Col>
-        <Button type="submit" onClick={() => save()}>
+        <Button type="submit" onClick={proceed}>
           Save
         </Button>
         <Button
