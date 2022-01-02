@@ -6,7 +6,7 @@ const Tips = [
   'Original docker image is hhaluk/mocktail',
   'Apis are listed under Catalog tab.',
   'You can import exported apis.',
-  'Image size is only 36mb.',
+  'Image size is only 11MB.',
   'Contributions & suggestions are welcomed!'
 ];
 
