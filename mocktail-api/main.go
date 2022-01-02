@@ -26,6 +26,7 @@ func setupRoutes(app *fiber.App) {
 	moctailApi.Get("/:endpoint", mocktail.MockApiHandler)
 	moctailApi.Post("/:endpoint", mocktail.MockApiHandler)
 	moctailApi.Put("/:endpoint", mocktail.MockApiHandler)
+	moctailApi.Patch("/:endpoint", mocktail.MockApiHandler)
 	moctailApi.Delete("/:endpoint", mocktail.MockApiHandler)
 
 }
