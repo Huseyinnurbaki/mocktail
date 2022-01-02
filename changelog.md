@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
  
+## [2.0.0] - 2022-01-03
+  
+
+### Updated
+  
+- NodeJS replaced with Go Fiber.
+- React Upgrade
+- Containerization automated (GitHub Actions)
+
 
 ## [1.0.1] - 2020-06-19
   
@@ -17,3 +26,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
  
 
 ### First Release 
+
+
+
+[2.0.0]: https://github.com/Huseyinnurbaki/mocktail/releases/tag/2.0.0
