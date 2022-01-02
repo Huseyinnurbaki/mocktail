@@ -7,7 +7,7 @@ const Header = () => {
       <Row className="justify-content-md-center">
         <Col xs={12} sm={4} md={4}>
           <img
-            src="./headr1.png"
+            src="./header.png"
             className="headerimg"
             alt=""
             style={{ height: '100px', alignSelf: 'center' }}
