@@ -11,7 +11,7 @@ function useToastify() {
       setToastProps(defaultSuccessToast);
       return;
     }
-    setToastProps(defaultErrorToast);
+    setToastProps(defaultErrorToast(response?.message));
   }
 
   function setToastPropsHandler(toastType, message) {
@@ -47,7 +47,9 @@ export const defaultSuccessToast = {
   toastType: TOASTTYPES.SUCCESS,
   message: 'Success 🎉🎉'
 };
-export const defaultErrorToast = {
-  toastType: TOASTTYPES.ERROR,
-  message: 'Something went wrong ☹️☹️	'
+export const defaultErrorToast = (message = 'Something went wrong ☹️☹️	') => {
+  return {
+    toastType: TOASTTYPES.ERROR,
+    message
+  };
 };
