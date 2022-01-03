@@ -4,6 +4,10 @@ import FormControl from 'react-bootstrap/FormControl';
 import Col from 'react-bootstrap/Col';
 import PropTypes from 'prop-types';
 
+const placeholder = {
+  placeholder: 'Happy Mocking 🍹🍹'
+};
+
 const TextInput = (props) => {
   return (
     <Col>
@@ -15,7 +19,7 @@ const TextInput = (props) => {
           rows="8"
           onInput={props.onChange}
           value={props.value}
-          placeholder="{}"
+          placeholder={JSON.stringify(placeholder, 0, 2)}
         />
       </Form.Group>
     </Col>
