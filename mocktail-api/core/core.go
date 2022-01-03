@@ -10,9 +10,10 @@ import (
 )
 
 type Api struct {
+	ID uint `gorm:"primary_key;auto_increment;not_null"`
 	Endpoint string `validate:"required"`
 	Method string `validate:"is-method-allowed"`
-	Key string `gorm:"unique;not null";"primaryKey;autoIncrement:false"`
+	Key string `gorm:"unique;not null"`
 	Response datatypes.JSON `validate:"required"`
 }
 type Apis struct {
@@ -41,7 +42,7 @@ func InsertApi(api *Api) error{
 	db := database.DBConn
 	api.Key = api.Method+api.Endpoint
 	validate := validator.New()
-	validate.RegisterValidation("is-method-allowed", validateNewApiHTTPMethod)
+	validate.RegisterValidation("is-method-allowed", isApiHTTPMethodValid)
 	if err := validate.Struct(api); err != nil {
 		return err
 	}
@@ -53,15 +54,15 @@ func InsertApi(api *Api) error{
 }
 
 func DeleteApiByKey(c *fiber.Ctx) error {
-	key := c.Params("key")
+	id := c.Params("id")
 	db := database.DBConn
-
 	var api Api
-	if err := db.Unscoped().Delete(&api, "Key = ? ", key).Error; err != nil {
+
+	if err := db.Unscoped().Delete(&api, "ID = ? ", id).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message":err.Error()})
 	}
 	
-	return c.Status(200).JSON(fiber.Map{"message":"Successfully Deleted"})
+	return c.Status(200).JSON(fiber.Map{"message":"Completed"})
 }
 
 func ExportApis(c *fiber.Ctx) error {
@@ -85,7 +86,7 @@ func ImportApis(c *fiber.Ctx) error {
 }
 
 
-func validateNewApiHTTPMethod(fl validator.FieldLevel) bool {
+func isApiHTTPMethodValid(fl validator.FieldLevel) bool {
 	HTTPMethodList := [5]string{"GET", "POST", "PUT", "PATCH", "DELETE"}
     for _, b := range HTTPMethodList {
         if b == fl.Field().String() {

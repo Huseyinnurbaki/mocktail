@@ -9,9 +9,10 @@ import (
 )
 
 type Api struct {
+	ID uint `gorm:"primary_key;auto_increment;not_null"`
 	Endpoint string `validate:"required"`
 	Method string `validate:"is-method-allowed"`
-	Key string `gorm:"unique;not null";"primaryKey;autoIncrement:false"`
+	Key string `gorm:"unique;not null"`
 	Response datatypes.JSON `validate:"required"`
 }
 

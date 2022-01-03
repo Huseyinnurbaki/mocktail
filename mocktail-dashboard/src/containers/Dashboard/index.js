@@ -19,7 +19,7 @@ export default function Dashboad(props) {
   }, []);
 
   async function deleteSelectedApi(selectedApi) {
-    const url = `${DELETE_API}/${selectedApi.Key}`;
+    const url = `${DELETE_API}/${selectedApi.ID}`;
     const delResponse = await del(url);
     frenchToast.setToastPropsApiResponseHandler(delResponse);
     await refetch();
