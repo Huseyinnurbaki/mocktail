@@ -15,6 +15,7 @@ const TextInput = (props) => {
           rows="8"
           onInput={props.onChange}
           value={props.value}
+          placeholder="{}"
         />
       </Form.Group>
     </Col>
