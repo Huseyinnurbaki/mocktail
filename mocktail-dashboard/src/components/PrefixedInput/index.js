@@ -28,7 +28,7 @@ const PrefixedInput = (props) => {
               </Dropdown.Item>
             ))}
         </DropdownButton>
-        <InputGroup.Text id="basic-addon3">{API_MOCKTAIL_URL}</InputGroup.Text>
+        <InputGroup.Text id="basic-addon3">{API_MOCKTAIL_URL}/</InputGroup.Text>
         <FormControl
           id="basic-url"
           aria-describedby="basic-addon3"
@@ -36,6 +36,7 @@ const PrefixedInput = (props) => {
           value={props.value}
           autoComplete="off"
           required={props.required}
+          placeholder="endpoint"
         />
       </InputGroup>
     </Col>

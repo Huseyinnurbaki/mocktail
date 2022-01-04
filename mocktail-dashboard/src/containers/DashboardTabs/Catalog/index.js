@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import ListGroup from 'react-bootstrap/ListGroup';
-import Form from 'react-bootstrap/Form';
-import FormControl from 'react-bootstrap/FormControl';
+import { Col, FormControl, Button, InputGroup } from 'react-bootstrap';
+
 import MockItem from '../../../components/MockItem';
-import Col from 'react-bootstrap/cjs/Col';
 import PropTypes from 'prop-types';
 
 export default function Catalog(props) {
@@ -26,31 +24,41 @@ export default function Catalog(props) {
     setSearchTerm(event.target.value);
   };
 
+  async function exportApis() {
+    const json = JSON.stringify(displayedApis);
+    const blob = new Blob([json], { type: 'application/json' });
+    const href = await URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = 'mocktail.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <Col>
-      <ListGroup>
-        <h2>Catalog</h2>
-        <Form inline={'true'} style={{ marginTop: '10px', marginBottom: '20px' }}>
-          <FormControl
-            type="text"
-            placeholder="Search endpoint.."
-            className="mr-sm-2"
-            onChange={searchHandler}
-          />
-        </Form>
-        <div className="scroller">
-          {displayedApis.length ? (
-            displayedApis.map((item, index) => (
-              <MockItem
-                data={item}
-                key={index}
-                onPressAction={() => setSelectedApi(item)}></MockItem>
-            ))
-          ) : (
-            <h3 className="header">There is no endpoint..</h3>
-          )}
-        </div>
-      </ListGroup>
+      <h3>🍹Apis</h3>
+      <InputGroup className="mb-3">
+        <FormControl
+          type="text"
+          placeholder="Search endpoint.."
+          className="mr-sm-2"
+          onChange={searchHandler}
+        />
+        <Button onClick={exportApis} variant="outline-secondary">
+          Export {displayedApis.length} ⬇️
+        </Button>
+      </InputGroup>
+      <div className="scroller">
+        {displayedApis.length ? (
+          displayedApis.map((item, index) => (
+            <MockItem data={item} key={index} onPressAction={() => setSelectedApi(item)} />
+          ))
+        ) : (
+          <h6 className="header">ℹ️ Use Generate tab to create a new api.</h6>
+        )}
+      </div>
     </Col>
   );
 }

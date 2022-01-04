@@ -50,8 +50,8 @@ function GenerateTab(props) {
   }
 
   return (
-    <Col style={{ backgroundColor: 'white' }}>
-      <Col style={{ backgroundColor: 'white' }}>
+    <Col>
+      <Col>
         <h3 className="h1dr">Request Template</h3>
       </Col>
 
@@ -75,14 +75,14 @@ function GenerateTab(props) {
       </Col>
       <Col>
         <Button type="submit" onClick={proceed}>
-          Save
+          Save 👍
         </Button>
         <Button
           disabled={false}
           style={{ marginLeft: '20px' }}
           variant="warning"
           onClick={() => clearAll()}>
-          Clear
+          Clear 🧹
         </Button>
       </Col>
     </Col>

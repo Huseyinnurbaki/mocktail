@@ -33,7 +33,7 @@ export default function CoolDropzone(props) {
       <input {...getInputProps()} />
       <img
         style={{
-          height: '250px',
+          height: '240px',
           marginTop: '80px',
           alignSelf: 'center',
           opacity: '0.85'

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Row, Tabs, Tab } from 'react-bootstrap';
 import Generate from './Generate';
-import Export from './Export';
 import Catalog from './Catalog';
 import MockApiDetail from '../../components/MockApiDetail';
 import Tips from './Tips';
@@ -28,9 +27,6 @@ export default function DashboadTabs(props) {
               frenchToast={frenchToast}
             />
           </Row>
-        </Tab>
-        <Tab eventKey="export" title="Export">
-          <Export />
         </Tab>
         <Tab eventKey="import" title="Import">
           <Import frenchToast={frenchToast} refetch={refetch} />

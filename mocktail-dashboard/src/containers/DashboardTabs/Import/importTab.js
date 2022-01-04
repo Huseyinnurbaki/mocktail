@@ -15,7 +15,11 @@ function ImportTab(props) {
 
   return (
     <Row>
-      <h2>Import</h2>
+      <h3>Import</h3>
+      <h6>
+        Use this tab to import files exported from Catalog Tab. Any json file matching the format is
+        accepted.
+      </h6>
       <CoolDropzone frenchToast={frenchToast} upload={(list) => upload(list)} />
     </Row>
   );
