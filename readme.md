@@ -12,47 +12,59 @@
 
 ### Mocktail is completely free, 11mb, ready to run, containerized mock server. There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
 
-# New Version Keynotes:
-
-- [x] NodeJS replaced with Go Fiber.
-- [x] React Upgrade
-- [x] Containerize Mocktail
-- [x] Build Scripts (GitHub Actions)
-- [ ] Update Readme
-- [ ] Generate Deployment scripts.
-   - [ ] Docker
-   - [ ] Kubernetes
-   - [ ] Kubernetes (Helm)
-- [ ] Mocking Exceptions
-
-## Long Run
-
-- [ ] Multiple DB Support
-- [ ] Graphql support
-
----
 # Quickstart 🚀
 
-#### Run the following command and you are all set.
+## Deploy with Helm ⎈ 
 ```console
-$ docker run -p 4000:4000 -d hhaluk/mocktail
+$ helm repo add hhaluk https://huseyinnurbaki.github.io/charts/
+$ helm install mocktail hhaluk/mocktail
+
+****** Application url will be prompted. ******
+```
+> See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment. 
+
+## Run Mocktail in a docker container 🐳
+```console
+$ docker run -p 4000 -d hhaluk/mocktail:2.0.1
 ```
 
-#### Go to **localhost:7080**
+### Go to **localhost:4000**
 
 <p align="center">
   <img src="./howto/mocktail.gif" alt="mocktail_gif" />
 </p>
 
+> This gif belongs to the previous ui, which is similar to the new dashboard. Will be replaced soon.
 
 
 # Capabilities 😎
 
+- Generate mock apis for Get/Post/Put/Patch/Delete using the Generate tab.
+- Catalog tab lists added apis.
+- See api details by clicking details button of an api under Catalog tab.
+- Test added apis.
+- Remove unused apis.
+- Export search results to json.
+- Import exported json.
 
 
-# Tips ✅
 
+# V2 Keynotes:
 
+- [x] NodeJS replaced with Go Fiber.
+- [x] React Upgrade
+- [x] Containerize Mocktail
+- [x] Build Scripts (GitHub Actions)
+- [x] Update Readme
+- [x] Define deployment commands.
+   - [x] Docker
+   - [x] Kubernetes (Helm)
+
+## Upcoming Features
+
+- [ ] Multiple DB Support
+- [ ] Graphql support
+- [ ] Exceptions Scenarios
 
 License
 ----
