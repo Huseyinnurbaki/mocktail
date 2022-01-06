@@ -10,7 +10,7 @@
 # Mocktail V2 is here !
 
 
-### Mocktail is completely free, 11mb, ready to run, containerized mock server. There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
+### Mocktail is completely free, 11mb,self-hosted, containerized mock server with a dashboard. There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported. Learn more on  [Capabilities](#capabilities). 
 
 # Quickstart 🚀
 
@@ -65,9 +65,3 @@ $ docker run -p 4000 -d hhaluk/mocktail:2.0.1
 - [ ] Multiple DB Support
 - [ ] Graphql support
 - [ ] Exceptions Scenarios
-
-License
-----
-
-MIT
-
