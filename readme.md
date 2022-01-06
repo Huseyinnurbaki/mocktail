@@ -7,7 +7,7 @@
 
 ![alt text](./howto/mt.png "mt")
 
-# Mocktail V2 is almost here !
+# Mocktail V2 is here !
 
 
 ### Mocktail is completely free, 11mb, ready to run, containerized mock server. There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported. Learn more on  [Capabilities](#capabilities) and [Tips](#tips) section. 
@@ -27,8 +27,8 @@ $ helm install mocktail hhaluk/mocktail
 ```console
 $ docker run -p 4000 -d hhaluk/mocktail:2.0.1
 ```
-
-### Go to **localhost:4000**
+> See "latest stable" tag at the beginning of this file to install the latest stable version.
+### Go to **localhost:4000** 🏃
 
 <p align="center">
   <img src="./howto/mocktail.gif" alt="mocktail_gif" />
@@ -49,7 +49,7 @@ $ docker run -p 4000 -d hhaluk/mocktail:2.0.1
 
 
 
-# V2 Keynotes:
+# V2 Keynotes ✅
 
 - [x] NodeJS replaced with Go Fiber.
 - [x] React Upgrade
@@ -60,7 +60,7 @@ $ docker run -p 4000 -d hhaluk/mocktail:2.0.1
    - [x] Docker
    - [x] Kubernetes (Helm)
 
-## Upcoming Features
+## Upcoming Features 🔥
 
 - [ ] Multiple DB Support
 - [ ] Graphql support
