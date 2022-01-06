@@ -27,7 +27,7 @@ $ helm install mocktail hhaluk/mocktail
 ```console
 $ docker run -p 4000 -d hhaluk/mocktail:2.0.1
 ```
-> See "latest stable" tag at the beginning of this file to install the latest stable version.
+> See "stable-version" tag at the beginning of this file to install the latest stable version.
 ### Go to **localhost:4000** 🏃
 
 <p align="center">
