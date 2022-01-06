@@ -14,7 +14,9 @@
 
 # Quickstart 🚀
 
-## Deploy with Helm ⎈ 
+## Deploy with Helm ⎈  
+> youtube tutorial is being prepared.
+
 ```console
 $ helm repo add hhaluk https://huseyinnurbaki.github.io/charts/
 $ helm install mocktail hhaluk/mocktail
@@ -23,13 +25,14 @@ $ helm install mocktail hhaluk/mocktail
 ```
 > See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment. 
 
-## Run Mocktail in a docker container 🐳
+## Run Mocktail in a docker container 🐳 [See Youtube Tutorial](https://youtu.be/1y34yML7ET4)
 ```console
 $ docker run -p 4000:4000 -d hhaluk/mocktail:2.0.1
 ```
 > See "stable-version" tag at the beginning of this file to install the latest stable version.
 ### Go to **localhost:4000** 🏃
 
+---
 <p align="center">
   <img src="./howto/mocktail.gif" alt="mocktail_gif" />
 </p>
