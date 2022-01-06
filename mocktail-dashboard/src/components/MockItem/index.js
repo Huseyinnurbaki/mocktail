@@ -2,7 +2,6 @@ import React from 'react';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import Button from 'react-bootstrap/Button';
-import { API_MOCKTAIL_URL } from '../../utils/paths';
 import { RestProfiles } from '../../styles/profiles';
 import PropTypes from 'prop-types';
 
@@ -10,7 +9,6 @@ const MockItem = (props) => {
   const { data } = props;
   const { Method } = data;
   let endpoint = '/' + props.data.Endpoint;
-  let copyEndpoint = API_MOCKTAIL_URL + props.data.Endpoint;
   return (
     <dt key={props.index}>
       <InputGroup className="mb-3">
@@ -27,7 +25,7 @@ const MockItem = (props) => {
         />
         <Button
           onClick={() => {
-            navigator.clipboard.writeText(copyEndpoint);
+            navigator.clipboard.writeText(endpoint);
           }}
           variant="outline-secondary">
           Copy

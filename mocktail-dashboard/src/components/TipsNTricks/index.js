@@ -15,7 +15,7 @@ const TipsNTricks = ({ tip }) => {
         </Card>
       </Col>
       <Col style={{ marginTop: '38px' }}>
-        <Card.Title className="h1dr">Sample Get Request </Card.Title>
+        <Card.Title className="h1dr">Sample Request </Card.Title>
         <Card>
           <Card.Body>{API_MOCKTAIL_URL}/your-endpoint</Card.Body>
         </Card>
