@@ -68,3 +68,6 @@ $ docker run -p 4000:4000 -d hhaluk/mocktail:2.0.1
 - [ ] Multiple DB Support
 - [ ] Graphql support
 - [ ] Exceptions Scenarios
+
+## ToDo
+- UI improvements
