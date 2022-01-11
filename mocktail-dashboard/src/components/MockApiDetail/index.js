@@ -27,7 +27,7 @@ function MockApiDetail(props) {
         label={'Reponse'}
         disabled
         value={JSON.stringify(selectedApi.Response, null, 2)}></TextInput>
-      <Col>
+      <Col style={{ marginTop: '12px' }}>
         <Button variant="danger" onClick={() => deleteSelectedApi(selectedApi)}>
           Remove
         </Button>

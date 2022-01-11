@@ -15,7 +15,7 @@ function ImportTab(props) {
 
   return (
     <Row>
-      <h3>Import</h3>
+      <h3>Import ⬆️</h3>
       <h6>
         Use this tab to import files exported from Catalog Tab. Any json file matching the format is
         accepted.

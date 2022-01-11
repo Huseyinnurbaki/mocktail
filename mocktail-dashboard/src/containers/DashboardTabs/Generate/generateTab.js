@@ -50,11 +50,8 @@ function GenerateTab(props) {
   }
 
   return (
-    <Col>
-      <Col>
-        <h3 className="h1dr">Request Template</h3>
-      </Col>
-
+    <>
+      <h3>Request Template ➕</h3>
       <Col style={{ minHeight: '100px', paddingBottom: '12px' }}>
         <Form ref={formRef}>
           <PrefixedInput
@@ -72,20 +69,20 @@ function GenerateTab(props) {
             onChange={(e) => setResponseValueValue(e.target.value)}
           />
         </Form>
+        <Col style={{ marginTop: '12px' }}>
+          <Button type="submit" onClick={proceed}>
+            Save 👍
+          </Button>
+          <Button
+            disabled={false}
+            style={{ marginLeft: '20px' }}
+            variant="warning"
+            onClick={() => clearAll()}>
+            Clear 🧹
+          </Button>
+        </Col>
       </Col>
-      <Col>
-        <Button type="submit" onClick={proceed}>
-          Save 👍
-        </Button>
-        <Button
-          disabled={false}
-          style={{ marginLeft: '20px' }}
-          variant="warning"
-          onClick={() => clearAll()}>
-          Clear 🧹
-        </Button>
-      </Col>
-    </Col>
+    </>
   );
 }
 
