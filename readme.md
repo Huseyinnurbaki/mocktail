@@ -23,13 +23,13 @@ $ helm install mocktail hhaluk/mocktail
 
 ****** Application url will be prompted. ******
 ```
-> See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment. 
+_See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment._
 
 ## Run Mocktail in a docker container 🐳 [See Youtube Tutorial](https://youtu.be/1y34yML7ET4)
 ```console
 $ docker run -p 4000:4000 -d hhaluk/mocktail:2.0.1
 ```
-> See "stable-version" tag at the beginning of this file to install the latest stable version.
+_See "stable-version" tag at the beginning of this file to install the latest stable version._
 ### Go to **localhost:4000** 🏃
 
 ---
@@ -67,7 +67,26 @@ $ docker run -p 4000:4000 -d hhaluk/mocktail:2.0.1
 
 - [ ] Multiple DB Support
 - [ ] Graphql support
-- [ ] Exceptions Scenarios
+- [ ] Exception Mocking
 
 ## ToDo
 - UI improvements
+
+
+## Local Developement 🏃🏃
+
+
+
+### Running Backend 🏃
+I prefer vscode for [debug mode](https://marketplace.visualstudio.com/items?itemName=golang.go)
+It's already configured. You can also use LiteIDE, GoLand, Delve directly. Up to you. 
+
+If you are just going to work on the Dashboard, running it in a container is also an option. Use the command under "Run Mocktail in a docker container"
+
+### Running Dashboard 🏃
+
+```console
+$ cd mocktail-dashboard
+$ npm start 
+```
+
