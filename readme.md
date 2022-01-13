@@ -14,6 +14,8 @@ Mocktail is completely free, 11mb, self-hosted, containerized mock server with a
 
 There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported.
 
+[Quickstart](#quickstart) 🚀 •
+[Capabilities](#quickstart) 😎
 
 </div>
 
@@ -23,7 +25,7 @@ There are no limitations or restrictions unlike most mock servers. You can mock 
 
 
 
-## Quickstart 🚀
+## Quickstart
 <details>
   <summary>Helm ⎈ </summary>
   
@@ -71,7 +73,7 @@ $ npm start
 
 </details>
 
-## Capabilities 😎
+## Capabilities
 
 - Generate mock apis for Get/Post/Put/Patch/Delete using the Generate tab.
 - Catalog tab lists added apis.
@@ -80,7 +82,6 @@ $ npm start
 - Remove unused apis.
 - Export search results to json.
 - Import exported json.
-
 
 
 ## V2 Keynotes ✅
