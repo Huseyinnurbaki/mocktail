@@ -67,6 +67,7 @@ If you are just going to work on the Dashboard, running it in a container is als
 $ cd mocktail-dashboard
 $ npm start 
 ```
+### Go to **localhost:3001** 🏃
 
 </details>
 
