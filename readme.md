@@ -18,7 +18,7 @@ There are no limitations or restrictions unlike most mock servers. You can mock 
 </div>
 
 <p align="center">
-  <img src="./howto/mocktail.gif" alt="mocktail_gif" />
+  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail.gif?raw=true" alt="mocktail_gif" />
 </p>
 
 
