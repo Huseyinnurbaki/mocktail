@@ -32,13 +32,24 @@ There are no limitations or restrictions unlike most mock servers. You can mock 
   ## Deploy with Helm ⎈
   > youtube tutorial is being prepared.
 
+
 ```console
 $ helm repo add hhaluk https://huseyinnurbaki.github.io/charts/
 $ helm install mocktail hhaluk/mocktail
 
 ****** Application url will be prompted. ******
 ```
-_See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment._
+  
+  ## Helm Upgrade Guideline
+
+  ```console
+$ helm repo update hhaluk
+$ helm upgrade mocktail hhaluk/mocktail
+
+****** Application url will be prompted. ******
+```
+
+  _See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment._
 </details>
 
 <details>
