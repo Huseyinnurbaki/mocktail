@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [2.0.2] - 2022-01-14
+  
+
+### Updated
+  
+- UI improvements
+
 ## [2.0.1] - 2022-01-05
   
 
@@ -40,3 +47,4 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 [2.0.0]: https://github.com/Huseyinnurbaki/mocktail/releases/tag/2.0.0
 [2.0.1]: https://github.com/Huseyinnurbaki/mocktail/releases/tag/2.0.1
+[2.0.2]: https://github.com/Huseyinnurbaki/mocktail/releases/tag/2.0.2
