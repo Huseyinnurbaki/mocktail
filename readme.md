@@ -42,6 +42,8 @@ $ helm install mocktail hhaluk/mocktail
   
   ## Helm Upgrade Guideline
 
+> Keep in mind that sqlite solution is not persistent. A workaround is exporting data, then importing after the upgrade. I tried to move the apis.db under a directory to be able to mount the directory for persistency but couldn't make it work. Open a PR if you make it work :) 
+  
   ```console
 $ helm repo update hhaluk
 $ helm upgrade mocktail hhaluk/mocktail
