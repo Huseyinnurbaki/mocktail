@@ -114,8 +114,4 @@ $ npm start
 - [ ] Graphql support
 - [ ] Exception Mocking
 
-## ToDo
-- UI improvements
-
-
 
