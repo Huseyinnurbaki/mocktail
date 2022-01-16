@@ -24,7 +24,6 @@ There are no limitations or restrictions unlike most mock servers. You can mock 
 </p>
 
 
-
 ## Quickstart
 <details>
   <summary>Helm ⎈ </summary>
@@ -96,7 +95,6 @@ $ npm start
 - Export search results to json.
 - Import exported json.
 
-
 ## V2 Keynotes ✅
 
 - [x] NodeJS replaced with Go Fiber.
@@ -115,3 +113,6 @@ $ npm start
 - [ ] Exception Mocking
 
 
+### References
+
+- [Changelog](https://github.com/Huseyinnurbaki/mocktail/blob/master/changelog.md)
