@@ -108,9 +108,9 @@ $ npm start
 
 ## Upcoming Features 🔥
 
-- [ ] Multiple DB Support
-- [ ] Graphql support
-- [ ] Exception Mocking
+-  Multiple DB Support
+-  Graphql support
+-  Exception Mocking
 
 
 ### References
