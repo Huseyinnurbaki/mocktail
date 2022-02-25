@@ -23,11 +23,11 @@ func setupRoutes(app *fiber.App) {
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
 
 	mocktailApi := app.Group("/mocktail")
-	mocktailApi.Get("/:endpoint", mocktail.MockApiHandler)
-	mocktailApi.Post("/:endpoint", mocktail.MockApiHandler)
-	mocktailApi.Put("/:endpoint", mocktail.MockApiHandler)
-	mocktailApi.Patch("/:endpoint", mocktail.MockApiHandler)
-	mocktailApi.Delete("/:endpoint", mocktail.MockApiHandler)
+	mocktailApi.Get("/:endpoint/*", mocktail.MockApiHandler)
+	mocktailApi.Post("/:endpoint/*", mocktail.MockApiHandler)
+	mocktailApi.Put("/:endpoint/*", mocktail.MockApiHandler)
+	mocktailApi.Patch("/:endpoint/*", mocktail.MockApiHandler)
+	mocktailApi.Delete("/:endpoint/*", mocktail.MockApiHandler)
 
 }
 

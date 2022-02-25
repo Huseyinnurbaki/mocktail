@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [2.0.3] - 2022-02-26 
+
+### Bugfix
+  
+- [issue #6 fixed](https://github.com/Huseyinnurbaki/mocktail/issues/6)
 ## [2.0.2] - 2022-01-14
   
 
