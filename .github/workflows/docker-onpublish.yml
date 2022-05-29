@@ -23,8 +23,8 @@ jobs:
       uses: actions/setup-node@v2.5.1
       with:
         node-version: 14.x
-    - run: npm ci
-    - run: npm run build --if-present
+    - run: yarn install --frozen-lockfile
+    - run: yarn build
 
     - uses: actions/upload-artifact@v2
       with:

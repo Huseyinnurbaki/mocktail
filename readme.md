@@ -79,7 +79,7 @@ If you are just going to work on the Dashboard, running it in a container is als
 
 ```console
 $ cd mocktail-dashboard
-$ npm start 
+$ yarn start 
 ```
 ### Go to **localhost:3001** 🏃
 
