@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"log"
 	"mocktail-api/core"
 	"mocktail-api/database"
@@ -31,9 +32,9 @@ func setupRoutes(app *fiber.App) {
 
 }
 
-func initDatabase() {
+func initDatabase(dbName string) {
 	var err error
-	database.DBConn, err = gorm.Open("sqlite3", "apis.db")
+	database.DBConn, err = gorm.Open("sqlite3", dbName)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -43,11 +44,13 @@ func initDatabase() {
 }
 // TODO: read addr from env
 func main() {
-	// addr := `:` + os.Getenv("PORT")
+	dbNameFlag := flag.String("dbname", "apis.db", "db name: default apis.db")
+	flag.Parse()
+
 	app := fiber.New()
 	app.Use(cors.New())
 
-	initDatabase()
+	initDatabase(*dbNameFlag)
 	defer database.DBConn.Close()
 
 	setupRoutes(app)
