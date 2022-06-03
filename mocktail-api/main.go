@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"log"
 	"mocktail-api/core"
 	"mocktail-api/database"
@@ -43,7 +44,9 @@ func initDatabase() {
 }
 // TODO: read addr from env
 func main() {
-	// addr := `:` + os.Getenv("PORT")
+	portFlag := flag.Uint("port", 4000, "listen port. default: 4000")
+	flag.Parse()
+
 	app := fiber.New()
 	app.Use(cors.New())
 
@@ -52,5 +55,6 @@ func main() {
 
 	setupRoutes(app)
 
-	log.Fatal(app.Listen(":4000"))
+	port := fmt.Sprintf(":%v", *portFlag)
+	log.Fatal(app.Listen(port))
 }
