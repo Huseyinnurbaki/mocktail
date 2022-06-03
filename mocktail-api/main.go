@@ -45,6 +45,8 @@ func initDatabase(dbName string) {
 // TODO: read addr from env
 func main() {
 	dbNameFlag := flag.String("dbname", "apis.db", "db name: default apis.db")
+	portFlag := flag.Uint("port", 4000, "listen port. default: 4000")
+
 	flag.Parse()
 
 	app := fiber.New()
@@ -55,5 +57,6 @@ func main() {
 
 	setupRoutes(app)
 
-	log.Fatal(app.Listen(":4000"))
+	port := fmt.Sprintf(":%v", *portFlag)
+	log.Fatal(app.Listen(port))
 }
