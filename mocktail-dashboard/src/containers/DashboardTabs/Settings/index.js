@@ -8,6 +8,8 @@ import { GITHUB_RELEASES } from '../../../utils/paths.js';
 
 import { get } from '../../../utils/request';
 
+const changelog = 'https://github.com/Huseyinnurbaki/mocktail/blob/master/changelog.md';
+
 function Settings() {
   const [latestVersion, setLatestVersion] = useState('x.x.x');
 
@@ -24,6 +26,9 @@ function Settings() {
         <h3>Settings ⚙️</h3>
         <h5>Current Version {APP_VERSION}</h5>
         <h5>Latest Version {latestVersion}</h5>
+        <a href={changelog}>
+          <h5>Changelog</h5>
+        </a>
       </Row>
     </BaseTab>
   );
