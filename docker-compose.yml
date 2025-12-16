@@ -1,0 +1,9 @@
+services:
+  mocktail:
+    container_name: mocktail
+    image: mocktail:latest
+    build: .
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./mocktail-api/db:/db
