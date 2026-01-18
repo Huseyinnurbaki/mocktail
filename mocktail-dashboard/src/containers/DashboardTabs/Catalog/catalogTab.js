@@ -65,6 +65,11 @@ export default function CatalogTab(props) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    const message = searchTerm
+      ? `Exported ${displayedApis.length} matching endpoint${displayedApis.length === 1 ? '' : 's'}`
+      : `Exported ${displayedApis.length} endpoint${displayedApis.length === 1 ? '' : 's'}`;
+    showToast(TOASTTYPES.SUCCESS, message, 2000);
   }
 
   const handleImportClick = () => {
