@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+.github
+
+# Development
+.vscode
+.claude
+
+# Documentation
+readme.md
+changelog.md
+LICENSE
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Build tools
+Makefile
+
+# Node
+mocktail-dashboard/node_modules
+mocktail-dashboard/.env
+mocktail-dashboard/.env.local
+mocktail-dashboard/.env.example
+
+# Go
+mocktail-api/app
+mocktail-api/db
+
+# OS
+.DS_Store
+Thumbs.db

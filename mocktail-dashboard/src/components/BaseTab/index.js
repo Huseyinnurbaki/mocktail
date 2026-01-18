@@ -1,9 +1,9 @@
 import React from 'react';
-import { Row } from 'react-bootstrap';
+import { Box } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 
 function BaseTab(props) {
-  return <Row style={{ marginTop: '12px', marginBottom: '18px' }}>{props.children}</Row>;
+  return <Box mt="12px" mb="18px">{props.children}</Box>;
 }
 
 export default BaseTab;

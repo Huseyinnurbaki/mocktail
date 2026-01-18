@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
-import { Container } from 'react-bootstrap';
+import { Container } from '@chakra-ui/react';
 import DashboadTabs from '../DashboardTabs';
 import useApis from '../../hooks/useApis';
 import { ALL_APIS, DELETE_API } from '../../utils/paths';
 import { del, get } from '../../utils/request';
-import PropTypes from 'prop-types';
+import { showToast, TOASTTYPES } from '../../utils/toast';
 
-export default function Dashboad(props) {
-  const { frenchToast } = props;
+export default function Dashboad() {
   const catalog = useApis();
 
   useEffect(() => {
@@ -21,7 +20,11 @@ export default function Dashboad(props) {
   async function deleteSelectedApi(selectedApi) {
     const url = `${DELETE_API}/${selectedApi.ID}`;
     const delResponse = await del(url);
-    frenchToast.setToastPropsApiResponseHandler(delResponse);
+    if (delResponse?.status === 200) {
+      showToast(TOASTTYPES.SUCCESS, 'Endpoint deleted successfully');
+    } else {
+      showToast(TOASTTYPES.ERROR, delResponse?.message || 'Failed to delete endpoint');
+    }
     await refetch();
   }
 
@@ -32,17 +35,12 @@ export default function Dashboad(props) {
   }
 
   return (
-    <Container>
+    <Container maxW="container.xl" py={8} px={{ base: 4, md: 6 }}>
       <DashboadTabs
         refetch={refetch}
-        frenchToast={frenchToast}
         deleteSelectedApi={deleteSelectedApi}
         catalog={catalog}
       />
     </Container>
   );
 }
-
-Dashboad.propTypes = {
-  frenchToast: PropTypes.any
-};

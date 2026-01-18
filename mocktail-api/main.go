@@ -6,18 +6,27 @@ import (
 	"mocktail-api/core"
 	"mocktail-api/database"
 	"mocktail-api/mocktail"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func setupRoutes(app *fiber.App) {
 	app.Static("/", "./build")
+
+	// Health check endpoint
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "healthy",
+			"service": "mocktail-api",
+		})
+	})
+
 	coreApi := app.Group("/core/v1")
 	coreApi.Get("/apis", core.GetApis)
-	coreApi.Get("/export", core.ExportApis)
 	coreApi.Post("/api", core.CreateApi)
 	coreApi.Post("/import", core.ImportApis)
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
@@ -33,7 +42,13 @@ func setupRoutes(app *fiber.App) {
 
 func initDatabase() {
 	var err error
-	database.DBConn, err = gorm.Open("sqlite3", "db/apis.db")
+
+	// Create db directory if it doesn't exist
+	if err := os.MkdirAll("db", 0755); err != nil {
+		panic("failed to create db directory")
+	}
+
+	database.DBConn, err = gorm.Open(sqlite.Open("db/apis.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -49,7 +64,6 @@ func main() {
 	app.Use(cors.New())
 
 	initDatabase()
-	defer database.DBConn.Close()
 
 	setupRoutes(app)
 

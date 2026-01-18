@@ -9,111 +9,163 @@
 [![Docker Build CI](https://github.com/Huseyinnurbaki/mocktail/actions/workflows/dockerize.yml/badge.svg?branch=master)](https://github.com/Huseyinnurbaki/mocktail/actions/workflows/dockerize.yml)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hhaluk/mocktail?color=gray&logo=docker)
 
-Mocktail is completely free, 11mb, self-hosted, containerized mock server with a dashboard.
+Mocktail is completely free, lightweight (~13MB), self-hosted, containerized mock server with a modern dashboard.
 
-There are no limitations or restrictions unlike most mock servers. You can mock any request. Mock apis can be exported and imported.
+No limitations or restrictions. Mock any HTTP request. Export and import your mocks.
 
 [Quickstart](#quickstart) 🚀 •
-[Capabilities](#quickstart) 😎
+[Features](#features) ✨ •
+[v3.0 Changes](#v30-changes) 🔥
+
+> **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
 
 </div>
 
 <p align="center">
-  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail.gif?raw=true" alt="mocktail_gif" />
+  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail_V3.gif?raw=true" alt="mocktail_gif" />
 </p>
 
 ## Quickstart
 
 <details>
-  <summary>Helm ⎈ </summary>
-  
-## Deploy with Helm ⎈
-  >
-  > youtube tutorial is being prepared.
+  <summary>Docker 🐳</summary>
+
+## Run Mocktail in a Docker container 🐳
 
 ```console
-$ helm repo add hhaluk https://huseyinnurbaki.github.io/charts/
-$ helm install mocktail hhaluk/mocktail
-
-****** Application url will be prompted. ******
-```
-  
-## Helm Upgrade Guideline
-
-> sqlite data is stored in `/db` directory. If you want to persist the data, you can mount the directory.
-  
-  ```console
-$ helm repo update hhaluk
-$ helm upgrade mocktail hhaluk/mocktail
-
-****** Application url will be prompted. ******
+docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.0.0
 ```
 
-  _See values.yaml at [https://github.com/Huseyinnurbaki/charts](https://github.com/Huseyinnurbaki/charts/tree/release) under hhaluk/mocktail for customized deployment._
-</details>
-
-<details>
-  <summary>Docker 🐳 </summary>
-  
-## Run Mocktail in a docker container 🐳 [See Youtube Tutorial](https://youtu.be/1y34yML7ET4)
-
-```console
-docker run -p 4000:4000 -d hhaluk/mocktail:2.0.1
-```
-
-_See "stable-version" tag at the beginning of this file to install the latest stable version._
+The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
 
 ### Go to **localhost:4000** 🏃
 
 </details>
 
 <details>
-  <summary>Local Developement 🏃🏃 </summary>
-  
-### Running Backend 🏃
+  <summary>Docker Compose 🐳</summary>
 
-I prefer vscode for [debug mode](https://marketplace.visualstudio.com/items?itemName=golang.go)
-It's already configured. You can also use LiteIDE, GoLand, Delve directly. Up to you.
-
-If you are just going to work on the Dashboard, running it in a container is also an option. Use the command under "Run Mocktail in a docker container"
-
-### Running Dashboard 🏃
+## Run with Docker Compose
 
 ```console
-cd mocktail-dashboard
-yarn start 
+docker-compose up -d
 ```
 
-### Go to **localhost:3001** 🏃
+Or build and run:
+
+```console
+docker-compose up -d --build
+```
+
+### Go to **localhost:4000** 🏃
+
+The database is automatically persisted in `./mocktail-api/db/` on your host machine.
 
 </details>
 
-## Capabilities
+## Features
 
-- Generate mock apis for Get/Post/Put/Patch/Delete using the Generate tab.
-- Catalog tab lists added apis.
-- See api details by clicking details button of an api under Catalog tab.
-- Test added apis.
-- Remove unused apis.
-- Export search results to json.
-- Import exported json.
+- **Create Mock APIs** - Support for GET/POST/PUT/PATCH/DELETE methods
+- **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
+- **Catalog View** - Browse, search, and manage all your mock endpoints
+- **Test Endpoints** - Test your mocks directly from the dashboard
+- **Import/Export** - Export mocks to JSON and import them anywhere
+- **Persistent Storage** - SQLite database with volume mounting
+- **Health Check** - `/health` endpoint for monitoring and orchestration
+- **Customizable URLs** - Override display URLs for reverse proxy/custom domain setups
 
-## V2 Keynotes ✅
+## Configuration
 
-- [x] NodeJS replaced with Go Fiber.
-- [x] React Upgrade
-- [x] Containerize Mocktail
-- [x] Build Scripts (GitHub Actions)
-- [x] Update Readme
-- [x] Define deployment commands.
-- [x] Docker
-- [x] Kubernetes (Helm)
+### Environment Variables
 
-## Upcoming Features 🔥
+**`REACT_APP_MOCKTAIL_URL`** (optional)
 
-- Multiple DB Support
-- Graphql support
-- Exception Mocking
+Override the Mocktail URL displayed in the dashboard. Useful when deploying behind a reverse proxy or custom domain.
+
+```bash
+# Example: Custom domain
+REACT_APP_MOCKTAIL_URL=https://api.mycompany.com/mocktail
+
+# Example: Reverse proxy
+REACT_APP_MOCKTAIL_URL=https://gateway.example.com/mocktail
+```
+
+If not set, defaults to:
+- **Development:** `http://localhost:4000/mocktail`
+- **Production:** `[your-domain]/mocktail`
+
+## v3.0 Changes
+
+### 🎉 What's New
+
+- **Chakra UI v3** - Complete UI library upgrade with modern components
+- **Go 1.21 & GORM v2** - Latest backend stack with improved performance
+- **Fiber v2.52** - Updated web framework with security patches
+- **Cleaner Architecture** - Improved code organization and consistency
+- **Health Endpoint** - `/health` for Docker health checks and monitoring
+- **Auto-Setup** - Database directory auto-creates on first run
+- **Import/Export UI** - Moved to Catalog tab with better UX
+
+### 🔄 What Changed
+
+- **Import Tab Removed** - Import functionality now in Catalog tab
+- **Drag & Drop Removed** - Simplified to native file input
+- **react-dropzone Removed** - Reduced dependencies
+
+### ⚠️ Breaking Changes
+
+**v3.0 is not backwards compatible with v2.x databases.**
+
+However, you can migrate your data:
+1. In v2, export your mocks to JSON (Catalog → Export)
+2. Install v3.0
+3. Import the JSON file (Catalog → Import)
+
+Your mock endpoints will work unchanged - only the internal database structure changed.
+
+## Development
+
+<details>
+  <summary>Local Development 🏃</summary>
+
+### Using Makefile (Recommended)
+
+```console
+# Run backend dev server
+make dev-api
+
+# Run dashboard dev server (in another terminal)
+make dev-dashboard
+
+# Build everything
+make build
+
+# Build Docker image
+make build-docker
+```
+
+### Manual Setup
+
+**Backend:**
+
+```console
+cd mocktail-api
+go run main.go
+```
+
+**Dashboard:**
+
+```console
+cd mocktail-dashboard
+yarn install
+yarn start
+```
+
+Backend runs on **localhost:4000**, Dashboard on **localhost:3001**
+
+VSCode debug configuration is included for Go debugging.
+
+</details>
 
 ### References
 

@@ -52,8 +52,8 @@ export function post(url, body) {
 }
 export function del(url, body = {}) {
   const options = {
-    method: 'Delete',
-    body,
+    method: 'DELETE',
+    body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' }
   };
   return request(url, options);

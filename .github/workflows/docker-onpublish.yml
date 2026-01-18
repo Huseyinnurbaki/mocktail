@@ -17,12 +17,14 @@ jobs:
         working-directory: ./mocktail-dashboard
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup Node.js environment
-      uses: actions/setup-node@v2.5.1
+      uses: actions/setup-node@v4
       with:
-        node-version: 14.x
+        node-version: 18.x
+        cache: 'yarn'
+        cache-dependency-path: ./mocktail-dashboard/yarn.lock
     - run: yarn install --frozen-lockfile
     - run: yarn build
 
@@ -41,22 +43,27 @@ jobs:
         working-directory: ./mocktail-api
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v7
+    - name: Setup Go environment
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - uses: actions/download-artifact@v4
       with:
         name: build
         path: ./mocktail-api/build
 
     - name: Build the Docker image
       run: docker build --tag $IMAGE_NAME .
-      
+
     - name: Login to Docker Hub
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3
       with:
         username: hhaluk
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-        
+
     - name: Push DockerHub
       run: |
         VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')

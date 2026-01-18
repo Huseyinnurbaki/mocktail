@@ -1,10 +1,9 @@
-FROM golang:1.17 AS builder-api
+FROM golang:1.21 AS builder-api
 
 WORKDIR /src
 COPY ./mocktail-api .
 RUN go mod download
 RUN CGO_ENABLED=1 GOOS=linux go build -o /app -a -ldflags '-linkmode external -extldflags "-static"' .
-RUN mkdir /db
 
 FROM node:lts-slim AS builder-dashboard
 
@@ -17,7 +16,6 @@ RUN export NODE_OPTIONS=--openssl-legacy-provider && \
 FROM scratch
 
 COPY --from=builder-api /app /app
-COPY --from=builder-api /db /db
 COPY --from=builder-dashboard /src/build /build
 EXPOSE 4000
 
