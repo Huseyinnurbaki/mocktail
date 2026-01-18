@@ -71,6 +71,7 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Test Endpoints** - Test your mocks directly from the dashboard
 - **Import/Export** - Export mocks to JSON and import them anywhere
 - **Persistent Storage** - SQLite database with volume mounting
+- **Multi-Platform** - Native support for amd64 and arm64 (Intel, Apple Silicon, Raspberry Pi)
 - **Health Check** - `/health` endpoint for monitoring and orchestration
 - **Customizable URLs** - Override display URLs for reverse proxy/custom domain setups
 
