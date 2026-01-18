@@ -100,7 +100,7 @@ If not set, defaults to:
 ### 🎉 What's New
 
 - **Chakra UI v3** - Complete UI library upgrade with modern components
-- **Go 1.21 & GORM v2** - Latest backend stack with improved performance
+- **Go 1.24 & GORM v2** - Latest backend stack with improved performance
 - **Fiber v2.52** - Updated web framework with security patches
 - **Cleaner Architecture** - Improved code organization and consistency
 - **Health Endpoint** - `/health` for Docker health checks and monitoring

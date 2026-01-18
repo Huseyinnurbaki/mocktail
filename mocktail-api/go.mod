@@ -1,10 +1,10 @@
 module mocktail-api
 
-go 1.23
+go 1.24
 
 require (
 	github.com/go-playground/validator/v10 v10.22.0
-	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/gofiber/fiber/v2 v2.52.9
 	gorm.io/datatypes v1.2.0
 	gorm.io/driver/sqlite v1.5.5
 	gorm.io/gorm v1.25.10
