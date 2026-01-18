@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder-api
+FROM golang:1.23 AS builder-api
 
 WORKDIR /src
 COPY ./mocktail-api .
