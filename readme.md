@@ -66,9 +66,13 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 ## Features
 
 - **Create Mock APIs** - Support for GET/POST/PUT/PATCH/DELETE methods
+- **Custom Status Codes** - Return any HTTP status (200, 404, 500, etc.) to test error handling
+- **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
+- **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
 - **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
-- **Catalog View** - Browse, search, and manage all your mock endpoints
-- **Test Endpoints** - Test your mocks directly from the dashboard
+- **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions
+- **Quick Edit** - Update status codes and delays instantly via gear icon in catalog
+- **Test Endpoints** - Test mocks directly from the catalog list with visual feedback
 - **Import/Export** - Export mocks to JSON and import them anywhere
 - **Persistent Storage** - SQLite database with volume mounting
 - **Multi-Platform** - Native support for amd64 and arm64 (Intel, Apple Silicon, Raspberry Pi)
@@ -99,6 +103,9 @@ If not set, defaults to:
 
 ### 🎉 What's New
 
+- **Custom Status Codes & Delays** - Configure HTTP status codes and response delays per endpoint
+- **CodeMirror JSON Editor** - Professional code editor with syntax highlighting and error detection
+- **Quick Actions** - Test, edit, copy, and delete directly from the catalog list with icon buttons
 - **Chakra UI v3** - Complete UI library upgrade with modern components
 - **Go 1.24 & GORM v2** - Latest backend stack with improved performance
 - **Fiber v2.52** - Updated web framework with security patches
