@@ -19,11 +19,25 @@ const Header = () => {
     if (!latestVersion) return false;
     const current = APP_VERSION.replace(/^v/, '');
     const latest = latestVersion.replace(/^v/, '');
-    return latest !== current;
+
+    // Compare semantic versions (major.minor.patch)
+    const currentParts = current.split('.').map(Number);
+    const latestParts = latest.split('.').map(Number);
+
+    // Compare major, then minor, then patch
+    for (let i = 0; i < 3; i++) {
+      const currentPart = currentParts[i] || 0;
+      const latestPart = latestParts[i] || 0;
+
+      if (latestPart > currentPart) return true;
+      if (latestPart < currentPart) return false;
+    }
+
+    return false; // versions are equal
   };
 
   return (
-    <Container maxW="container.xl" py={4}>
+    <Container maxW="container.xl" py={4} pb={2}>
       <Flex direction="column" align="center" gap={2}>
         <Image
           src="./header.webp"
@@ -68,16 +82,20 @@ const Header = () => {
                       <Text color="gray.600">Enter your endpoint path (e.g., "users/123" or "api/products").</Text>
                     </Box>
                     <Box>
-                      <Text fontWeight="semibold" mb={1}>3. Create Response Body</Text>
-                      <Text color="gray.600">Paste or type your JSON response. It auto-beautifies on paste. Use Beautify, Validate, or Clear buttons as needed.</Text>
+                      <Text fontWeight="semibold" mb={1}>3. Configure Response</Text>
+                      <Text color="gray.600">Set the HTTP status code (200, 404, 500, etc.) and optional delay (0-30000ms) to simulate loading states or errors.</Text>
                     </Box>
                     <Box>
-                      <Text fontWeight="semibold" mb={1}>4. Save Your Mock</Text>
+                      <Text fontWeight="semibold" mb={1}>4. Create Response Body</Text>
+                      <Text color="gray.600">Type your JSON response with syntax highlighting and error detection. Use Clear or Beautify buttons as needed.</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="semibold" mb={1}>5. Save Your Mock</Text>
                       <Text color="gray.600">Click Save to create your mock endpoint. It will appear in the Catalog tab.</Text>
                     </Box>
                     <Box>
-                      <Text fontWeight="semibold" mb={1}>5. Catalog Tab - Manage & Test</Text>
-                      <Text color="gray.600">Click any endpoint to view details. Use Copy to copy the endpoint path, Test Endpoint to verify it works, or Delete to remove it.</Text>
+                      <Text fontWeight="semibold" mb={1}>6. Catalog Tab - Manage & Test</Text>
+                      <Text color="gray.600">View, edit, test, or delete endpoints. Status codes and delays can be updated anytime by clicking Edit on any endpoint.</Text>
                     </Box>
                   </VStack>
                 </DialogBody>

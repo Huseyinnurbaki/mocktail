@@ -8,12 +8,17 @@ import { API_MOCKTAIL_URL } from './paths';
  * @return {object}          The parsed JSON from the request
  */
 async function parseJSON(response) {
-  if (response.status === 204 || response.status === 205) {
-    return null;
+  if (response.status === 204 || response.status === 205 || response.status === 304) {
+    return { status: response.status };
   }
-  const resp = await response.json();
-  resp.status = response.status;
-  return resp;
+  try {
+    const resp = await response.json();
+    resp.status = response.status;
+    return resp;
+  } catch (error) {
+    // If JSON parsing fails, return status only
+    return { status: response.status };
+  }
 }
 
 /**
@@ -50,6 +55,16 @@ export function post(url, body) {
   };
   return request(url, options);
 }
+
+export function put(url, body) {
+  const options = {
+    method: 'PUT',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' }
+  };
+  return request(url, options);
+}
+
 export function del(url, body = {}) {
   const options = {
     method: 'DELETE',

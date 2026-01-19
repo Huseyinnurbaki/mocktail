@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Container } from '@chakra-ui/react';
+import { Container, Text, Box } from '@chakra-ui/react';
 import DashboadTabs from '../DashboardTabs';
 import useApis from '../../hooks/useApis';
-import { ALL_APIS, DELETE_API } from '../../utils/paths';
+import { ALL_APIS, DELETE_API, PUBLIC_MOCKTAIL_URL } from '../../utils/paths';
 import { del, get } from '../../utils/request';
 import { showToast, TOASTTYPES } from '../../utils/toast';
 
@@ -35,7 +35,12 @@ export default function Dashboad() {
   }
 
   return (
-    <Container maxW="container.xl" py={8} px={{ base: 4, md: 6 }}>
+    <Container maxW="container.xl" pt={0} pb={4} px={{ base: 4, md: 6 }}>
+      <Box textAlign="center" mb={2}>
+        <Text fontSize="xs" color="gray.500" fontFamily="monospace">
+          {PUBLIC_MOCKTAIL_URL}/<Text as="span" color="gray.400">{'{your-endpoint}'}</Text>
+        </Text>
+      </Box>
       <DashboadTabs
         refetch={refetch}
         deleteSelectedApi={deleteSelectedApi}

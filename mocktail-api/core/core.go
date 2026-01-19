@@ -9,11 +9,13 @@ import (
 )
 
 type Api struct {
-	ID       uint            `gorm:"primary_key;auto_increment;not_null"`
-	Endpoint string          `validate:"required"`
-	Method   string          `validate:"is-method-allowed"`
-	Key      string          `gorm:"unique;not null"`
-	Response datatypes.JSON  `validate:"required"`
+	ID         uint            `gorm:"primary_key;auto_increment;not_null"`
+	Endpoint   string          `validate:"required"`
+	Method     string          `validate:"is-method-allowed"`
+	Key        string          `gorm:"unique;not null"`
+	StatusCode int             `gorm:"default:200" json:"StatusCode"`
+	Delay      int             `gorm:"default:0" json:"Delay"`
+	Response   datatypes.JSON  `validate:"required"`
 }
 
 type Apis struct {
@@ -58,6 +60,20 @@ func CreateApi(c *fiber.Ctx) error {
 func InsertApi(api *Api) error {
 	db := database.DBConn
 	api.Key = api.Method + api.Endpoint
+
+	// Set defaults if not provided
+	if api.StatusCode == 0 {
+		api.StatusCode = 200
+	}
+
+	// Cap delay at 30 seconds (30000ms)
+	if api.Delay > 30000 {
+		api.Delay = 30000
+	}
+	if api.Delay < 0 {
+		api.Delay = 0
+	}
+
 	validate := validator.New()
 	validate.RegisterValidation("is-method-allowed", isApiHTTPMethodValid)
 	if err := validate.Struct(api); err != nil {
@@ -68,6 +84,56 @@ func InsertApi(api *Api) error {
 	}
 
 	return nil
+}
+
+func UpdateApi(c *fiber.Ctx) error {
+	id := c.Params("id")
+	db := database.DBConn
+
+	var existingApi Api
+	if err := db.Where("ID = ?", id).First(&existingApi).Error; err != nil {
+		return c.Status(404).JSON(ErrorResponse{Message: "API not found"})
+	}
+
+	updatedApi := new(Api)
+	if err := c.BodyParser(updatedApi); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
+	}
+
+	// Update fields
+	existingApi.Endpoint = updatedApi.Endpoint
+	existingApi.Method = updatedApi.Method
+	existingApi.StatusCode = updatedApi.StatusCode
+	existingApi.Delay = updatedApi.Delay
+	existingApi.Response = updatedApi.Response
+	existingApi.Key = updatedApi.Method + updatedApi.Endpoint
+
+	// Set defaults if not provided
+	if existingApi.StatusCode == 0 {
+		existingApi.StatusCode = 200
+	}
+
+	// Cap delay at 30 seconds (30000ms)
+	if existingApi.Delay > 30000 {
+		existingApi.Delay = 30000
+	}
+	if existingApi.Delay < 0 {
+		existingApi.Delay = 0
+	}
+
+	// Validate
+	validate := validator.New()
+	validate.RegisterValidation("is-method-allowed", isApiHTTPMethodValid)
+	if err := validate.Struct(&existingApi); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
+	}
+
+	// Save
+	if err := db.Save(&existingApi).Error; err != nil {
+		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
+	}
+
+	return c.JSON(existingApi)
 }
 
 func DeleteApiByKey(c *fiber.Ctx) error {
@@ -105,10 +171,25 @@ func ImportApis(c *fiber.Ctx) error {
 		}
 
 		// Create new API without ID
+		delay := importedApi.Delay
+		if delay > 30000 {
+			delay = 30000
+		}
+		if delay < 0 {
+			delay = 0
+		}
+
+		statusCode := importedApi.StatusCode
+		if statusCode == 0 {
+			statusCode = 200
+		}
+
 		newApi := Api{
-			Endpoint: importedApi.Endpoint,
-			Method:   importedApi.Method,
-			Response: importedApi.Response,
+			Endpoint:   importedApi.Endpoint,
+			Method:     importedApi.Method,
+			StatusCode: statusCode,
+			Delay:      delay,
+			Response:   importedApi.Response,
 		}
 
 		// Try to insert

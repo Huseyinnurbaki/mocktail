@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
-import { Box, Button, VStack, HStack, Text, DialogRoot, DialogBackdrop, DialogContent, DialogHeader, DialogBody, DialogFooter, DialogActionTrigger, Portal } from '@chakra-ui/react';
-import TextInput from '../TextInput';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Button, VStack, HStack, Text, DialogRoot, DialogBackdrop, DialogContent, DialogHeader, DialogBody, DialogFooter, DialogActionTrigger, DialogTitle, Portal, Input, Field, NativeSelectRoot, NativeSelectField } from '@chakra-ui/react';
+import JsonEditor from '../JsonEditor';
 import MockItem from '../MockItem';
-import { testApi } from '../../utils/request';
+import JsonTreeViewer from '../JsonTreeViewer';
+import { testApi, put } from '../../utils/request';
+import { UPDATE_API } from '../../utils/paths';
 import PropTypes from 'prop-types';
 import { showToast, TOASTTYPES } from '../../utils/toast';
 
 function MockApiDetail(props) {
-  const { catalog, deleteSelectedApi } = props;
+  const { catalog, deleteSelectedApi, refetch } = props;
   const { selectedApi } = catalog;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editedResponse, setEditedResponse] = useState('');
+  const lastSavedId = useRef(null);
+
+  // Update edited fields when selectedApi ID changes (different endpoint selected)
+  useEffect(() => {
+    if (selectedApi.ID && selectedApi.ID !== lastSavedId.current) {
+      setEditedResponse(JSON.stringify(selectedApi.Response, null, 2));
+      lastSavedId.current = null;
+    }
+  }, [selectedApi.ID]);
   if (!selectedApi.Method) {
     return (
       <VStack align="stretch" gap={4} mt="-1px">
-        <HStack justify="space-between" align="center">
-          <Text fontSize="lg" fontWeight="semibold">
-            Endpoint Details
-          </Text>
-          <Button variant="outline" size="sm" visibility="hidden">
-            Export
-          </Button>
-        </HStack>
         <Box
           p={6}
           textAlign="center"
@@ -28,7 +32,7 @@ function MockApiDetail(props) {
           borderRadius="md"
           border="1px dashed"
           borderColor="gray.300"
-          minH="300px"
+          minH="540px"
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -43,59 +47,100 @@ function MockApiDetail(props) {
   async function testEndpoint() {
     try {
       const response = await testApi(selectedApi);
-      if (response && response.status >= 200 && response.status < 300) {
-        showToast(TOASTTYPES.SUCCESS, `Endpoint tested successfully! Status: ${response.status}`);
+      const status = response?.status;
+
+      if (!status) {
+        showToast(TOASTTYPES.ERROR, 'No response received');
+        return;
+      }
+
+      // Any response is success - the mock is working as configured
+      // Choose toast type based on status code
+      let toastType = TOASTTYPES.SUCCESS;
+      let message = `✓ Mock returned ${status}`;
+
+      if (status >= 400) {
+        toastType = TOASTTYPES.ERROR;
+        message = `✓ Mock returned ${status} (error as configured)`;
+      } else if (status >= 300) {
+        toastType = TOASTTYPES.INFO;
+        message = `✓ Mock returned ${status} (redirect)`;
+      }
+
+      showToast(toastType, message);
+    } catch (error) {
+      showToast(TOASTTYPES.ERROR, `Network error: ${error.message || 'Failed to reach endpoint'}`);
+    }
+  }
+
+  async function handleSave() {
+    try {
+      const parsedResponse = JSON.parse(editedResponse);
+
+      const body = {
+        Endpoint: selectedApi.Endpoint,
+        Method: selectedApi.Method,
+        StatusCode: selectedApi.StatusCode || 200,
+        Delay: selectedApi.Delay || 0,
+        Response: parsedResponse
+      };
+
+      const url = `${UPDATE_API}/${selectedApi.ID}`;
+      const res = await put(url, body);
+
+      if (res?.ID) {
+        showToast(TOASTTYPES.SUCCESS, 'Endpoint updated successfully');
+        // Mark this ID as just saved to prevent useEffect from resetting
+        lastSavedId.current = res.ID;
+        catalog.setSelectedApi(res);
+        await refetch();
       } else {
-        showToast(TOASTTYPES.ERROR, `Test failed with status: ${response?.status || 'unknown'}`);
+        showToast(TOASTTYPES.ERROR, res?.message || 'Failed to update endpoint');
       }
     } catch (error) {
-      showToast(TOASTTYPES.ERROR, `Test failed: ${error.message || 'Network error'}`);
+      showToast(TOASTTYPES.ERROR, error.message || 'Invalid JSON format');
     }
+  }
+
+  function handleCancel() {
+    setEditedResponse(JSON.stringify(selectedApi.Response, null, 2));
   }
 
   return (
     <VStack align="stretch" gap={4} mt="-1px">
-      <HStack justify="space-between" align="center">
-        <Text fontSize="lg" fontWeight="semibold">
-          Endpoint Details
-        </Text>
-        <Button variant="outline" size="sm" visibility="hidden">
-          Export
-        </Button>
-      </HStack>
+      <MockItem
+        disabled
+        data={selectedApi}
+        showDelayAlways
+        onDelete={() => setDeleteDialogOpen(true)}
+      />
 
       <Box minH="462px">
         <VStack align="stretch" gap={4}>
-          <Box>
-            <MockItem disabled data={selectedApi} />
-          </Box>
-
-          <TextInput
+          <JsonEditor
             key={selectedApi.ID}
-            label="Response"
-            disabled
-            rows={17}
-            value={JSON.stringify(selectedApi.Response, null, 2)}
+            value={editedResponse}
+            onChange={(newValue) => setEditedResponse(newValue)}
           />
         </VStack>
       </Box>
 
-      <HStack justify="flex-end" gap={2} pt={4} borderTop="1px solid" borderColor="gray.200">
+      <HStack justify="flex-end" gap={2} pt={4}>
         <Button
           variant="ghost"
-          colorPalette="red"
+          colorPalette="gray"
           size="sm"
-          onClick={() => setDeleteDialogOpen(true)}
+          onClick={handleCancel}
         >
-          Delete
+          Cancel
         </Button>
         <Button
-          variant="ghost"
+          variant="solid"
           colorPalette="blue"
           size="sm"
-          onClick={() => testEndpoint()}
+          onClick={handleSave}
         >
-          Test Endpoint
+          Save
         </Button>
       </HStack>
 
@@ -110,18 +155,30 @@ function MockApiDetail(props) {
             zIndex="modal"
             maxW="md"
           >
-            <DialogHeader>Delete Endpoint</DialogHeader>
-            <DialogBody>
-              <Text>
-                Are you sure you want to delete this endpoint?
-              </Text>
-              <Text mt={2} fontWeight="semibold">
-                {selectedApi.Method} /{selectedApi.Endpoint}
-              </Text>
+            <DialogHeader>
+              <DialogTitle fontSize="lg">Delete Endpoint</DialogTitle>
+            </DialogHeader>
+            <DialogBody pb={4}>
+              <VStack align="stretch" gap={3}>
+                <Text color="gray.600" fontSize="sm">
+                  Are you sure you want to delete this endpoint? This action cannot be undone.
+                </Text>
+                <Box
+                  p={3}
+                  bg="gray.50"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
+                  <Text fontFamily="mono" fontSize="sm" fontWeight="medium">
+                    {selectedApi.Method} /{selectedApi.Endpoint}
+                  </Text>
+                </Box>
+              </VStack>
             </DialogBody>
-            <DialogFooter>
+            <DialogFooter gap={2}>
               <DialogActionTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="ghost" size="sm">
                   Cancel
                 </Button>
               </DialogActionTrigger>
@@ -148,5 +205,6 @@ export default MockApiDetail;
 MockApiDetail.propTypes = {
   catalog: PropTypes.any,
   apis: PropTypes.array,
-  deleteSelectedApi: PropTypes.func
+  deleteSelectedApi: PropTypes.func,
+  refetch: PropTypes.func
 };

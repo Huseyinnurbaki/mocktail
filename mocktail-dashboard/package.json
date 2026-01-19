@@ -4,11 +4,14 @@
   "private": true,
   "dependencies": {
     "@chakra-ui/react": "^3.31.0",
+    "@codemirror/lang-json": "^6.0.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "codemirror": "^6.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-github-corner": "^2.5.0",
+    "react-icons": "^5.5.0",
     "react-scripts": "5.0.1"
   },
   "scripts": {

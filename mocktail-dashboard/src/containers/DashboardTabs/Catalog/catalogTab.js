@@ -3,11 +3,12 @@ import { Box, Input, Button, Group, VStack, Text, HStack } from '@chakra-ui/reac
 
 import MockItem from '../../../components/MockItem';
 import PropTypes from 'prop-types';
-import { post } from '../../../utils/request';
-import { IMPORT_API } from '../../../utils/paths';
+import { post, put } from '../../../utils/request';
+import { IMPORT_API, UPDATE_API } from '../../../utils/paths';
+import { testApi } from '../../../utils/request';
 import { showToast, TOASTTYPES } from '../../../utils/toast';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 20;
 
 export default function CatalogTab(props) {
   const { catalog, refetch } = props;
@@ -16,6 +17,59 @@ export default function CatalogTab(props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef(null);
+
+  const handleQuickUpdate = async (id, statusCode, delay) => {
+    const api = apis.find(a => a.ID === id);
+    if (!api) return;
+
+    const body = {
+      Endpoint: api.Endpoint,
+      Method: api.Method,
+      StatusCode: statusCode,
+      Delay: delay,
+      Response: api.Response
+    };
+
+    const url = `${UPDATE_API}/${id}`;
+    const res = await put(url, body);
+
+    if (res?.ID) {
+      showToast(TOASTTYPES.SUCCESS, 'Endpoint updated successfully');
+      if (selectedApi.ID === id) {
+        setSelectedApi(res);
+      }
+      await refetch();
+    } else {
+      showToast(TOASTTYPES.ERROR, res?.message || 'Failed to update endpoint');
+    }
+  };
+
+  const handleTest = async (api) => {
+    try {
+      const response = await testApi(api);
+      const status = response?.status;
+
+      if (!status) {
+        showToast(TOASTTYPES.ERROR, 'No response received');
+        return;
+      }
+
+      let toastType = TOASTTYPES.SUCCESS;
+      let message = `✓ Mock returned ${status}`;
+
+      if (status >= 400) {
+        toastType = TOASTTYPES.ERROR;
+        message = `✓ Mock returned ${status} (error as configured)`;
+      } else if (status >= 300) {
+        toastType = TOASTTYPES.INFO;
+        message = `✓ Mock returned ${status} (redirect)`;
+      }
+
+      showToast(toastType, message);
+    } catch (error) {
+      showToast(TOASTTYPES.ERROR, `Network error: ${error.message || 'Failed to reach endpoint'}`);
+    }
+  };
 
   useEffect(() => {
     setApis(apis);
@@ -56,7 +110,7 @@ export default function CatalogTab(props) {
   };
 
   async function exportApis() {
-    const json = JSON.stringify(displayedApis);
+    const json = JSON.stringify(displayedApis, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const href = await URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -139,7 +193,7 @@ export default function CatalogTab(props) {
       </Group>
 
       <Box flex="1" overflowY="auto" minH="405px">
-        <VStack align="stretch" gap={3}>
+        <VStack align="stretch" gap={0.5}>
           {displayedApis.length ? (
             paginatedApis.map((item, index) => (
               <MockItem
@@ -147,6 +201,8 @@ export default function CatalogTab(props) {
                 key={index}
                 selected={selectedApi.ID === item.ID}
                 onPressAction={() => setSelectedApi(item)}
+                onUpdate={handleQuickUpdate}
+                onTest={handleTest}
               />
             ))
           ) : (
