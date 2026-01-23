@@ -29,7 +29,6 @@ export default function Dashboad() {
   }
 
   async function refetch() {
-    catalog.clearSelectedApi();
     const allApis = await get(ALL_APIS);
     catalog.setApis(allApis);
   }

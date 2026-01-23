@@ -17,6 +17,7 @@ export default function CatalogTab(props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef(null);
+  const hasAutoSelected = useRef(false);
 
   const handleQuickUpdate = async (id, statusCode, delay) => {
     const api = apis.find(a => a.ID === id);
@@ -35,9 +36,9 @@ export default function CatalogTab(props) {
 
     if (res?.ID) {
       showToast(TOASTTYPES.SUCCESS, 'Endpoint updated successfully');
-      if (selectedApi.ID === id) {
-        setSelectedApi(res);
-      }
+      // Update the selected API with the response data immediately
+      setSelectedApi(res);
+      // Refetch to update the list
       await refetch();
     } else {
       showToast(TOASTTYPES.ERROR, res?.message || 'Failed to update endpoint');
@@ -72,19 +73,18 @@ export default function CatalogTab(props) {
   };
 
   useEffect(() => {
-    setApis(apis);
-    setCurrentPage(1);
-    // Select first API by default if none selected
-    if (apis && apis.length > 0 && !selectedApi.Method) {
-      setSelectedApi(apis[0]);
-    }
-  }, [apis, selectedApi.Method, setSelectedApi]);
-
-  useEffect(() => {
-    const results =
-      apis && apis?.filter((val) => val.Endpoint.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Filter based on search term
+    const results = apis && apis.filter((val) =>
+      val.Endpoint.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     setApis(results);
     setCurrentPage(1);
+
+    // Auto-select first item only on initial load
+    if (!hasAutoSelected.current && results && results.length > 0 && !selectedApi.ID) {
+      setSelectedApi(results[0]);
+      hasAutoSelected.current = true;
+    }
   }, [apis, searchTerm]);
 
   const searchHandler = (event) => {
@@ -198,7 +198,7 @@ export default function CatalogTab(props) {
             paginatedApis.map((item, index) => (
               <MockItem
                 data={item}
-                key={index}
+                key={item.ID}
                 selected={selectedApi.ID === item.ID}
                 onPressAction={() => setSelectedApi(item)}
                 onUpdate={handleQuickUpdate}

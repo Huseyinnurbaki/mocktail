@@ -3,6 +3,7 @@ import { Box, Button, VStack, HStack, Text, DialogRoot, DialogBackdrop, DialogCo
 import JsonEditor from '../JsonEditor';
 import MockItem from '../MockItem';
 import JsonTreeViewer from '../JsonTreeViewer';
+import CodeExamplesModal from '../CodeExamplesModal';
 import { testApi, put } from '../../utils/request';
 import { UPDATE_API } from '../../utils/paths';
 import PropTypes from 'prop-types';
@@ -12,6 +13,7 @@ function MockApiDetail(props) {
   const { catalog, deleteSelectedApi, refetch } = props;
   const { selectedApi } = catalog;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [codeExamplesOpen, setCodeExamplesOpen] = useState(false);
   const [editedResponse, setEditedResponse] = useState('');
   const lastSavedId = useRef(null);
 
@@ -125,14 +127,14 @@ function MockApiDetail(props) {
         </VStack>
       </Box>
 
-      <HStack justify="flex-end" gap={2} pt={4}>
+      <HStack justify="flex-end" gap={4} pt={4}>
         <Button
           variant="ghost"
           colorPalette="gray"
           size="sm"
-          onClick={handleCancel}
+          onClick={() => setCodeExamplesOpen(true)}
         >
-          Cancel
+          Code Examples
         </Button>
         <Button
           variant="solid"
@@ -143,6 +145,12 @@ function MockApiDetail(props) {
           Save
         </Button>
       </HStack>
+
+      <CodeExamplesModal
+        isOpen={codeExamplesOpen}
+        onClose={() => setCodeExamplesOpen(false)}
+        api={selectedApi}
+      />
 
       <DialogRoot open={deleteDialogOpen} onOpenChange={(e) => setDeleteDialogOpen(e.open)}>
         <Portal>

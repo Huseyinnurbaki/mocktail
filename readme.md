@@ -69,6 +69,8 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Custom Status Codes** - Return any HTTP status (200, 404, 500, etc.) to test error handling
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
 - **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
+- **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
+- **Generate Menu** - Placeholder UI for upcoming AI features (prompt-based generation, array expansion, randomization, anonymization) (In progress)
 - **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
 - **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions
 - **Quick Edit** - Update status codes and delays instantly via gear icon in catalog

@@ -135,9 +135,9 @@ const JsonEditor = ({ value, onChange, label, headerActions, error, placeholderT
   }, [value]);
 
   return (
-    <Box mt="-4px" maxW="100%" overflow="hidden">
+    <Box mt="-7px" maxW="100%" overflow="hidden">
       {(label || headerActions) && (
-        <HStack justify="space-between" align="center" mb={2}>
+        <HStack justify="space-between" align="center" mt={2} mb={1} gap={1}>
           {label && (
             <Text fontSize="sm" fontWeight="medium">
               {label}
