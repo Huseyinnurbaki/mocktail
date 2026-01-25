@@ -15,9 +15,12 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
+[v3.1 Alpha](#v31-alpha) 🧪 •
 [v3.0 Changes](#v30-changes) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
+
+> **Alpha Release:** v3.1.0-alpha includes experimental data randomization features. Some functionality may be unstable or change before final release.
 
 </div>
 
@@ -70,9 +73,10 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
 - **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
 - **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
-- **Generate Menu** - Placeholder UI for upcoming AI features (prompt-based generation, array expansion, randomization, anonymization) (In progress)
+- **Randomize & Anonymize** ⚠️ *Alpha* - Generate realistic fake data with 20+ faker types (names, emails, phones, addresses, etc.) with smart auto-detection and per-field configuration
+- **Irregular Array Support** - Handles arrays with inconsistent object structures, showing field frequency and applying configs selectively
 - **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
-- **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions
+- **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions and persistent selection
 - **Quick Edit** - Update status codes and delays instantly via gear icon in catalog
 - **Test Endpoints** - Test mocks directly from the catalog list with visual feedback
 - **Import/Export** - Export mocks to JSON and import them anywhere
@@ -100,6 +104,31 @@ REACT_APP_MOCKTAIL_URL=https://gateway.example.com/mocktail
 If not set, defaults to:
 - **Development:** `http://localhost:4000/mocktail`
 - **Production:** `[your-domain]/mocktail`
+
+## v3.1 Alpha
+
+### 🧪 Experimental Features
+
+**Randomize & Anonymize (Alpha)**
+- Generate realistic fake data for JSON responses using faker.js
+- Interactive tree view with breadcrumb navigation for deep structures
+- 20+ configurable faker types with smart field name detection
+- Per-field configuration with live preview and regenerate
+- Selective application to array items via "Apply to all" checkbox
+- Support for irregular arrays with field frequency indicators
+- Custom phone number formats
+- Configurable number ranges and decimal precision
+
+**Known Limitations:**
+- Some faker configurations may not work as expected
+- Edge cases with deeply nested irregular structures
+- Feature is under active development and subject to change
+
+**What's Next:**
+- Generate from prompt (AI-powered JSON generation)
+- Additional faker types and configuration options
+- Improved array generation controls
+- Stability improvements and bug fixes
 
 ## v3.0 Changes
 

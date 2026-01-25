@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Box, Button, HStack, VStack, IconButton, Input, Field, NativeSelectRoot, NativeSelectField, Group, Text, DialogRoot, DialogTrigger, DialogContent, DialogHeader, DialogBody, DialogFooter, DialogActionTrigger, DialogTitle, DialogBackdrop, Textarea, Portal, Menu } from '@chakra-ui/react';
 import { Tooltip } from '../../../components/ui/tooltip';
 import JsonEditor from '../../../components/JsonEditor';
+import RandomizeModal from '../../../components/RandomizeModal';
 import { SAVE_API, PUBLIC_MOCKTAIL_URL } from '../../../utils/paths';
 import { post } from '../../../utils/request';
 import PropTypes from 'prop-types';
 import { showToast, TOASTTYPES } from '../../../utils/toast';
+import { applyRandomization } from '../../../utils/applyRandomization';
 
 const HTTP_METHODS = {
   GET: 'GET',
@@ -25,9 +27,7 @@ function GenerateTab(props) {
   const [jsonError, setJsonError] = useState('');
   const [jsonSuccess, setJsonSuccess] = useState('');
   const [promptDialogOpen, setPromptDialogOpen] = useState(false);
-  const [arrayDialogOpen, setArrayDialogOpen] = useState(false);
   const [randomizeDialogOpen, setRandomizeDialogOpen] = useState(false);
-  const [anonymizeDialogOpen, setAnonymizeDialogOpen] = useState(false);
 
   function clearAll() {
     setEndpointValue('');
@@ -293,10 +293,7 @@ function GenerateTab(props) {
                     <Menu.Positioner>
                       <Menu.Content>
                         <Menu.Item value="prompt" onClick={() => setPromptDialogOpen(true)}>Generate from prompt</Menu.Item>
-                        <Menu.Item value="array" onClick={() => setArrayDialogOpen(true)}>Generate array items</Menu.Item>
-                        <Menu.Item value="randomize" onClick={() => setRandomizeDialogOpen(true)}>Randomize values</Menu.Item>
-                        <Menu.Separator />
-                        <Menu.Item value="anonymize" onClick={() => setAnonymizeDialogOpen(true)}>Anonymize</Menu.Item>
+                        <Menu.Item value="randomize" onClick={() => setRandomizeDialogOpen(true)}>Randomize / Anonymize</Menu.Item>
                       </Menu.Content>
                     </Menu.Positioner>
                   </Portal>
@@ -360,116 +357,57 @@ function GenerateTab(props) {
         </Portal>
       </DialogRoot>
 
-      {/* Generate array items modal */}
-      <DialogRoot open={arrayDialogOpen} onOpenChange={(e) => setArrayDialogOpen(e.open)} size="xl">
-        <Portal>
-          <DialogBackdrop />
-          <DialogContent
-            position="fixed"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-          >
-            <DialogHeader>
-              <DialogTitle>Generate array items</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <VStack align="stretch" gap={4}>
-                <Box bg="blue.50" border="1px solid" borderColor="blue.200" borderRadius="md" p={3}>
-                  <Text fontSize="sm" color="blue.700" fontWeight="medium">
-                    🚧 This feature is under development
-                  </Text>
-                </Box>
-                <Text fontSize="sm" color="gray.600">
-                  Adjust array sizes by generating items from an existing array element.
-                </Text>
-              </VStack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
-              </DialogActionTrigger>
-              <Button colorPalette="blue" size="sm" disabled>Generate</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
-
-      {/* Randomize values modal */}
-      <DialogRoot open={randomizeDialogOpen} onOpenChange={(e) => setRandomizeDialogOpen(e.open)} size="xl">
-        <Portal>
-          <DialogBackdrop />
-          <DialogContent
-            position="fixed"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-          >
-            <DialogHeader>
-              <DialogTitle>Randomize values</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <VStack align="stretch" gap={4}>
-                <Box bg="blue.50" border="1px solid" borderColor="blue.200" borderRadius="md" p={3}>
-                  <Text fontSize="sm" color="blue.700" fontWeight="medium">
-                    🚧 This feature is under development
-                  </Text>
-                </Box>
-                <Text fontSize="sm" color="gray.600">
-                  Replace existing values with realistic random data while keeping the same JSON structure.
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  This will preserve all keys and data types while generating new random values.
-                </Text>
-              </VStack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
-              </DialogActionTrigger>
-              <Button colorPalette="blue" size="sm" disabled>Randomize</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
-
-      {/* Anonymize modal */}
-      <DialogRoot open={anonymizeDialogOpen} onOpenChange={(e) => setAnonymizeDialogOpen(e.open)} size="xl">
-        <Portal>
-          <DialogBackdrop />
-          <DialogContent
-            position="fixed"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-          >
-            <DialogHeader>
-              <DialogTitle>Anonymize</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <VStack align="stretch" gap={4}>
-                <Box bg="blue.50" border="1px solid" borderColor="blue.200" borderRadius="md" p={3}>
-                  <Text fontSize="sm" color="blue.700" fontWeight="medium">
-                    🚧 This feature is under development
-                  </Text>
-                </Box>
-                <Text fontSize="sm" color="gray.600">
-                  Replace selected sensitive fields with safe, non-identifiable values. Structure and relationships are preserved.
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Common sensitive fields like email, name, phone, and address will be automatically detected and replaced.
-                </Text>
-              </VStack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
-              </DialogActionTrigger>
-              <Button colorPalette="blue" size="sm" disabled>Anonymize</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
+      {/* Randomize / Anonymize modal */}
+      {randomizeDialogOpen && (() => {
+        try {
+          const jsonData = responseValue ? JSON.parse(responseValue) : {};
+          return (
+            <RandomizeModal
+              isOpen={randomizeDialogOpen}
+              onClose={() => setRandomizeDialogOpen(false)}
+              jsonData={jsonData}
+              onApply={(configurations) => {
+                try {
+                  const randomized = applyRandomization(jsonData, configurations);
+                  setResponseValue(JSON.stringify(randomized, null, 2));
+                  showToast(TOASTTYPES.SUCCESS, 'JSON randomized successfully!');
+                } catch (error) {
+                  console.error('Randomization error:', error);
+                  showToast(TOASTTYPES.ERROR, 'Failed to randomize JSON');
+                }
+              }}
+            />
+          );
+        } catch (error) {
+          return (
+            <DialogRoot open={randomizeDialogOpen} onOpenChange={(e) => setRandomizeDialogOpen(e.open)}>
+              <Portal>
+                <DialogBackdrop />
+                <DialogContent
+                  position="fixed"
+                  top="50%"
+                  left="50%"
+                  transform="translate(-50%, -50%)"
+                >
+                  <DialogHeader>
+                    <DialogTitle>Invalid JSON</DialogTitle>
+                  </DialogHeader>
+                  <DialogBody>
+                    <Text fontSize="sm" color="red.600">
+                      Please enter valid JSON in the Response Body before using randomization.
+                    </Text>
+                  </DialogBody>
+                  <DialogFooter>
+                    <DialogActionTrigger asChild>
+                      <Button variant="outline" size="sm">Close</Button>
+                    </DialogActionTrigger>
+                  </DialogFooter>
+                </DialogContent>
+              </Portal>
+            </DialogRoot>
+          );
+        }
+      })()}
     </Box>
   );
 }
