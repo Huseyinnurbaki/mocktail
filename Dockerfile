@@ -1,5 +1,8 @@
 FROM golang:1.24-alpine AS builder-api
 
+# Install build dependencies for CGO
+RUN apk add --no-cache gcc musl-dev
+
 WORKDIR /src
 COPY ./mocktail-api .
 RUN go mod download
