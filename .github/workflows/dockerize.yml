@@ -10,50 +10,13 @@ env:
   IMAGE_NAME: hhaluk/mocktail
 
 jobs:
-
-  build-dashboard:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./mocktail-dashboard
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Node.js environment
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'yarn'
-        cache-dependency-path: ./mocktail-dashboard/yarn.lock
-
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
-
-    - name: Build dashboard
-      run: yarn build
-
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: build
-        path: ./mocktail-dashboard/build
-
-
   build-and-push:
     runs-on: ubuntu-latest
-    needs: [build-dashboard]
     # Only push on master branch, not on PRs
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name != 'pull_request'
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Download dashboard build
-      uses: actions/download-artifact@v4
-      with:
-        name: build
-        path: ./build
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -65,11 +28,35 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push
-      run: |
-        SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")
-        docker buildx build \
-          --platform linux/amd64,linux/arm64 \
-          --tag $IMAGE_NAME:latest \
-          --tag $IMAGE_NAME:$SHORT_SHA \
-          --push \
-          .
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ${{ env.IMAGE_NAME }}:latest
+          ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+  # For PRs - just build to verify, don't push
+  build-only:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build (no push)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
