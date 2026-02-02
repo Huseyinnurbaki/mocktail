@@ -40,7 +40,7 @@ function JsonTree({
   const focusPath = getFocusPath();
   const focusData = focusPath === 'root' ? data : getDataAtPath(data, focusPath);
 
-  // Auto-expand focus path when it changes
+  // Auto-expand focus path when it changes, and collapse when zooming out
   React.useEffect(() => {
     if (focusPath && focusPath !== 'root') {
       onExpand(focusPath);

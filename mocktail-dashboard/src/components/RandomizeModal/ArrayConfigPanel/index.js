@@ -96,19 +96,21 @@ function ArrayConfigPanel({
             ⚠️ This array has irregular structure
           </Text>
           <VStack align="stretch" gap={2}>
-            {analysis.fieldFrequency.map(field => (
-              <HStack key={field.name} justify="space-between">
-                <Text fontSize="xs" fontFamily="monospace" color="gray.700">
-                  {field.name}
-                </Text>
-                <HStack gap={1}>
-                  <Text fontSize="xs" color="gray.500">
-                    {field.count}/{analysis.totalItems}
+            {analysis.fieldFrequency
+              .filter(field => field.status !== 'all')
+              .map(field => (
+                <HStack key={field.name} justify="space-between">
+                  <Text fontSize="xs" fontFamily="monospace" color="gray.700">
+                    {field.name}
                   </Text>
-                  {getStatusBadge(field.status)}
+                  <HStack gap={1}>
+                    <Text fontSize="xs" color="gray.500">
+                      {field.count}/{analysis.totalItems}
+                    </Text>
+                    {getStatusBadge(field.status)}
+                  </HStack>
                 </HStack>
-              </HStack>
-            ))}
+              ))}
           </VStack>
         </Box>
       )}
@@ -122,7 +124,7 @@ function ArrayConfigPanel({
         borderColor="blue.200"
       >
         <Text fontSize="xs" color="blue.700">
-          ℹ️ Click on fields inside [merged template] to configure how each field should be randomized.
+          ℹ️ Click on individual fields in the tree to configure how each should be randomized across all array items.
         </Text>
       </Box>
     </VStack>

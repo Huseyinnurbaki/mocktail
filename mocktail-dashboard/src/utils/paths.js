@@ -13,9 +13,9 @@ export const IMPORT_API = `${API_CORE_URL}/import`;
 export const API_MOCKTAIL_URL = `${BASE_URL}/mocktail`;
 
 // For display/copy purposes (what users see in dashboard)
-// Can be overridden with REACT_APP_MOCKTAIL_URL env var
-const DISPLAY_BASE_URL = process.env.REACT_APP_MOCKTAIL_URL ?
-                         process.env.REACT_APP_MOCKTAIL_URL.replace(/\/mocktail\/?$/, '') :
+// Can be overridden with MOCKTAIL_BASE_URL env var (or legacy REACT_APP_MOCKTAIL_URL)
+const DISPLAY_BASE_URL = (process.env.MOCKTAIL_BASE_URL || process.env.REACT_APP_MOCKTAIL_URL) ?
+                         (process.env.MOCKTAIL_BASE_URL || process.env.REACT_APP_MOCKTAIL_URL).replace(/\/mocktail\/?$/, '') :
                          (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : window.location.origin);
 
 export const PUBLIC_MOCKTAIL_URL = `${DISPLAY_BASE_URL}/mocktail`;

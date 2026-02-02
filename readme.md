@@ -89,23 +89,25 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 
 ### Environment Variables
 
-**`REACT_APP_MOCKTAIL_URL`** (optional)
+**`MOCKTAIL_BASE_URL`** (optional)
 
 Override the Mocktail URL displayed in the dashboard. Useful when deploying behind a reverse proxy or custom domain.
 
+> **Note:** The legacy `REACT_APP_MOCKTAIL_URL` environment variable is still supported for backwards compatibility.
+
 ```bash
 # Example: Custom domain
-REACT_APP_MOCKTAIL_URL=https://api.mycompany.com/mocktail
+MOCKTAIL_BASE_URL=https://api.mycompany.com/mocktail
 
 # Example: Reverse proxy
-REACT_APP_MOCKTAIL_URL=https://gateway.example.com/mocktail
+MOCKTAIL_BASE_URL=https://gateway.example.com/mocktail
 ```
 
 If not set, defaults to:
 - **Development:** `http://localhost:4000/mocktail`
 - **Production:** `[your-domain]/mocktail`
 
-## v3.1 Alpha
+## v3.1.1 Alpha
 
 ### 🧪 Experimental Features
 
@@ -119,15 +121,35 @@ If not set, defaults to:
 - Custom phone number formats
 - Configurable number ranges and decimal precision
 
+**Cross-Reference Detection & Synchronization (New in 3.1.1)**
+- **Key-based reference detection** - Automatically detects when field values appear in other fields with different keys
+- **Works for ANY field type** - Not limited to IDs; supports names, emails, companies, phone numbers, addresses, etc.
+- **"Update References" option** - Maintain data integrity by updating all references when randomizing a field
+- **Visual indicators** - Green badges in tree show configured fields and their faker types
+- **Review modal** - Preview all pending changes before applying, with ability to remove individual configurations
+- **Cleaner UI** - Streamlined tree view and object inspector for better navigation
+
+**UI/UX Improvements (3.1.1)**
+- Review changes before applying with dedicated review modal
+- Visual configuration indicators (green badges) on tree nodes
+- ObjectConfigPanel for viewing nested object structures
+- Fixed modal height prevents resizing when changing options
+- Shows only irregular fields in array structure warnings
+- Removed redundant field path and value displays
+- Path normalization works correctly in all zoom levels
+
 **Known Limitations:**
 - Some faker configurations may not work as expected
 - Edge cases with deeply nested irregular structures
+- Circular reference detection not yet implemented
 - Feature is under active development and subject to change
 
 **What's Next:**
 - Generate from prompt (AI-powered JSON generation)
+- Circular reference detection and warnings
+- Bulk configuration of similar fields
+- Configuration templates and presets
 - Additional faker types and configuration options
-- Improved array generation controls
 - Stability improvements and bug fixes
 
 ## v3.0 Changes

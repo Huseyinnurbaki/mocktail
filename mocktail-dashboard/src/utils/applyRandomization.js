@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { fakerConfigs } from './fakerConfigs';
+import { detectReferences, getFieldName as extractFieldName } from './referenceDetection';
 
 /**
  * Apply faker configurations to JSON data
@@ -34,9 +35,42 @@ function traverse(current, configurations, path) {
 
     if (current.length === 0) return current;
 
-    // Build merged template and field occurrence map
+    // Build merged template and field occurrence map RECURSIVELY
     const mergedTemplate = {};
     const fieldFirstOccurrence = {};
+
+    // Recursive function to build field occurrence map for all nested paths
+    const buildOccurrenceMap = (items) => {
+      const pathOccurrences = {};
+
+      const traverse = (obj, basePath, itemIndex) => {
+        if (typeof obj !== 'object' || obj === null) return;
+
+        Object.keys(obj).forEach(key => {
+          const fullPath = basePath ? `${basePath}.${key}` : key;
+
+          if (pathOccurrences[fullPath] === undefined) {
+            pathOccurrences[fullPath] = itemIndex;
+          }
+
+          if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+            traverse(obj[key], fullPath, itemIndex);
+          }
+        });
+      };
+
+      items.forEach((item, idx) => {
+        if (typeof item === 'object' && item !== null) {
+          traverse(item, '', idx);
+        }
+      });
+
+      return pathOccurrences;
+    };
+
+    const pathOccurrences = buildOccurrenceMap(current);
+
+    // Build merged template from all items
     current.forEach((item, idx) => {
       if (typeof item === 'object' && item !== null) {
         Object.keys(item).forEach(key => {
@@ -48,6 +82,13 @@ function traverse(current, configurations, path) {
       }
     });
 
+    // NEW: Detect cross-references in this array
+    const referenceMap = detectReferences(current, path);
+    console.log('Reference map for', path, ':', referenceMap);
+
+    // NEW: Track value mappings for reference synchronization
+    const valueMappings = {};
+
     const result = [];
     const templatePath = `${path}[0]`;
 
@@ -56,14 +97,17 @@ function traverse(current, configurations, path) {
       const sourceItem = i < current.length ? current[i] : current[0];
 
       // Traverse and generate NEW values for each iteration
+      // Pass reference map and value mappings
       const item = traverseWithFreshValues(
         sourceItem,
         configurations,
         templatePath,
         includedFields,
         i,
-        fieldFirstOccurrence,
-        mergedTemplate
+        pathOccurrences,
+        mergedTemplate,
+        referenceMap,
+        valueMappings
       );
       result.push(item);
     }
@@ -82,23 +126,48 @@ function traverse(current, configurations, path) {
 }
 
 // Separate function that generates fresh faker values on each call
-function traverseWithFreshValues(current, configurations, templatePath, includedFields = null, currentIndex = 0, fieldFirstOccurrence = {}, mergedTemplate = {}) {
+function traverseWithFreshValues(current, configurations, templatePath, includedFields = null, currentIndex = 0, fieldFirstOccurrence = {}, mergedTemplate = {}, referenceMap = {}, valueMappings = {}) {
   // Primitive value - generate fresh
   if (typeof current !== 'object' || current === null) {
+    // Convert template path to actual path for this item
+    const actualPath = templatePath.replace('[0]', `[${currentIndex}]`);
+
     // Get the template config
     const templateConfig = configurations[templatePath];
 
-    if (templateConfig && templateConfig.type && templateConfig.type !== 'Keep Original') {
-      // Get the field name from the template path
-      const fieldName = templatePath.split('.').pop();
+    // NEW: Check if this field's value is a reference to another field
+    // If so, check if that field has been updated and use the new value
+    const fieldName = extractFieldName(templatePath);
+    const mappingKey = `${fieldName}:${current}`;
 
-      // Check if this is the first occurrence of this field
-      const isFirstOccurrence = fieldFirstOccurrence[fieldName] === currentIndex;
+    if (valueMappings[mappingKey] !== undefined) {
+      // This value has been updated elsewhere, use the mapped value
+      console.log('Using mapped value for', actualPath, ':', current, '->', valueMappings[mappingKey]);
+      return valueMappings[mappingKey];
+    }
+
+    if (templateConfig && templateConfig.type && templateConfig.type !== 'Keep Original') {
+      // Get the relative path within the array item (e.g., "links.parent_job_id")
+      const relativePath = templatePath.replace(/^root\.[^[]+\[0\]\./, '');
+
+      // Check if this is the first occurrence of this field path
+      const isFirstOccurrence = fieldFirstOccurrence[relativePath] === currentIndex;
+
+      console.log('Checking field:', templatePath, 'relativePath:', relativePath, 'currentIndex:', currentIndex, 'isFirstOccurrence:', isFirstOccurrence, 'applyToAll:', templateConfig.applyToAll);
 
       // Always apply to the first occurrence of this field
       // For other occurrences, only apply if applyToAll is checked
       if (isFirstOccurrence || templateConfig.applyToAll === true) {
-        return generateFakerValue(templateConfig, current);
+        const generated = generateFakerValue(templateConfig, current);
+        console.log('Generated value for', templatePath, ':', generated);
+
+        // NEW: If this field has updateReferences enabled and has references, store the mapping
+        if (templateConfig.updateReferences && referenceMap[actualPath]?.referencedBy?.length > 0) {
+          valueMappings[mappingKey] = generated;
+          console.log('Stored value mapping:', mappingKey, '->', generated);
+        }
+
+        return generated;
       }
     }
 
@@ -108,7 +177,7 @@ function traverseWithFreshValues(current, configurations, templatePath, included
   // Array within array
   if (Array.isArray(current)) {
     return current.map((item, idx) => {
-      return traverseWithFreshValues(item, configurations, `${templatePath}[0]`, includedFields, currentIndex, fieldFirstOccurrence, {});
+      return traverseWithFreshValues(item, configurations, `${templatePath}[0]`, includedFields, currentIndex, fieldFirstOccurrence, {}, referenceMap, valueMappings);
     });
   }
 
@@ -133,7 +202,7 @@ function traverseWithFreshValues(current, configurations, templatePath, included
       if (isFirstOccurrence || hasConfig.applyToAll === true) {
         // Use current value if exists, otherwise use merged template value
         const value = fieldExistsInCurrent ? current[key] : mergedTemplate[key];
-        result[key] = traverseWithFreshValues(value, configurations, newTemplatePath, includedFields, currentIndex, fieldFirstOccurrence, {});
+        result[key] = traverseWithFreshValues(value, configurations, newTemplatePath, includedFields, currentIndex, fieldFirstOccurrence, {}, referenceMap, valueMappings);
       } else if (fieldExistsInCurrent) {
         // Keep original if exists but not applying to all
         result[key] = current[key];
@@ -142,7 +211,7 @@ function traverseWithFreshValues(current, configurations, templatePath, included
     } else {
       // No config, just copy if exists
       if (fieldExistsInCurrent) {
-        result[key] = traverseWithFreshValues(current[key], configurations, newTemplatePath, includedFields, currentIndex, fieldFirstOccurrence, {});
+        result[key] = traverseWithFreshValues(current[key], configurations, newTemplatePath, includedFields, currentIndex, fieldFirstOccurrence, {}, referenceMap, valueMappings);
       }
     }
   });

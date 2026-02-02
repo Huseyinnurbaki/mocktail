@@ -5,7 +5,7 @@ COPY ./mocktail-api .
 RUN go mod download
 RUN CGO_ENABLED=1 GOOS=linux go build -o /app -a -ldflags '-linkmode external -extldflags "-static"' .
 
-FROM node:lts-slim AS builder-dashboard
+FROM node:20-slim AS builder-dashboard
 
 WORKDIR /src
 COPY ./mocktail-dashboard .

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, HStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Text, Badge } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 
 function TreeNode({
@@ -15,6 +15,17 @@ function TreeNode({
   expandedPaths,
   configurations
 }) {
+  // Normalize path to check for configurations (convert .0. to [0])
+  const normalizePath = (p) => {
+    if (!p) return p;
+    let normalized = p.replace(/\.(\d+)\./g, '[$1].');
+    normalized = normalized.replace(/\.(\d+)$/, '[$1]');
+    return normalized;
+  };
+
+  const normalizedPath = normalizePath(path);
+  const isActuallyConfigured = configurations?.[normalizedPath] !== undefined;
+
   const isArray = Array.isArray(value);
   const isObject = typeof value === 'object' && value !== null && !isArray;
   const isPrimitive = !isObject && !isArray;
@@ -113,7 +124,7 @@ function TreeNode({
         gap={2}
       >
         {/* Expand/Collapse Icon - Only for level 0-1 */}
-        {(isObject || isArray || isMergedArray) && level <= 1 && (
+        {(isObject || isArray || isMergedArray) && level < 2 && (
           <Text
             fontSize="xs"
             color="gray.500"
@@ -127,7 +138,7 @@ function TreeNode({
         )}
 
         {/* Empty space for level 2+ objects (no toggle arrow) */}
-        {(isObject || isArray || isMergedArray) && level > 1 && <Box width="12px" />}
+        {(isObject || isArray || isMergedArray) && level >= 2 && <Box width="12px" />}
 
         {/* Empty space for primitives */}
         {isPrimitive && <Box width="12px" />}
@@ -142,15 +153,16 @@ function TreeNode({
           {displayName}
         </Text>
 
-        {/* Value Preview */}
-        {renderValue()}
-
-        {/* Configuration Status */}
-        {isConfigured && (
-          <Text fontSize="xs" color="green.500">
-            ✓
-          </Text>
+        {/* Configuration Indicator */}
+        {isActuallyConfigured && configurations[normalizedPath] && (
+          <Badge size="xs" colorPalette="green" variant="subtle">
+            {configurations[normalizedPath].type || 'Configured'}
+          </Badge>
         )}
+
+        {/* Value Preview - Commented out to keep tree cleaner
+        {renderValue()}
+        */}
       </HStack>
 
       {/* Children */}
@@ -160,6 +172,7 @@ function TreeNode({
             // Render merged template fields directly
             Object.entries(displayValue).map(([key, val]) => {
               const childPath = `${path}[0].${key}`;
+              const normalizedChildPath = normalizePath(childPath);
               return (
                 <TreeNode
                   key={childPath}
@@ -169,7 +182,7 @@ function TreeNode({
                   level={level + 1}
                   isSelected={path === childPath}
                   isExpanded={expandedPaths?.has(childPath) || false}
-                  isConfigured={configurations?.[childPath] !== undefined}
+                  isConfigured={configurations?.[normalizedChildPath] !== undefined}
                   onToggle={onToggle}
                   onClick={onClick}
                   expandedPaths={expandedPaths}
@@ -181,6 +194,7 @@ function TreeNode({
             // For primitive arrays, show items directly
             value.map((item, idx) => {
               const childPath = `${path}[${idx}]`;
+              const normalizedChildPath = normalizePath(childPath);
               return (
                 <TreeNode
                   key={childPath}
@@ -190,7 +204,7 @@ function TreeNode({
                   level={level + 1}
                   isSelected={path === childPath}
                   isExpanded={expandedPaths?.has(childPath) || false}
-                  isConfigured={configurations?.[childPath] !== undefined}
+                  isConfigured={configurations?.[normalizedChildPath] !== undefined}
                   onToggle={onToggle}
                   onClick={onClick}
                   expandedPaths={expandedPaths}
@@ -202,6 +216,7 @@ function TreeNode({
             // Render object properties
             Object.entries(value).map(([key, val]) => {
               const childPath = `${path}.${key}`;
+              const normalizedChildPath = normalizePath(childPath);
               return (
                 <TreeNode
                   key={childPath}
@@ -211,7 +226,7 @@ function TreeNode({
                   level={level + 1}
                   isSelected={path === childPath}
                   isExpanded={expandedPaths?.has(childPath) || false}
-                  isConfigured={configurations?.[childPath] !== undefined}
+                  isConfigured={configurations?.[normalizedChildPath] !== undefined}
                   onToggle={onToggle}
                   onClick={onClick}
                   expandedPaths={expandedPaths}
