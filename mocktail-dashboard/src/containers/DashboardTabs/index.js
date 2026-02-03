@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Tabs } from '@chakra-ui/react';
 import Generate from './Generate';
 import Catalog from './Catalog';
+import Logs from './Logs';
 import PropTypes from 'prop-types';
 
 export default function DashboadTabs(props) {
@@ -11,7 +12,9 @@ export default function DashboadTabs(props) {
   const getInitialTab = () => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    return tab === 'catalog' ? 'catalog' : 'create';
+    if (tab === 'catalog') return 'catalog';
+    if (tab === 'logs') return 'logs';
+    return 'create';
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
@@ -40,6 +43,9 @@ export default function DashboadTabs(props) {
           <Tabs.Trigger value="catalog" fontWeight="medium" py={3} px={6}>
             Catalog
           </Tabs.Trigger>
+          <Tabs.Trigger value="logs" fontWeight="medium" py={3} px={6}>
+            Logs
+          </Tabs.Trigger>
         </Tabs.List>
         <Card.Body p={6}>
           <Tabs.Content value="create">
@@ -47,6 +53,9 @@ export default function DashboadTabs(props) {
           </Tabs.Content>
           <Tabs.Content value="catalog">
             <Catalog {...props} />
+          </Tabs.Content>
+          <Tabs.Content value="logs">
+            <Logs />
           </Tabs.Content>
         </Card.Body>
       </Tabs.Root>

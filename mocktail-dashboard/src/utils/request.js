@@ -84,10 +84,22 @@ export function get(url) {
 
 export function testApi(data) {
   const url = `${API_MOCKTAIL_URL}/${data.Endpoint}`;
+
+  // Include API key if configured
+  const headers = { 'Content-Type': 'application/json' };
+  const apiKey = process.env.REACT_APP_MOCKTAIL_API_KEY;
+
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey;
+  }
+
   const options = {
     method: data.Method,
     body: data.RequestParams,
-    headers: { 'Content-Type': 'application/json' }
+    headers: headers
   };
+
+  // console.log('DEBUG - Request headers:', headers);
+
   return request(url, options);
 }

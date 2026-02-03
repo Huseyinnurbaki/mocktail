@@ -200,6 +200,35 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
 
+## v3.1.3 Alpha
+
+### 🔍 Monitoring & Debugging (New in 3.1.3)
+
+**Backend Logs Tab**
+- **Split-view interface** - Request list on left, full details on right
+- **Real-time monitoring** - Auto-refreshes every 2 seconds, pauses when browser tab hidden
+- **Request inspection** - Click any request to view full response body
+- **Pretty-printed JSON** - Automatic formatting with syntax highlighting
+- **Method badges** - Color-coded by HTTP method (GET=green, POST=blue, DELETE=red, etc.)
+- **Status indicators** - Visual status codes (2xx=green, 4xx=orange, 5xx=red)
+- **Response actions** - Copy or download response as JSON file
+- **Smart filtering** - Excludes polling endpoints (/logs, /apis) from display
+- **Structured logging** - Stores method, path, status, duration, and full response
+- **In-memory buffer** - Last 500 requests kept for debugging
+
+**Enhanced Code Examples**
+- API key support with masked display (`*******`)
+- Show/hide toggle for API key visibility
+- Copy button always includes actual API key value
+- Code examples auto-include API key header when set
+- Supports both header (`X-API-Key`) and query parameter styles
+
+### 🔧 Bug Fixes (3.1.3)
+- Fixed log entry mutation causing incorrect paths to display
+- Deep copying on both backend and frontend prevents data corruption
+- Request list properly scrollable with many entries
+- Response area fixed height with scroll (doesn't expand layout)
+
 ## v3.1.2 Alpha
 
 ### 🔐 Security & Configuration (New in 3.1.2)

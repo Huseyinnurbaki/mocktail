@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.3-alpha] - 2026-02-03
+
+### ✨ Added
+
+**Backend Logs Tab**
+- Split-view interface with request list (left) and full details (right)
+- Real-time monitoring with 2-second auto-refresh
+- Click requests to view full response body with pretty-printed JSON
+- Method badges color-coded by HTTP verb (GET, POST, PUT, DELETE, PATCH)
+- Status indicators with color coding (2xx, 3xx, 4xx, 5xx)
+- Copy/download response as JSON file
+- Smart filtering excludes polling endpoints (/core/v1/logs, /core/v1/apis)
+- Structured logging stores method, path, status, duration, and full response
+- In-memory buffer keeps last 500 requests for debugging
+- Scrollable request list and response area with fixed heights
+
+**Enhanced Code Examples**
+- API key field with masked display (******* by default)
+- Show/hide toggle for API key visibility (eye icon)
+- Copy always includes actual API key value (not masked)
+- Code examples auto-include X-API-Key header when API key is set
+- All 4 languages updated (cURL, Node.js, Python, Go)
+
+### 🔧 Fixed
+- Log entry mutation causing paths to change incorrectly
+- Deep copying on both backend and frontend prevents data corruption
+- Request list properly scrollable with overflow
+- Response area has fixed height with scroll (doesn't expand)
+- Clear All now clears both request list and selected details
+
+### 🎨 Improved
+- Response JSON automatically pretty-printed with 2-space indentation
+- Terminal-style dark theme for response viewer
+- Auto-selects latest request on first load
+
 ## [3.1.2-alpha] - 2026-02-03
 
 ### ✨ Added
