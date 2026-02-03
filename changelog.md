@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.2-alpha] - 2026-02-03
+
+### ✨ Added
+
+**Security & Configuration**
+- API key authentication for mock endpoints (MOCKTAIL_API_KEY)
+- Dashboard and Core API automatically exempt from API key requirement
+- Supports both X-API-Key header and ?api_key=... query parameter
+- .env file support for local development (uses godotenv)
+- Startup logging shows all configuration with masked API key
+
+**Dependencies**
+- Updated golang.org/x/crypto to v0.47.0 (fixes CVE-2024-45338)
+- Updated golang.org/x/net to v0.49.0 (fixes CVE-2023-45288)
+- Updated golang.org/x/sys to v0.40.0
+- Added github.com/joho/godotenv v1.5.1
+
+### 🔧 Improved
+- Dockerfile uses Alpine-based images (smaller, more secure)
+- Optimized CI/CD workflows (removed unnecessary artifact upload/download)
+- Docker layer caching with GitHub Actions cache (faster builds)
+- Build tags use short commit SHA (7 chars) instead of full SHA
+- Yarn install with 10-minute timeout and triple retry (fixes ARM64 build timeouts)
+
+### 📝 Documentation
+- CORS configuration fully documented with examples
+- .env.example with clear usage instructions for local dev, Docker, and docker-compose
+- Security rule documented: cannot combine credentials=true with origins=*
+- API key authentication usage examples
+
 ## [3.1.1-alpha] - 2026-02-01
 
 ### ✨ Added
@@ -27,6 +57,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 - Cleaner tree view without value previews
 - Shows only irregular fields in array structure warnings
 - Fixed modal height prevents UI jumping when changing options
+
+**Configuration**
+- CORS configuration via environment variables (MOCKTAIL_CORS_ORIGINS, MOCKTAIL_CORS_METHODS, etc.)
+- Supports allowed origins, methods, headers, and credentials
+- Default: permissive (allow all) for easy local development
+- API key authentication for mock endpoints (MOCKTAIL_API_KEY)
+- Dashboard and Core API are exempt from API key requirement
+- Supports both header (X-API-Key) and query parameter (?api_key=...)
 
 ### 🔧 Fixed
 - Path normalization works correctly in all zoom levels

@@ -2,3 +2,5 @@ build
 .DS_Store
 *.db
 node_modules
+mocktail-dashboard/.env
+mocktail-api/.env

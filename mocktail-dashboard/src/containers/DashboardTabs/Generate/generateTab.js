@@ -372,7 +372,7 @@ function GenerateTab(props) {
                   const randomized = applyRandomization(jsonData, configurations);
                   console.log('Randomized result:', randomized);
                   setResponseValue(JSON.stringify(randomized, null, 2));
-                  showToast(TOASTTYPES.SUCCESS, 'JSON randomized successfully!');
+                  // showToast(TOASTTYPES.SUCCESS, 'JSON randomized successfully!');
                 } catch (error) {
                   console.error('Randomization error:', error);
                   showToast(TOASTTYPES.ERROR, 'Failed to randomize JSON');

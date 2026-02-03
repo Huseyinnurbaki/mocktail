@@ -7,17 +7,44 @@ import (
 	"mocktail-api/database"
 	"mocktail-api/mocktail"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+// API Key middleware
+func apiKeyMiddleware(c *fiber.Ctx) error {
+	apiKey := os.Getenv("MOCKTAIL_API_KEY")
+
+	// If no API key is configured, allow all requests
+	if apiKey == "" {
+		return c.Next()
+	}
+
+	// Check X-API-Key header
+	providedKey := c.Get("X-API-Key")
+	if providedKey == "" {
+		// Also check query parameter as fallback
+		providedKey = c.Query("api_key")
+	}
+
+	if providedKey != apiKey {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid or missing API key",
+		})
+	}
+
+	return c.Next()
+}
+
 func setupRoutes(app *fiber.App) {
 	app.Static("/", "./build")
 
-	// Health check endpoint
+	// Health check endpoint (no auth)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status": "healthy",
@@ -25,6 +52,7 @@ func setupRoutes(app *fiber.App) {
 		})
 	})
 
+	// Core API - No auth required (dashboard uses this)
 	coreApi := app.Group("/core/v1")
 	coreApi.Get("/apis", core.GetApis)
 	coreApi.Post("/api", core.CreateApi)
@@ -32,7 +60,8 @@ func setupRoutes(app *fiber.App) {
 	coreApi.Post("/import", core.ImportApis)
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
 
-	mocktailApi := app.Group("/mocktail")
+	// Mock API - Protected with API key
+	mocktailApi := app.Group("/mocktail", apiKeyMiddleware)
 	mocktailApi.Get("/:endpoint/*", mocktail.MockApiHandler)
 	mocktailApi.Post("/:endpoint/*", mocktail.MockApiHandler)
 	mocktailApi.Put("/:endpoint/*", mocktail.MockApiHandler)
@@ -60,9 +89,50 @@ func initDatabase() {
 
 // TODO: read addr from env
 func main() {
+	// Load .env file if it exists (for local development)
+	// Silently ignore if file doesn't exist (production uses env vars directly)
+	_ = godotenv.Load()
+
 	// addr := `:` + os.Getenv("PORT")
 	app := fiber.New()
-	app.Use(cors.New())
+
+	// Configure CORS from environment variables
+	corsOrigins := os.Getenv("MOCKTAIL_CORS_ORIGINS")
+	if corsOrigins == "" {
+		corsOrigins = "*" // Default: allow all origins
+	}
+
+	corsMethods := os.Getenv("MOCKTAIL_CORS_METHODS")
+	if corsMethods == "" {
+		corsMethods = "GET,POST,PUT,PATCH,DELETE,OPTIONS" // Default: all methods
+	}
+
+	corsHeaders := os.Getenv("MOCKTAIL_CORS_HEADERS")
+	if corsHeaders == "" {
+		corsHeaders = "*" // Default: allow all headers
+	}
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     corsOrigins,
+		AllowMethods:     corsMethods,
+		AllowHeaders:     corsHeaders,
+		AllowCredentials: strings.ToLower(os.Getenv("MOCKTAIL_CORS_CREDENTIALS")) == "true",
+	}))
+
+	// Log configuration on startup
+	fmt.Println("=== Mocktail Configuration ===")
+	fmt.Printf("CORS Origins: %s\n", corsOrigins)
+	fmt.Printf("CORS Methods: %s\n", corsMethods)
+	fmt.Printf("CORS Headers: %s\n", corsHeaders)
+	fmt.Printf("CORS Credentials: %t\n", strings.ToLower(os.Getenv("MOCKTAIL_CORS_CREDENTIALS")) == "true")
+
+	apiKey := os.Getenv("MOCKTAIL_API_KEY")
+	if apiKey != "" {
+		fmt.Printf("API Key: *** (set, %d characters)\n", len(apiKey))
+	} else {
+		fmt.Println("API Key: (not set - mock endpoints are open)")
+	}
+	fmt.Println("==============================")
 
 	initDatabase()
 

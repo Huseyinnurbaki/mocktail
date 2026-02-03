@@ -107,6 +107,122 @@ If not set, defaults to:
 - **Development:** `http://localhost:4000/mocktail`
 - **Production:** `[your-domain]/mocktail`
 
+**CORS Configuration** (optional)
+
+Configure Cross-Origin Resource Sharing (CORS) policies for the mock API.
+
+```bash
+# Allowed origins (comma-separated)
+# Default: * (allow all)
+MOCKTAIL_CORS_ORIGINS=https://myapp.com,http://localhost:3000
+
+# Allowed HTTP methods (comma-separated)
+# Default: GET,POST,PUT,PATCH,DELETE,OPTIONS
+MOCKTAIL_CORS_METHODS=GET,POST,PUT,DELETE
+
+# Allowed headers (comma-separated)
+# Default: * (allow all)
+MOCKTAIL_CORS_HEADERS=Content-Type,Authorization,X-API-Key
+
+# Allow credentials (cookies, auth headers)
+# Default: false
+MOCKTAIL_CORS_CREDENTIALS=true
+```
+
+**Docker Example:**
+```bash
+docker run -p 4000:4000 \
+  -e MOCKTAIL_CORS_ORIGINS=https://myapp.com \
+  -e MOCKTAIL_CORS_CREDENTIALS=true \
+  hhaluk/mocktail:latest
+```
+
+**Docker Compose Example:**
+```yaml
+services:
+  mocktail:
+    image: hhaluk/mocktail:latest
+    ports:
+      - "4000:4000"
+    environment:
+      MOCKTAIL_CORS_ORIGINS: "https://myapp.com,http://localhost:3000"
+      MOCKTAIL_CORS_CREDENTIALS: "true"
+    volumes:
+      - ./db:/db
+```
+
+**⚠️ Important Security Rule:**
+
+**DO NOT combine wildcard origins with credentials:**
+```bash
+# ❌ INVALID - Browsers will reject this combination
+MOCKTAIL_CORS_ORIGINS=*
+MOCKTAIL_CORS_CREDENTIALS=true
+
+# ✅ VALID - Use specific origins with credentials
+MOCKTAIL_CORS_ORIGINS=https://myapp.com,http://localhost:3000
+MOCKTAIL_CORS_CREDENTIALS=true
+
+# ✅ VALID - Use wildcard without credentials (default)
+MOCKTAIL_CORS_ORIGINS=*
+MOCKTAIL_CORS_CREDENTIALS=false
+```
+
+When `MOCKTAIL_CORS_CREDENTIALS=true`, you **must** specify exact origins (no `*` wildcard).
+
+**`MOCKTAIL_API_KEY`** (optional)
+
+Protect mock endpoints with API key authentication. When set, all requests to `/mocktail/*` must include the API key.
+
+```bash
+# Set API key
+MOCKTAIL_API_KEY=your-secret-key-here
+```
+
+**Usage:**
+
+Clients must provide the key via header or query parameter:
+
+```bash
+# Via header (recommended)
+curl http://localhost:4000/mocktail/users \
+  -H "X-API-Key: your-secret-key-here"
+
+# Via query parameter
+curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
+```
+
+**What's Protected:**
+- 🔒 Mock endpoints (`/mocktail/*`) - Requires API key
+- ✅ Dashboard (`/`) - No auth needed
+- ✅ Core API (`/core/v1/*`) - No auth needed (dashboard uses this)
+- ✅ Health check (`/health`) - No auth needed
+
+**Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
+
+## v3.1.2 Alpha
+
+### 🔐 Security & Configuration (New in 3.1.2)
+
+**API Key Authentication**
+- Optional API key protection for mock endpoints (`/mocktail/*`)
+- Dashboard and Core API automatically exempt
+- Supports both `X-API-Key` header and `?api_key=...` query parameter
+- Simple env var configuration: `MOCKTAIL_API_KEY=your-secret-key`
+
+**Enhanced CORS Control**
+- Configurable CORS policies via environment variables
+- Fine-grained control over origins, methods, headers, and credentials
+- Safe defaults for local development (allow all)
+- Documented security rules and best practices
+
+**Developer Experience**
+- `.env` file support for local development (no more exporting env vars!)
+- Startup logging shows all configuration with masked secrets
+- Updated security dependencies (golang.org/x/crypto, x/net, x/sys)
+- Optimized CI/CD workflows (2-3x faster builds)
+- Alpine-based Docker images (smaller, more secure)
+
 ## v3.1.1 Alpha
 
 ### 🧪 Experimental Features
