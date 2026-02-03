@@ -146,9 +146,13 @@ func main() {
 			responseBody = string(c.Response().Body())
 		}
 
+		// Create string copies to prevent Fiber buffer reuse
+		method := string([]byte(c.Method()))
+		pathCopy := string([]byte(path))
+
 		logger.LogRequest(
-			c.Method(),
-			path,
+			method,
+			pathCopy,
 			status,
 			duration.Round(time.Millisecond).String(),
 			responseBody,

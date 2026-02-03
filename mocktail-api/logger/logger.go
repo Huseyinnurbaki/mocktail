@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 )
@@ -124,14 +125,15 @@ func Log(format string, args ...interface{}) {
 
 // LogRequest logs a full request/response with structured data
 func LogRequest(method, path string, status int, duration, responseBody string) {
+	// Use strings.Clone to force new string allocation (prevents buffer reuse)
 	entry := LogEntry{
 		Timestamp:    time.Now().Format("2006-01-02 15:04:05"),
 		Type:         "request",
-		Method:       method,
-		Path:         path,
+		Method:       strings.Clone(method),
+		Path:         strings.Clone(path),
 		Status:       status,
-		Duration:     duration,
-		ResponseBody: responseBody,
+		Duration:     strings.Clone(duration),
+		ResponseBody: strings.Clone(responseBody),
 	}
 
 	// Print summary to stdout

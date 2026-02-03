@@ -8,6 +8,49 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ### ✨ Added
 
+**Backend Logs Tab (New)**
+- Split-view interface: request list on left, full details on right
+- Click any request to inspect full response body
+- Pretty-printed JSON with automatic formatting (2-space indentation)
+- Method badges color-coded by HTTP verb (GET=green, POST=blue, PUT=orange, DELETE=red)
+- Status badges color-coded by range (2xx=green, 3xx=blue, 4xx=orange, 5xx=red)
+- Real-time monitoring with 2-second auto-refresh
+- Auto-pause when browser tab is hidden (performance optimization)
+- Copy/download individual responses as JSON files
+- Structured logging: stores method, path, status, duration, and full response
+- In-memory buffer keeps last 500 requests
+- Smart filtering excludes polling endpoints from display
+
+**Enhanced Code Examples**
+- API key input field with masked display (******* by default)
+- Show/hide toggle (eye icon) for API key visibility
+- Copy button always includes actual API key (not masked)
+- Code examples dynamically include X-API-Key header when set
+- Works for all languages: cURL, Node.js, Python, Go
+- Read-only display (configure via REACT_APP_MOCKTAIL_API_KEY env var)
+
+### 🔧 Fixed
+- **Critical:** String mutation bug causing request paths to corrupt (e.g., /mocktail/users → /core/v1/logsa)
+- Root cause: Fiber's internal string buffers were being shared across requests
+- Solution: Use `strings.Clone()` to force new string allocations in Go logger
+- Double string copying at middleware and logger levels ensures complete isolation
+- Deep copying on frontend prevents React state mutation
+- Request list properly scrollable with fixed height
+- Response viewer has fixed height with scroll (doesn't expand layout)
+- Clear All now clears both request list and selected details panel
+- Excluded /core/v1/apis and /core/v1/logs from request logs (polling endpoints)
+
+### 🎨 Improved
+- Response JSON automatically pretty-printed for readability
+- Terminal-style dark theme for response viewer
+- Auto-selects most recent request on page load
+- Request list shows newest first (reverse chronological)
+- Duration formatting (milliseconds for <1s, seconds for longer)
+
+## [3.1.3-alpha] - 2026-02-03
+
+### ✨ Added
+
 **Backend Logs Tab**
 - Split-view interface with request list (left) and full details (right)
 - Real-time monitoring with 2-second auto-refresh

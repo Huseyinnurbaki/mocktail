@@ -224,10 +224,12 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - Supports both header (`X-API-Key`) and query parameter styles
 
 ### 🔧 Bug Fixes (3.1.3)
-- Fixed log entry mutation causing incorrect paths to display
+- **Critical:** Fixed string mutation bug in Go logger causing request paths to corrupt
+- Uses `strings.Clone()` to force new string allocations and prevent Fiber buffer reuse
 - Deep copying on both backend and frontend prevents data corruption
 - Request list properly scrollable with many entries
 - Response area fixed height with scroll (doesn't expand layout)
+- Clear All now clears both request list and selected details
 
 ## v3.1.2 Alpha
 
