@@ -7,7 +7,7 @@ function TreeNode({
   value,
   path,
   level,
-  isSelected,
+  selectedPath,
   isExpanded,
   isConfigured,
   onToggle,
@@ -25,6 +25,8 @@ function TreeNode({
 
   const normalizedPath = normalizePath(path);
   const isActuallyConfigured = configurations?.[normalizedPath] !== undefined;
+  const dotPath = (p) => p?.replace(/\[(\d+)\]/g, '.$1') || '';
+  const isSelected = dotPath(selectedPath) === dotPath(path);
 
   const isArray = Array.isArray(value);
   const isObject = typeof value === 'object' && value !== null && !isArray;
@@ -39,7 +41,6 @@ function TreeNode({
     isMergedArray = true;
     displayName = `${name} [${value.length} items]`;
 
-    // Create merged template
     const mergedTemplate = {};
     value.forEach(item => {
       if (typeof item === 'object' && item !== null) {
@@ -55,9 +56,7 @@ function TreeNode({
 
   const handleToggle = (e) => {
     e.stopPropagation();
-    // Only allow toggle for level 0 and 1 (root and its direct children)
-    // Level 2+ objects should zoom instead
-    if ((isObject || isArray || isMergedArray) && level <= 1) {
+    if (isObject || isArray || isMergedArray) {
       onToggle(path);
     }
   };
@@ -70,44 +69,34 @@ function TreeNode({
     if (isPrimitive) {
       const valueStr = String(value);
       return (
-        <Text
-          fontSize="xs"
-          color="gray.500"
-          isTruncated
-          maxW="200px"
-        >
+        <Text fontSize="xs" color="gray.500" isTruncated maxW="200px">
           {valueStr}
         </Text>
       );
     }
 
-    // For level 2+ objects/arrays, show type indicator
     if (level > 1) {
       if (isArray && !isMergedArray) {
-        return (
-          <Text fontSize="xs" color="gray.400">
-            [Array]
-          </Text>
-        );
+        return <Text fontSize="xs" color="gray.400">[Array]</Text>;
       }
       if (isObject || isMergedArray) {
-        return (
-          <Text fontSize="xs" color="gray.400">
-            [Object]
-          </Text>
-        );
+        return <Text fontSize="xs" color="gray.400">[Object]</Text>;
       }
     }
 
-    // Don't show [N] for merged arrays since it's in the name
     if (isArray && !isMergedArray && level <= 1) {
-      return (
-        <Text fontSize="xs" color="orange.500">
-          [{value.length}]
-        </Text>
-      );
+      return <Text fontSize="xs" color="orange.500">[{value.length}]</Text>;
     }
     return null;
+  };
+
+  const sharedChildProps = {
+    selectedPath,
+    isExpanded: false,
+    onToggle,
+    onClick,
+    expandedPaths,
+    configurations,
   };
 
   return (
@@ -117,14 +106,14 @@ function TreeNode({
         py={1.5}
         px={2}
         cursor="pointer"
-        bg="transparent"
-        _hover={{ bg: 'gray.50' }}
+        bg={isSelected ? 'blue.50' : 'transparent'}
+        _hover={{ bg: isSelected ? 'blue.50' : 'gray.50' }}
         borderRadius="sm"
         onClick={handleClick}
         gap={2}
       >
-        {/* Expand/Collapse Icon - Only for level 0-1 */}
-        {(isObject || isArray || isMergedArray) && level < 2 && (
+        {/* Expand/Collapse Icon */}
+        {(isObject || isArray || isMergedArray) ? (
           <Text
             fontSize="xs"
             color="gray.500"
@@ -135,13 +124,9 @@ function TreeNode({
           >
             {isExpanded ? '▼' : '▶'}
           </Text>
+        ) : (
+          <Box width="12px" />
         )}
-
-        {/* Empty space for level 2+ objects (no toggle arrow) */}
-        {(isObject || isArray || isMergedArray) && level >= 2 && <Box width="12px" />}
-
-        {/* Empty space for primitives */}
-        {isPrimitive && <Box width="12px" />}
 
         {/* Field Name */}
         <Text
@@ -169,7 +154,6 @@ function TreeNode({
       {isExpanded && (isObject || isArray || isMergedArray) && (
         <Box>
           {isMergedArray ? (
-            // Render merged template fields directly
             Object.entries(displayValue).map(([key, val]) => {
               const childPath = `${path}[0].${key}`;
               const normalizedChildPath = normalizePath(childPath);
@@ -180,18 +164,13 @@ function TreeNode({
                   value={val}
                   path={childPath}
                   level={level + 1}
-                  isSelected={path === childPath}
+                  {...sharedChildProps}
                   isExpanded={expandedPaths?.has(childPath) || false}
                   isConfigured={configurations?.[normalizedChildPath] !== undefined}
-                  onToggle={onToggle}
-                  onClick={onClick}
-                  expandedPaths={expandedPaths}
-                  configurations={configurations}
                 />
               );
             })
           ) : isArray ? (
-            // For primitive arrays, show items directly
             value.map((item, idx) => {
               const childPath = `${path}[${idx}]`;
               const normalizedChildPath = normalizePath(childPath);
@@ -202,18 +181,13 @@ function TreeNode({
                   value={item}
                   path={childPath}
                   level={level + 1}
-                  isSelected={path === childPath}
+                  {...sharedChildProps}
                   isExpanded={expandedPaths?.has(childPath) || false}
                   isConfigured={configurations?.[normalizedChildPath] !== undefined}
-                  onToggle={onToggle}
-                  onClick={onClick}
-                  expandedPaths={expandedPaths}
-                  configurations={configurations}
                 />
               );
             })
           ) : (
-            // Render object properties
             Object.entries(value).map(([key, val]) => {
               const childPath = `${path}.${key}`;
               const normalizedChildPath = normalizePath(childPath);
@@ -224,13 +198,9 @@ function TreeNode({
                   value={val}
                   path={childPath}
                   level={level + 1}
-                  isSelected={path === childPath}
+                  {...sharedChildProps}
                   isExpanded={expandedPaths?.has(childPath) || false}
                   isConfigured={configurations?.[normalizedChildPath] !== undefined}
-                  onToggle={onToggle}
-                  onClick={onClick}
-                  expandedPaths={expandedPaths}
-                  configurations={configurations}
                 />
               );
             })
@@ -246,7 +216,7 @@ TreeNode.propTypes = {
   value: PropTypes.any,
   path: PropTypes.string.isRequired,
   level: PropTypes.number.isRequired,
-  isSelected: PropTypes.bool,
+  selectedPath: PropTypes.string,
   isExpanded: PropTypes.bool,
   isConfigured: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,

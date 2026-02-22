@@ -37,7 +37,7 @@ function ArrayConfigPanel({
   };
 
   return (
-    <VStack align="stretch" gap={4} flex="1">
+    <VStack align="stretch" gap={4} flex="1" overflowY="auto">
       {/* Array Path */}
       <Box>
         <Text fontSize="xs" color="gray.500" mb={1}>

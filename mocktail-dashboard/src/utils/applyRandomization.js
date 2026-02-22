@@ -20,7 +20,7 @@ function traverse(current, configurations, path) {
   // Primitive value
   if (typeof current !== 'object' || current === null) {
     const config = configurations[path];
-    if (config && config.type && config.type !== 'Keep Original') {
+    if (config && config.type) {
       return generateFakerValue(config, current);
     }
     return current;
@@ -146,7 +146,7 @@ function traverseWithFreshValues(current, configurations, templatePath, included
       return valueMappings[mappingKey];
     }
 
-    if (templateConfig && templateConfig.type && templateConfig.type !== 'Keep Original') {
+    if (templateConfig && templateConfig.type) {
       // Get the relative path within the array item (e.g., "links.parent_job_id")
       const relativePath = templatePath.replace(/^root\.[^[]+\[0\]\./, '');
 
@@ -158,13 +158,22 @@ function traverseWithFreshValues(current, configurations, templatePath, included
       // Always apply to the first occurrence of this field
       // For other occurrences, only apply if applyToAll is checked
       if (isFirstOccurrence || templateConfig.applyToAll === true) {
-        const generated = generateFakerValue(templateConfig, current);
-        console.log('Generated value for', templatePath, ':', generated);
+        // applySameToAll: generate once on first occurrence and reuse for all
+        const sameKey = `__same__:${templatePath}`;
+        if (templateConfig.applySameToAll) {
+          if (valueMappings[sameKey] !== undefined) {
+            return valueMappings[sameKey];
+          }
+          const generated = generateFakerValue(templateConfig, current);
+          valueMappings[sameKey] = generated;
+          return generated;
+        }
 
-        // NEW: If this field has updateReferences enabled and has references, store the mapping
+        const generated = generateFakerValue(templateConfig, current);
+
+        // If this field has updateReferences enabled and has references, store the mapping
         if (templateConfig.updateReferences && referenceMap[actualPath]?.referencedBy?.length > 0) {
           valueMappings[mappingKey] = generated;
-          console.log('Stored value mapping:', mappingKey, '->', generated);
         }
 
         return generated;
@@ -222,7 +231,16 @@ function traverseWithFreshValues(current, configurations, templatePath, included
 function generateFakerValue(config, originalValue) {
   const { type, options = {} } = config;
 
-  if (type === 'Keep Original' || !type) {
+  if (!type) {
+    return originalValue;
+  }
+
+  if (type === 'Custom') {
+    return options.customValue !== undefined ? options.customValue : originalValue;
+  }
+
+  if (type === 'AI Generate') {
+    // AI generation requires async API call — returns original value until implemented
     return originalValue;
   }
 

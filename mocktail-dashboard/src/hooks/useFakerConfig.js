@@ -18,10 +18,10 @@ export function useFakerConfig(type = null) {
  * @returns {string} Detected faker type or 'Keep Original'
  */
 export function useAutoDetectType(fieldName) {
-  if (!fieldName) return 'Keep Original';
+  if (!fieldName) return null;
 
   const normalizedName = fieldName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  return fieldNameMap[normalizedName] || 'Keep Original';
+  return fieldNameMap[normalizedName] || null;
 }
 
 /**

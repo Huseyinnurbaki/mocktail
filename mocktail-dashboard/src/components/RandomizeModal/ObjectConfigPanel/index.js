@@ -6,7 +6,7 @@ function ObjectConfigPanel({ path, objectData }) {
   const fieldCount = Object.keys(objectData).length;
 
   return (
-    <VStack align="stretch" gap={4} flex="1">
+    <VStack align="stretch" gap={4} flex="1" overflowY="auto">
       {/* Object Path */}
       <Box>
         <Text fontSize="xs" color="gray.500" mb={1}>

@@ -9,44 +9,42 @@ function PreviewBox({ value, onRegenerate, isObject = false, isGenerating = fals
     : String(value || '');
 
   return (
-    <Box
-      border="1px solid"
-      borderColor="gray.200"
-      borderRadius="md"
-      bg="gray.50"
-      p={3}
-    >
-      <HStack justify="space-between" mb={2}>
-        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-          Preview
+    <Box>
+      <HStack justify="space-between" align="center" mb={1}>
+        <Text fontSize="xs" color="gray.400" letterSpacing="wide">
+          PREVIEW
         </Text>
         <IconButton
-          icon={<LuRefreshCw />}
-          size="xs"
+          icon={<LuRefreshCw size={11} />}
+          size="2xs"
           variant="ghost"
           onClick={onRegenerate}
           aria-label="Regenerate preview"
-          isDisabled={isGenerating}
-          _hover={{ bg: 'gray.200' }}
+          disabled={isGenerating}
+          color="gray.400"
+          _hover={{ color: 'gray.600', bg: 'transparent' }}
         />
       </HStack>
 
       <Box
-        as="pre"
-        fontSize="sm"
-        fontFamily="monospace"
-        color="gray.800"
-        whiteSpace={isObject ? 'pre-wrap' : 'nowrap'}
-        overflowX="auto"
-        maxH="200px"
-        overflowY="auto"
-        p={2}
-        bg="white"
-        borderRadius="sm"
-        border="1px solid"
-        borderColor="gray.100"
+        px={3}
+        py={2}
+        borderLeft="2px solid"
+        borderColor="blue.200"
+        bg="blue.50"
+        borderRadius="0 4px 4px 0"
       >
-        {displayValue || '(empty)'}
+        <Text
+          fontSize="sm"
+          fontFamily="monospace"
+          color="gray.700"
+          whiteSpace={isObject ? 'pre-wrap' : 'normal'}
+          wordBreak="break-all"
+          opacity={isGenerating ? 0.4 : 1}
+          transition="opacity 0.15s"
+        >
+          {displayValue || '—'}
+        </Text>
       </Box>
     </Box>
   );

@@ -23,7 +23,6 @@ function GenerateTab(props) {
   const [responseValue, setResponseValue] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(HTTP_METHODS.GET);
   const [statusCode, setStatusCode] = useState(200);
-  const [delay, setDelay] = useState(0);
   const [jsonError, setJsonError] = useState('');
   const [jsonSuccess, setJsonSuccess] = useState('');
   const [promptDialogOpen, setPromptDialogOpen] = useState(false);
@@ -33,7 +32,6 @@ function GenerateTab(props) {
     setEndpointValue('');
     setResponseValue('');
     setStatusCode(200);
-    setDelay(0);
     setJsonError('');
     setJsonSuccess('');
   }
@@ -108,7 +106,7 @@ function GenerateTab(props) {
         Endpoint: endpointValue,
         Method: selectedMethod,
         StatusCode: statusCode,
-        Delay: delay,
+        Delay: 0,
         Response: parsedResponse
       };
 
@@ -214,20 +212,6 @@ function GenerateTab(props) {
             </NativeSelectRoot>
           </Field.Root>
 
-          <Field.Root>
-            <Field.Label fontSize="sm" fontWeight="medium" mb={2}>
-              Delay (ms)
-            </Field.Label>
-            <Input
-              type="number"
-              value={delay}
-              onChange={(e) => setDelay(Number(e.target.value))}
-              min="0"
-              max="30000"
-              placeholder="0"
-              size="sm"
-            />
-          </Field.Root>
         </VStack>
 
         {/* Right Column */}

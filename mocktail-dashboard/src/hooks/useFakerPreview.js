@@ -61,7 +61,7 @@ function generateValue(config) {
   const { type, options = {}, currentValue } = config;
 
   // Keep original value
-  if (type === 'Keep Original' || !type) {
+  if (!type) {
     return currentValue || '';
   }
 

@@ -21,7 +21,6 @@ import ArrayConfigPanel from './ArrayConfigPanel';
 import ObjectConfigPanel from './ObjectConfigPanel';
 import ReviewModal from './ReviewModal';
 import { useJsonTree } from '../../hooks/useJsonTree';
-import { useAutoDetectType, useDefaultOptions } from '../../hooks/useFakerConfig';
 import { detectReferences } from '../../utils/referenceDetection';
 
 function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
@@ -60,24 +59,9 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
         expand(selectedPath);
       }
 
-      // Auto-detect type for primitives
-      const normalizedSelectedPath = normalizePath(selectedPath);
-      if (isPrimitivePath(selectedPath) && !configurations[normalizedSelectedPath]) {
-        const fieldName = getFieldName(normalizedSelectedPath);
-        const detectedType = useAutoDetectType(fieldName);
-        const defaultOptions = useDefaultOptions(detectedType);
-
-        setConfigurations(prev => ({
-          ...prev,
-          [normalizedSelectedPath]: {
-            type: detectedType,
-            options: defaultOptions
-          }
-        }));
-      }
-
       // Detect references for arrays
       // Extract array path if this is an array item or array itself
+      const normalizedSelectedPath = normalizePath(selectedPath);
       let arrayPathToAnalyze = null;
       let arrayDataToAnalyze = null;
 
@@ -118,33 +102,32 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
     if (!selectedPath) return;
 
     const normalizedPath = normalizePath(selectedPath);
-    const fieldName = getFieldName(normalizedPath);
-    const detectedType = useAutoDetectType(fieldName);
-    const defaultOptions = useDefaultOptions(detectedType);
-
-    setConfigurations(prev => ({
-      ...prev,
-      [normalizedPath]: {
-        type: detectedType,
-        options: defaultOptions
-      }
-    }));
-  };
-
-  const handleKeepOriginal = () => {
-    if (!selectedPath) return;
-
-    const normalizedPath = normalizePath(selectedPath);
-    setConfigurations(prev => ({
-      ...prev,
-      [normalizedPath]: {
-        type: 'Keep Original',
-        options: {}
-      }
-    }));
+    setConfigurations(prev => {
+      const next = { ...prev };
+      delete next[normalizedPath];
+      return next;
+    });
   };
 
   const handleApplyToAll = (enabled) => {
+    if (!selectedPath) return;
+
+    const normalizedPath = normalizePath(selectedPath);
+    setConfigurations(prev => {
+      const current = prev[normalizedPath] || {};
+      const isCustom = current.type === 'Custom';
+      return {
+        ...prev,
+        [normalizedPath]: {
+          ...current,
+          applyToAll: enabled,
+          ...(isCustom ? { applySameToAll: enabled } : {})
+        }
+      };
+    });
+  };
+
+  const handleApplySameToAll = (enabled) => {
     if (!selectedPath) return;
 
     const normalizedPath = normalizePath(selectedPath);
@@ -152,7 +135,7 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
       ...prev,
       [normalizedPath]: {
         ...prev[normalizedPath],
-        applyToAll: enabled
+        applySameToAll: enabled
       }
     }));
   };
@@ -353,7 +336,7 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
           top="50%"
           left="50%"
           transform="translate(-50%, -50%)"
-          maxW="1200px"
+          maxW="1400px"
           height="80vh"
           display="flex"
           flexDirection="column"
@@ -384,7 +367,7 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
               </Box>
 
               {/* Right Side - Configuration Panel */}
-              <Box width="60%" overflowY="auto">
+              <Box width="60%" overflow="hidden" display="flex" flexDirection="column">
                 {!selectedPath ? (
                   <Box
                     display="flex"
@@ -410,9 +393,9 @@ function RandomizeModal({ isOpen, onClose, jsonData, onApply }) {
                     config={currentConfig || {}}
                     onChange={(config) => handleConfigChange(selectedPath, config)}
                     onReset={handleReset}
-                    onKeepOriginal={handleKeepOriginal}
                     canApplyToAll={canApplyToAll}
                     onApplyToAll={handleApplyToAll}
+                    onApplySameToAll={handleApplySameToAll}
                     similarFieldsCount={similarFields.length}
                     isArrayItem={isArrayItem}
                     referencedBy={referencedByPaths}

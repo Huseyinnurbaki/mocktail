@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.4-alpha] - 2026-02-22
+
+### ✨ Added
+
+**Randomize & Anonymize — Custom & AI Generate Types**
+- **Custom type** - Enter a fixed value applied to all matching fields; always enforces "apply same value to all"
+- **AI Generate type** - Write a natural language prompt; embedded provider/model selector (OpenAI, Anthropic, Google) in compact header bar
+- "Apply same value to all" checkbox — generate once and reuse the same value across all array items
+- Auto-checks "Apply same value to all" when user enables "Apply to all" while Custom type is selected
+
+**Randomize & Anonymize — UX Overhaul**
+- Three-column layout: JSON tree (left) | config & options (center) | type selector (right)
+- Type selector redesigned as a scrollable grouped list with sticky category headers and icons
+- Selected row highlighted (blue) in JSON tree for clear navigation
+- Expanded tree nodes at any depth — no longer limited to top two levels
+- Checkboxes and Reset button only appear after a type is selected (cleaner empty state)
+- Modal width increased to 1400px for comfortable three-column layout
+
+**Create Tab**
+- Delay field removed from Create tab; defaults to 0ms automatically
+- Delay remains configurable per-endpoint in the Catalog tab
+
+### 🔧 Fixed
+- Reset button no longer adds a "configured" green badge — correctly discards the config entry
+- Clicking a field no longer auto-assigns a type (no more spurious green badges on click)
+- First-click highlight bug in JSON tree: bracket notation (`[0]`) and dot notation (`.0.`) paths now correctly normalized before comparison
+- Nested objects (e.g., `links`) now show expand arrow and are expandable at all tree depths
+
+### 🎨 Improved
+- PreviewBox redesigned with left-accent bar and subtle blue background (consistent with overall style)
+- Checkboxes replaced with `CheckRow` component — custom styled, compact, with blue fill on checked state
+- "Apply to all" and "Apply same value to all" grouped in single bordered card with divider
+- Review modal cards are now single-row (path + type badge inline) for compact display
+- Review modal: Apply Changes on left, Close on right
+
 ## [3.1.3-alpha] - 2026-02-03
 
 ### ✨ Added

@@ -253,14 +253,6 @@ export const fakerConfigs = {
     category: 'Text',
     options: [],
     defaultOptions: { sentences: 3 }
-  },
-
-  'Keep Original': {
-    method: null,
-    icon: '🔒',
-    category: 'Special',
-    options: [],
-    defaultOptions: {}
   }
 };
 

@@ -15,12 +15,12 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
-[v3.1 Alpha](#v31-alpha) 🧪 •
+[v3.1.4 Alpha](#v314-alpha) 🧪 •
 [v3.0 Changes](#v30-changes) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
 
-> **Alpha Release:** v3.1.0-alpha includes experimental data randomization features. Some functionality may be unstable or change before final release.
+> **Alpha Release:** v3.1.4-alpha includes experimental data randomization features. Some functionality may be unstable or change before final release.
 
 </div>
 
@@ -73,7 +73,7 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
 - **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
 - **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
-- **Randomize & Anonymize** ⚠️ *Alpha* - Generate realistic fake data with 20+ faker types (names, emails, phones, addresses, etc.) with smart auto-detection and per-field configuration
+- **Randomize & Anonymize** ⚠️ *Alpha* - Generate realistic fake data with 20+ faker types plus Custom (fixed value) and AI Generate (prompt-based) modes, with per-field configuration, live preview, and "apply same value to all" support
 - **Irregular Array Support** - Handles arrays with inconsistent object structures, showing field frequency and applying configs selectively
 - **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
 - **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions and persistent selection
@@ -199,6 +199,47 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - ✅ Health check (`/health`) - No auth needed
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
+
+## v3.1.4 Alpha
+
+### ✨ Randomize & Anonymize — Major UX Overhaul (New in 3.1.4)
+
+**New Types**
+- **Custom** - Enter a fixed value; enforces "apply same value to all" when targeting multiple fields
+- **AI Generate** - Describe the value in natural language; embedded provider/model picker (OpenAI, Anthropic, Google) displayed inline in the input header
+
+**Three-Column Layout**
+- JSON tree (left), configuration & options (center), type selector (right)
+- Each column scrolls independently — long type lists or deep configs don't push other panels
+- Modal width increased to 1400px for comfortable use
+
+**Type Selector**
+- Replaced dropdown with a scrollable grouped list with sticky category headers
+- Special types (Custom, AI Generate) pinned at top; all 20+ faker types organized by category
+- Selected row highlighted in blue; text size unchanged on selection
+
+**JSON Tree**
+- Selected field highlighted in blue for clear navigation
+- Nodes at any depth now show expand arrow and can be opened (no longer limited to top two levels)
+
+**Behavior Fixes**
+- Clicking a field no longer auto-assigns a type — no more spurious green "configured" badges on click
+- Reset correctly discards the configuration entry instead of resetting to a detected type
+- First-click highlight bug fixed: bracket (`[0]`) and dot (`.0.`) path notation normalized before comparison
+
+**"Apply same value to all"**
+- New checkbox to generate one value and reuse it across all array items
+- Auto-checked when "Apply to all" is enabled with Custom type selected
+- Disabled (but visible) when Custom type is active — always implied
+
+**Create Tab**
+- Delay field removed from Create tab; always defaults to 0ms
+- Delay remains editable per-endpoint in the Catalog quick-edit panel
+
+### 🎨 Design Refresh (3.1.4)
+- PreviewBox: left-accent bar style with subtle blue background
+- Checkboxes: custom `CheckRow` component — compact, blue-filled when checked, grouped in a single bordered card
+- Review modal: single-row cards (path + badges inline), Apply Changes on left / Close on right
 
 ## v3.1.3 Alpha
 

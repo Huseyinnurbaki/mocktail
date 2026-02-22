@@ -169,7 +169,7 @@ function JsonTree({
           value={focusData}
           path={focusPath}
           level={0}
-          isSelected={selectedPath === focusPath}
+          selectedPath={selectedPath}
           isExpanded={isExpanded(focusPath)}
           isConfigured={isConfigured(focusPath)}
           onToggle={onToggleExpand}
