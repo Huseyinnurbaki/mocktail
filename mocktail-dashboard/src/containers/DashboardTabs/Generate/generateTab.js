@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, HStack, VStack, IconButton, Input, Field, NativeSelectRoot, NativeSelectField, Group, Text, DialogRoot, DialogTrigger, DialogContent, DialogHeader, DialogBody, DialogFooter, DialogActionTrigger, DialogTitle, DialogBackdrop, Textarea, Portal, Menu } from '@chakra-ui/react';
+import { Box, Button, HStack, VStack, Input, Field, NativeSelectRoot, NativeSelectField, Group, Text, DialogRoot, DialogContent, DialogHeader, DialogBody, DialogFooter, DialogActionTrigger, DialogTitle, DialogBackdrop, Portal } from '@chakra-ui/react';
 import { Tooltip } from '../../../components/ui/tooltip';
 import JsonEditor from '../../../components/JsonEditor';
 import RandomizeModal from '../../../components/RandomizeModal';
@@ -25,7 +25,6 @@ function GenerateTab(props) {
   const [statusCode, setStatusCode] = useState(200);
   const [jsonError, setJsonError] = useState('');
   const [jsonSuccess, setJsonSuccess] = useState('');
-  const [promptDialogOpen, setPromptDialogOpen] = useState(false);
   const [randomizeDialogOpen, setRandomizeDialogOpen] = useState(false);
 
   function clearAll() {
@@ -259,29 +258,16 @@ function GenerateTab(props) {
                     Validate
                   </Button> */}
                 </HStack>
-                <Menu.Root positioning={{ placement: "right-start" }}>
-                  <Menu.Trigger asChild>
-                    <Button
-                      type="button"
-                      size="xs"
-                      variant="ghost"
-                      borderRadius="6px"
-                      _hover={{ borderRadius: "6px" }}
-                      _focus={{ boxShadow: "none", outline: "none" }}
-                      _active={{ borderColor: "transparent" }}
-                    >
-                      Generate ▾
-                    </Button>
-                  </Menu.Trigger>
-                  <Portal>
-                    <Menu.Positioner>
-                      <Menu.Content>
-                        <Menu.Item value="prompt" onClick={() => setPromptDialogOpen(true)}>Generate from prompt</Menu.Item>
-                        <Menu.Item value="randomize" onClick={() => setRandomizeDialogOpen(true)}>Randomize / Anonymize</Menu.Item>
-                      </Menu.Content>
-                    </Menu.Positioner>
-                  </Portal>
-                </Menu.Root>
+                <Button
+                    type="button"
+                    size="xs"
+                    variant="ghost"
+                    borderRadius="6px"
+                    _hover={{ borderRadius: "6px" }}
+                    onClick={() => setRandomizeDialogOpen(true)}
+                  >
+                    Randomize / Anonymize
+                  </Button>
               </HStack>
             }
           />
@@ -297,49 +283,6 @@ function GenerateTab(props) {
           </HStack>
         </VStack>
       </HStack>
-
-      {/* Generate from prompt modal */}
-      <DialogRoot open={promptDialogOpen} onOpenChange={(e) => setPromptDialogOpen(e.open)} size="xl">
-        <Portal>
-          <DialogBackdrop />
-          <DialogContent
-            position="fixed"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-          >
-            <DialogHeader>
-              <DialogTitle>Generate from prompt</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <VStack align="stretch" gap={4}>
-                <Box bg="blue.50" border="1px solid" borderColor="blue.200" borderRadius="md" p={3}>
-                  <Text fontSize="sm" color="blue.700" fontWeight="medium">
-                    🚧 This feature is under development
-                  </Text>
-                </Box>
-                <Text fontSize="sm" color="gray.600">
-                  Generate a JSON response from a natural language prompt. Existing content can be replaced or merged.
-                </Text>
-                <Field.Root>
-                  <Field.Label fontSize="sm">Prompt</Field.Label>
-                  <Textarea
-                    placeholder="Describe the JSON structure you want to generate..."
-                    rows={4}
-                    fontSize="sm"
-                  />
-                </Field.Root>
-              </VStack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
-              </DialogActionTrigger>
-              <Button colorPalette="blue" size="sm" disabled>Generate</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
 
       {/* Randomize / Anonymize modal */}
       {randomizeDialogOpen && (() => {

@@ -15,12 +15,10 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
-[v3.1.4 Alpha](#v314-alpha) 🧪 •
+[v3.1.4](#v314) 🧪 •
 [v3.0 Changes](#v30-changes) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
-
-> **Alpha Release:** v3.1.4-alpha includes experimental data randomization features. Some functionality may be unstable or change before final release.
 
 </div>
 
@@ -36,7 +34,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.0.0
+docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.4
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -84,6 +82,98 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Multi-Platform** - Native support for amd64 and arm64 (Intel, Apple Silicon, Raspberry Pi)
 - **Health Check** - `/health` endpoint for monitoring and orchestration
 - **Customizable URLs** - Override display URLs for reverse proxy/custom domain setups
+
+## MCP Server (AI Integration)
+
+Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that lets AI assistants like Claude manage your mock endpoints through natural language. Available on npm as [`mocktail-mcp`](https://www.npmjs.com/package/mocktail-mcp).
+
+**Examples:** "List all my mocks", "Create a GET /api/users mock returning a list of users", "Import mock endpoints for a blog API."
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `list_mocks` | List all configured mock endpoints |
+| `create_mock` | Create a single mock endpoint |
+| `update_mock` | Update an existing mock by ID |
+| `delete_mock` | Delete a mock by ID |
+| `import_mocks` | Bulk import multiple mocks (skips duplicates) |
+
+### Setup
+
+<details>
+  <summary>npx (Recommended)</summary>
+
+#### Claude Code
+```bash
+claude mcp add mocktail \
+  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_API_KEY=your-api-key \
+  -- npx mocktail-mcp
+```
+
+#### Claude Desktop
+
+Add to your config file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "mocktail": {
+      "command": "npx",
+      "args": ["mocktail-mcp"],
+      "env": {
+        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+  <summary>From source (Development)</summary>
+
+If you cloned the repo and want to run the MCP server locally:
+
+#### Claude Code
+```bash
+claude mcp add mocktail \
+  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_API_KEY=your-api-key \
+  -- node /path/to/mocktail/mcp-server/index.js
+```
+
+#### Claude Desktop
+```json
+{
+  "mcpServers": {
+    "mocktail": {
+      "command": "node",
+      "args": ["/path/to/mocktail/mcp-server/index.js"],
+      "env": {
+        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+**Environment Variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MOCKTAIL_URL` | Yes | Base URL of your Mocktail instance (e.g. `http://localhost:4000`) |
+| `MOCKTAIL_API_KEY` | No | API key sent as `X-API-Key` header on all requests |
+
+> **Note:** If you configured `MOCKTAIL_BASE_URL` for a custom domain or reverse proxy, use that same URL for `MOCKTAIL_URL` (e.g. `https://api.mycompany.com/mocktail` becomes `MOCKTAIL_URL=https://api.mycompany.com`).
+
+> See [`mcp-server/README.md`](mcp-server/README.md) for more details.
 
 ## Configuration
 
@@ -200,7 +290,15 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
 
-## v3.1.4 Alpha
+## v3.1.4
+
+### ✨ MCP Server — AI Integration (New in 3.1.4)
+
+- **MCP protocol support** — Manage mock endpoints from AI assistants like Claude via natural language
+- **5 tools** — `list_mocks`, `create_mock`, `update_mock`, `delete_mock`, `import_mocks`
+- **npm package** — Install with `npx mocktail-mcp`, no build required
+- **Claude Code & Claude Desktop** — Setup instructions for both clients
+- **CI/CD** — Automated npm publishing on push (dev tag) and release (latest tag)
 
 ### ✨ Randomize & Anonymize — Major UX Overhaul (New in 3.1.4)
 

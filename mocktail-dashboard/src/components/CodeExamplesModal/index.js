@@ -10,7 +10,7 @@ function CodeExamplesModal({ isOpen, onClose, api }) {
 
   const apiKey = process.env.REACT_APP_MOCKTAIL_API_KEY || '';
 
-  const fullUrl = `${PUBLIC_MOCKTAIL_URL}/${api.Endpoint}`;
+  const fullUrl = `${PUBLIC_MOCKTAIL_URL}/${api.Endpoint.replace(/^\/+/, '')}`;
 
   // Display value for code examples (masked or actual)
   const displayKey = showApiKey ? apiKey : '*******';

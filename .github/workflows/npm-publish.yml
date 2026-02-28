@@ -1,0 +1,37 @@
+name: npm Publish CI
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'mcp-server/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Extract short SHA
+      id: sha
+      run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Install dependencies
+      working-directory: mcp-server
+      run: npm ci
+
+    - name: Publish with commit SHA tag
+      working-directory: mcp-server
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        VERSION=$(node -p "require('./package.json').version")-${{ steps.sha.outputs.short }}
+        npm version $VERSION --no-git-tag-version
+        npm publish --tag dev

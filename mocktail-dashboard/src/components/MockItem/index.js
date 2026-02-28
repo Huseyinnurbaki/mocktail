@@ -9,7 +9,7 @@ import { LuSettings, LuFlaskConical, LuTrash2 } from 'react-icons/lu';
 const MockItem = (props) => {
   const { data, selected, showDelayAlways, onStatusCodeClick, statusCodes, onUpdate, onTest, onDelete } = props;
   const { Method, Delay, StatusCode, ID, Endpoint } = data;
-  let endpoint = '/' + props.data.Endpoint;
+  let endpoint = '/' + props.data.Endpoint.replace(/^\/+/, '');
   const fullUrl = `${PUBLIC_MOCKTAIL_URL}${endpoint}`;
   const delay = Delay || 0;
   const statusCode = StatusCode || 200;
