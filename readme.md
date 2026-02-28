@@ -71,7 +71,7 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
 - **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
 - **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
-- **Randomize & Anonymize** ⚠️ *Alpha* - Generate realistic fake data with 20+ faker types plus Custom (fixed value) and AI Generate (prompt-based) modes, with per-field configuration, live preview, and "apply same value to all" support
+- **Randomize & Anonymize** ⚠️ _Beta_ - Generate realistic fake data with 20+ faker types plus Custom (fixed value) and AI Generate (prompt-based) modes, with per-field configuration, live preview, and "apply same value to all" support
 - **Irregular Array Support** - Handles arrays with inconsistent object structures, showing field frequency and applying configs selectively
 - **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
 - **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions and persistent selection
@@ -91,12 +91,12 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
 
 ### Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `list_mocks` | List all configured mock endpoints |
-| `create_mock` | Create a single mock endpoint |
-| `update_mock` | Update an existing mock by ID |
-| `delete_mock` | Delete a mock by ID |
+| Tool           | Description                                   |
+| -------------- | --------------------------------------------- |
+| `list_mocks`   | List all configured mock endpoints            |
+| `create_mock`  | Create a single mock endpoint                 |
+| `update_mock`  | Update an existing mock by ID                 |
+| `delete_mock`  | Delete a mock by ID                           |
 | `import_mocks` | Bulk import multiple mocks (skips duplicates) |
 
 ### Setup
@@ -105,6 +105,7 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
   <summary>npx (Recommended)</summary>
 
 #### Claude Code
+
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:4000 \
@@ -139,6 +140,7 @@ Add to your config file (`~/Library/Application Support/Claude/claude_desktop_co
 If you cloned the repo and want to run the MCP server locally:
 
 #### Claude Code
+
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:4000 \
@@ -147,6 +149,7 @@ claude mcp add mocktail \
 ```
 
 #### Claude Desktop
+
 ```json
 {
   "mcpServers": {
@@ -166,10 +169,10 @@ claude mcp add mocktail \
 
 **Environment Variables:**
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `MOCKTAIL_URL` | Yes | Base URL of your Mocktail instance (e.g. `http://localhost:4000`) |
-| `MOCKTAIL_API_KEY` | No | API key sent as `X-API-Key` header on all requests |
+| Variable           | Required | Description                                                       |
+| ------------------ | -------- | ----------------------------------------------------------------- |
+| `MOCKTAIL_URL`     | Yes      | Base URL of your Mocktail instance (e.g. `http://localhost:4000`) |
+| `MOCKTAIL_API_KEY` | No       | API key sent as `X-API-Key` header on all requests                |
 
 > **Note:** If you configured `MOCKTAIL_BASE_URL` for a custom domain or reverse proxy, use that same URL for `MOCKTAIL_URL` (e.g. `https://api.mycompany.com/mocktail` becomes `MOCKTAIL_URL=https://api.mycompany.com`).
 
@@ -194,6 +197,7 @@ MOCKTAIL_BASE_URL=https://gateway.example.com/mocktail
 ```
 
 If not set, defaults to:
+
 - **Development:** `http://localhost:4000/mocktail`
 - **Production:** `[your-domain]/mocktail`
 
@@ -220,6 +224,7 @@ MOCKTAIL_CORS_CREDENTIALS=true
 ```
 
 **Docker Example:**
+
 ```bash
 docker run -p 4000:4000 \
   -e MOCKTAIL_CORS_ORIGINS=https://myapp.com \
@@ -228,6 +233,7 @@ docker run -p 4000:4000 \
 ```
 
 **Docker Compose Example:**
+
 ```yaml
 services:
   mocktail:
@@ -244,6 +250,7 @@ services:
 **⚠️ Important Security Rule:**
 
 **DO NOT combine wildcard origins with credentials:**
+
 ```bash
 # ❌ INVALID - Browsers will reject this combination
 MOCKTAIL_CORS_ORIGINS=*
@@ -283,6 +290,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ```
 
 **What's Protected:**
+
 - 🔒 Mock endpoints (`/mocktail/*`) - Requires API key
 - ✅ Dashboard (`/`) - No auth needed
 - ✅ Core API (`/core/v1/*`) - No auth needed (dashboard uses this)
@@ -303,38 +311,46 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ### ✨ Randomize & Anonymize — Major UX Overhaul (New in 3.1.4)
 
 **New Types**
+
 - **Custom** - Enter a fixed value; enforces "apply same value to all" when targeting multiple fields
 - **AI Generate** - Describe the value in natural language; embedded provider/model picker (OpenAI, Anthropic, Google) displayed inline in the input header
 
 **Three-Column Layout**
+
 - JSON tree (left), configuration & options (center), type selector (right)
 - Each column scrolls independently — long type lists or deep configs don't push other panels
 - Modal width increased to 1400px for comfortable use
 
 **Type Selector**
+
 - Replaced dropdown with a scrollable grouped list with sticky category headers
 - Special types (Custom, AI Generate) pinned at top; all 20+ faker types organized by category
 - Selected row highlighted in blue; text size unchanged on selection
 
 **JSON Tree**
+
 - Selected field highlighted in blue for clear navigation
 - Nodes at any depth now show expand arrow and can be opened (no longer limited to top two levels)
 
 **Behavior Fixes**
+
 - Clicking a field no longer auto-assigns a type — no more spurious green "configured" badges on click
 - Reset correctly discards the configuration entry instead of resetting to a detected type
 - First-click highlight bug fixed: bracket (`[0]`) and dot (`.0.`) path notation normalized before comparison
 
 **"Apply same value to all"**
+
 - New checkbox to generate one value and reuse it across all array items
 - Auto-checked when "Apply to all" is enabled with Custom type selected
 - Disabled (but visible) when Custom type is active — always implied
 
 **Create Tab**
+
 - Delay field removed from Create tab; always defaults to 0ms
 - Delay remains editable per-endpoint in the Catalog quick-edit panel
 
 ### 🎨 Design Refresh (3.1.4)
+
 - PreviewBox: left-accent bar style with subtle blue background
 - Checkboxes: custom `CheckRow` component — compact, blue-filled when checked, grouped in a single bordered card
 - Review modal: single-row cards (path + badges inline), Apply Changes on left / Close on right
@@ -344,6 +360,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ### 🔍 Monitoring & Debugging (New in 3.1.3)
 
 **Backend Logs Tab**
+
 - **Split-view interface** - Request list on left, full details on right
 - **Real-time monitoring** - Auto-refreshes every 2 seconds, pauses when browser tab hidden
 - **Request inspection** - Click any request to view full response body
@@ -356,6 +373,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - **In-memory buffer** - Last 500 requests kept for debugging
 
 **Enhanced Code Examples**
+
 - API key support with masked display (`*******`)
 - Show/hide toggle for API key visibility
 - Copy button always includes actual API key value
@@ -363,6 +381,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - Supports both header (`X-API-Key`) and query parameter styles
 
 ### 🔧 Bug Fixes (3.1.3)
+
 - **Critical:** Fixed string mutation bug in Go logger causing request paths to corrupt
 - Uses `strings.Clone()` to force new string allocations and prevent Fiber buffer reuse
 - Deep copying on both backend and frontend prevents data corruption
@@ -375,18 +394,21 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ### 🔐 Security & Configuration (New in 3.1.2)
 
 **API Key Authentication**
+
 - Optional API key protection for mock endpoints (`/mocktail/*`)
 - Dashboard and Core API automatically exempt
 - Supports both `X-API-Key` header and `?api_key=...` query parameter
 - Simple env var configuration: `MOCKTAIL_API_KEY=your-secret-key`
 
 **Enhanced CORS Control**
+
 - Configurable CORS policies via environment variables
 - Fine-grained control over origins, methods, headers, and credentials
 - Safe defaults for local development (allow all)
 - Documented security rules and best practices
 
 **Developer Experience**
+
 - `.env` file support for local development (no more exporting env vars!)
 - Startup logging shows all configuration with masked secrets
 - Updated security dependencies (golang.org/x/crypto, x/net, x/sys)
@@ -398,6 +420,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ### 🧪 Experimental Features
 
 **Randomize & Anonymize (Alpha)**
+
 - Generate realistic fake data for JSON responses using faker.js
 - Interactive tree view with breadcrumb navigation for deep structures
 - 20+ configurable faker types with smart field name detection
@@ -408,6 +431,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - Configurable number ranges and decimal precision
 
 **Cross-Reference Detection & Synchronization (New in 3.1.1)**
+
 - **Key-based reference detection** - Automatically detects when field values appear in other fields with different keys
 - **Works for ANY field type** - Not limited to IDs; supports names, emails, companies, phone numbers, addresses, etc.
 - **"Update References" option** - Maintain data integrity by updating all references when randomizing a field
@@ -416,6 +440,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - **Cleaner UI** - Streamlined tree view and object inspector for better navigation
 
 **UI/UX Improvements (3.1.1)**
+
 - Review changes before applying with dedicated review modal
 - Visual configuration indicators (green badges) on tree nodes
 - ObjectConfigPanel for viewing nested object structures
@@ -425,12 +450,14 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - Path normalization works correctly in all zoom levels
 
 **Known Limitations:**
+
 - Some faker configurations may not work as expected
 - Edge cases with deeply nested irregular structures
 - Circular reference detection not yet implemented
 - Feature is under active development and subject to change
 
 **What's Next:**
+
 - Generate from prompt (AI-powered JSON generation)
 - Circular reference detection and warnings
 - Bulk configuration of similar fields
@@ -464,6 +491,7 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 **v3.0 is not backwards compatible with v2.x databases.**
 
 However, you can migrate your data:
+
 1. In v2, export your mocks to JSON (Catalog → Export)
 2. Install v3.0
 3. Import the JSON file (Catalog → Import)
