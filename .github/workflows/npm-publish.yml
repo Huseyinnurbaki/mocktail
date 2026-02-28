@@ -32,6 +32,7 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        VERSION=$(node -p "require('./package.json').version")-${{ steps.sha.outputs.short }}
-        npm version $VERSION --no-git-tag-version
+        BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
+        VERSION=${BASE}-${{ steps.sha.outputs.short }}
+        npm version $VERSION --no-git-tag-version --allow-same-version
         npm publish --tag dev

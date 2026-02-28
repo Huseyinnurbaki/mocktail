@@ -33,5 +33,7 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+        CURRENT=$(node -p "require('./package.json').version")
+        TARGET=${{ steps.version.outputs.version }}
+        [ "$CURRENT" != "$TARGET" ] && npm version $TARGET --no-git-tag-version
         npm publish --tag latest
