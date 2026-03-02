@@ -12,8 +12,13 @@ if (!MOCKTAIL_URL) {
   process.exit(1);
 }
 
+function normalizeEndpoint(endpoint) {
+  return "/" + endpoint.replace(/^\/+/, "").replace(/\/+/g, "/");
+}
+
 async function mocktailRequest(path, options = {}) {
-  const url = `${MOCKTAIL_URL}${path}`;
+  const base = MOCKTAIL_URL.replace(/\/+$/, "");
+  const url = `${base}${path}`;
   const headers = { "Content-Type": "application/json" };
   if (MOCKTAIL_API_KEY) {
     headers["X-API-Key"] = MOCKTAIL_API_KEY;
@@ -30,7 +35,7 @@ async function mocktailRequest(path, options = {}) {
 
 const server = new McpServer({
   name: "mocktail",
-  version: "3.1.4",
+  version: "3.1.5",
 });
 
 // list_mocks
@@ -66,6 +71,7 @@ server.tool(
   },
   async ({ method, endpoint, response, statusCode, delay }) => {
     try {
+      endpoint = normalizeEndpoint(endpoint);
       const parsed = JSON.parse(response);
       const result = await mocktailRequest("/core/v1/api", {
         method: "POST",
@@ -104,6 +110,7 @@ server.tool(
   },
   async ({ id, method, endpoint, response, statusCode, delay }) => {
     try {
+      endpoint = normalizeEndpoint(endpoint);
       const parsed = JSON.parse(response);
       const result = await mocktailRequest(`/core/v1/api/${id}`, {
         method: "PUT",
@@ -171,7 +178,7 @@ server.tool(
     try {
       const apis = mocks.map((m) => ({
         Method: m.method,
-        Endpoint: m.endpoint,
+        Endpoint: normalizeEndpoint(m.endpoint),
         Response: JSON.parse(m.response),
         StatusCode: m.statusCode ?? 200,
         Delay: m.delay ?? 0,

@@ -8,7 +8,7 @@ import { IMPORT_API, UPDATE_API } from '../../../utils/paths';
 import { testApi } from '../../../utils/request';
 import { showToast, TOASTTYPES } from '../../../utils/toast';
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 11;
 
 export default function CatalogTab(props) {
   const { catalog, refetch } = props;
@@ -222,7 +222,7 @@ export default function CatalogTab(props) {
         </VStack>
       </Box>
 
-      <HStack justify="space-between" align="center" pt={4} borderTop="1px solid" borderColor="gray.200">
+      {totalPages > 1 && <HStack justify="space-between" align="center" pt={4} borderTop="1px solid" borderColor="gray.200">
         <Button
           onClick={goToPrevPage}
           disabled={currentPage === 1 || displayedApis.length === 0}
@@ -244,7 +244,7 @@ export default function CatalogTab(props) {
         >
           Next
         </Button>
-      </HStack>
+      </HStack>}
     </VStack>
   );
 }

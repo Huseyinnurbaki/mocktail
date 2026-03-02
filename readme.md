@@ -15,7 +15,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
-[v3.1.4](#v314) 🧪 •
+[v3.1.5](#v315) 🧪 •
 [v3.0 Changes](#v30-changes) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
@@ -34,7 +34,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.4
+docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.5
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -297,6 +297,18 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 - ✅ Health check (`/health`) - No auth needed
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
+
+## v3.1.5
+
+### 🔧 MCP Server — Endpoint Path Normalization (New in 3.1.5)
+
+- Endpoint paths are now normalized before being stored — leading slashes are deduplicated and any `//` within the path is collapsed to `/`
+- `MOCKTAIL_URL` trailing slashes are stripped automatically, preventing double-slash URLs regardless of how the env var is configured
+
+### ✨ Catalog — Pagination (New in 3.1.5)
+
+- The catalog list now paginates when there are more endpoints than fit on a single page
+- Navigation controls (Previous / Next) appear only when needed
 
 ## v3.1.4
 

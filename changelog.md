@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.5] - 2026-03-02
+
+### 🔧 Fixed
+
+- **MCP:** Endpoint paths are now normalized — leading double slashes and any `//` within the path are collapsed to a single `/` before storing
+- **MCP:** `MOCKTAIL_URL` trailing slashes are stripped, preventing malformed URLs when the env var includes a trailing slash
+
+### ✨ Added
+
+- **Catalog:** Pagination — the endpoint list paginates when it exceeds a page; Previous/Next controls are shown only when there is more than one page
+
 ## [3.1.4-alpha] - 2026-02-22
 
 ### ✨ Added
