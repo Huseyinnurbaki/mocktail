@@ -7,3 +7,15 @@ services:
       - "4000:4000"
     volumes:
       - ./mocktail-api/db:/db
+    environment:
+      # [optional] Override the URL shown in the dashboard (e.g. reverse proxy / custom domain)
+      # MOCKTAIL_BASE_URL: https://api.mycompany.com/mocktail
+
+      # [optional] Protect mock endpoints with an API key (X-API-Key header or ?api_key=)
+      # MOCKTAIL_API_KEY: your-secret-key
+
+      # [optional] CORS — comma-separated values; defaults allow everything
+      # MOCKTAIL_CORS_ORIGINS: https://myapp.com,http://localhost:3000
+      # MOCKTAIL_CORS_METHODS: GET,POST,PUT,PATCH,DELETE,OPTIONS
+      # MOCKTAIL_CORS_HEADERS: Content-Type,Authorization,X-API-Key
+      # MOCKTAIL_CORS_CREDENTIALS: "false"

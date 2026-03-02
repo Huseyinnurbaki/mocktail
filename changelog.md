@@ -15,9 +15,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 - **Catalog:** Pagination — the endpoint list paginates when it exceeds a page; Previous/Next controls are shown only when there is more than one page
 
-## [3.1.4-alpha] - 2026-02-22
+## [3.1.4] - 2026-02-22
 
 ### ✨ Added
+
+**MCP Server — AI Integration**
+- MCP protocol support — manage mock endpoints from AI assistants like Claude via natural language
+- 5 tools: `list_mocks`, `create_mock`, `update_mock`, `delete_mock`, `import_mocks`
+- Published to npm as `mocktail-mcp` — install with `npx mocktail-mcp`, no build required
+- Setup instructions for Claude Code and Claude Desktop
+- Automated npm publishing via CI/CD (dev tag on push, latest tag on release)
 
 **Randomize & Anonymize — Custom & AI Generate Types**
 - **Custom type** - Enter a fixed value applied to all matching fields; always enforces "apply same value to all"
@@ -93,40 +100,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 - Request list shows newest first (reverse chronological)
 - Duration formatting (milliseconds for <1s, seconds for longer)
 
-## [3.1.3-alpha] - 2026-02-03
-
-### ✨ Added
-
-**Backend Logs Tab**
-- Split-view interface with request list (left) and full details (right)
-- Real-time monitoring with 2-second auto-refresh
-- Click requests to view full response body with pretty-printed JSON
-- Method badges color-coded by HTTP verb (GET, POST, PUT, DELETE, PATCH)
-- Status indicators with color coding (2xx, 3xx, 4xx, 5xx)
-- Copy/download response as JSON file
-- Smart filtering excludes polling endpoints (/core/v1/logs, /core/v1/apis)
-- Structured logging stores method, path, status, duration, and full response
-- In-memory buffer keeps last 500 requests for debugging
-- Scrollable request list and response area with fixed heights
-
-**Enhanced Code Examples**
-- API key field with masked display (******* by default)
-- Show/hide toggle for API key visibility (eye icon)
-- Copy always includes actual API key value (not masked)
-- Code examples auto-include X-API-Key header when API key is set
-- All 4 languages updated (cURL, Node.js, Python, Go)
-
-### 🔧 Fixed
-- Log entry mutation causing paths to change incorrectly
-- Deep copying on both backend and frontend prevents data corruption
-- Request list properly scrollable with overflow
-- Response area has fixed height with scroll (doesn't expand)
-- Clear All now clears both request list and selected details
-
-### 🎨 Improved
-- Response JSON automatically pretty-printed with 2-space indentation
-- Terminal-style dark theme for response viewer
-- Auto-selects latest request on first load
 
 ## [3.1.2-alpha] - 2026-02-03
 

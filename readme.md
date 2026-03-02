@@ -15,7 +15,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
-[v3.1.5](#v315) 🧪 •
+[Changelog](changelog.md) 📋 •
 [v3.0 Changes](#v30-changes) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
@@ -298,184 +298,19 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
 
-## v3.1.5
+## Recent Changes
 
-### 🔧 MCP Server — Endpoint Path Normalization (New in 3.1.5)
+See the full [Changelog](changelog.md) for all release notes.
 
-- Endpoint paths are now normalized before being stored — leading slashes are deduplicated and any `//` within the path is collapsed to `/`
-- `MOCKTAIL_URL` trailing slashes are stripped automatically, preventing double-slash URLs regardless of how the env var is configured
+**v3.1.5** — MCP endpoint path normalization (fixes double slashes), catalog pagination
 
-### ✨ Catalog — Pagination (New in 3.1.5)
+**v3.1.4** — MCP Server AI integration (`npx mocktail-mcp`), Randomize & Anonymize UX overhaul (three-column layout, Custom & AI Generate types)
 
-- The catalog list now paginates when there are more endpoints than fit on a single page
-- Navigation controls (Previous / Next) appear only when needed
+**v3.1.3** — Backend Logs tab with real-time monitoring, enhanced code examples with API key support, critical Go string mutation bugfix
 
-## v3.1.4
+**v3.1.2** — API key authentication, configurable CORS, `.env` file support
 
-### ✨ MCP Server — AI Integration (New in 3.1.4)
-
-- **MCP protocol support** — Manage mock endpoints from AI assistants like Claude via natural language
-- **5 tools** — `list_mocks`, `create_mock`, `update_mock`, `delete_mock`, `import_mocks`
-- **npm package** — Install with `npx mocktail-mcp`, no build required
-- **Claude Code & Claude Desktop** — Setup instructions for both clients
-- **CI/CD** — Automated npm publishing on push (dev tag) and release (latest tag)
-
-### ✨ Randomize & Anonymize — Major UX Overhaul (New in 3.1.4)
-
-**New Types**
-
-- **Custom** - Enter a fixed value; enforces "apply same value to all" when targeting multiple fields
-- **AI Generate** - Describe the value in natural language; embedded provider/model picker (OpenAI, Anthropic, Google) displayed inline in the input header
-
-**Three-Column Layout**
-
-- JSON tree (left), configuration & options (center), type selector (right)
-- Each column scrolls independently — long type lists or deep configs don't push other panels
-- Modal width increased to 1400px for comfortable use
-
-**Type Selector**
-
-- Replaced dropdown with a scrollable grouped list with sticky category headers
-- Special types (Custom, AI Generate) pinned at top; all 20+ faker types organized by category
-- Selected row highlighted in blue; text size unchanged on selection
-
-**JSON Tree**
-
-- Selected field highlighted in blue for clear navigation
-- Nodes at any depth now show expand arrow and can be opened (no longer limited to top two levels)
-
-**Behavior Fixes**
-
-- Clicking a field no longer auto-assigns a type — no more spurious green "configured" badges on click
-- Reset correctly discards the configuration entry instead of resetting to a detected type
-- First-click highlight bug fixed: bracket (`[0]`) and dot (`.0.`) path notation normalized before comparison
-
-**"Apply same value to all"**
-
-- New checkbox to generate one value and reuse it across all array items
-- Auto-checked when "Apply to all" is enabled with Custom type selected
-- Disabled (but visible) when Custom type is active — always implied
-
-**Create Tab**
-
-- Delay field removed from Create tab; always defaults to 0ms
-- Delay remains editable per-endpoint in the Catalog quick-edit panel
-
-### 🎨 Design Refresh (3.1.4)
-
-- PreviewBox: left-accent bar style with subtle blue background
-- Checkboxes: custom `CheckRow` component — compact, blue-filled when checked, grouped in a single bordered card
-- Review modal: single-row cards (path + badges inline), Apply Changes on left / Close on right
-
-## v3.1.3 Alpha
-
-### 🔍 Monitoring & Debugging (New in 3.1.3)
-
-**Backend Logs Tab**
-
-- **Split-view interface** - Request list on left, full details on right
-- **Real-time monitoring** - Auto-refreshes every 2 seconds, pauses when browser tab hidden
-- **Request inspection** - Click any request to view full response body
-- **Pretty-printed JSON** - Automatic formatting with syntax highlighting
-- **Method badges** - Color-coded by HTTP method (GET=green, POST=blue, DELETE=red, etc.)
-- **Status indicators** - Visual status codes (2xx=green, 4xx=orange, 5xx=red)
-- **Response actions** - Copy or download response as JSON file
-- **Smart filtering** - Excludes polling endpoints (/logs, /apis) from display
-- **Structured logging** - Stores method, path, status, duration, and full response
-- **In-memory buffer** - Last 500 requests kept for debugging
-
-**Enhanced Code Examples**
-
-- API key support with masked display (`*******`)
-- Show/hide toggle for API key visibility
-- Copy button always includes actual API key value
-- Code examples auto-include API key header when set
-- Supports both header (`X-API-Key`) and query parameter styles
-
-### 🔧 Bug Fixes (3.1.3)
-
-- **Critical:** Fixed string mutation bug in Go logger causing request paths to corrupt
-- Uses `strings.Clone()` to force new string allocations and prevent Fiber buffer reuse
-- Deep copying on both backend and frontend prevents data corruption
-- Request list properly scrollable with many entries
-- Response area fixed height with scroll (doesn't expand layout)
-- Clear All now clears both request list and selected details
-
-## v3.1.2 Alpha
-
-### 🔐 Security & Configuration (New in 3.1.2)
-
-**API Key Authentication**
-
-- Optional API key protection for mock endpoints (`/mocktail/*`)
-- Dashboard and Core API automatically exempt
-- Supports both `X-API-Key` header and `?api_key=...` query parameter
-- Simple env var configuration: `MOCKTAIL_API_KEY=your-secret-key`
-
-**Enhanced CORS Control**
-
-- Configurable CORS policies via environment variables
-- Fine-grained control over origins, methods, headers, and credentials
-- Safe defaults for local development (allow all)
-- Documented security rules and best practices
-
-**Developer Experience**
-
-- `.env` file support for local development (no more exporting env vars!)
-- Startup logging shows all configuration with masked secrets
-- Updated security dependencies (golang.org/x/crypto, x/net, x/sys)
-- Optimized CI/CD workflows (2-3x faster builds)
-- Alpine-based Docker images (smaller, more secure)
-
-## v3.1.1 Alpha
-
-### 🧪 Experimental Features
-
-**Randomize & Anonymize (Alpha)**
-
-- Generate realistic fake data for JSON responses using faker.js
-- Interactive tree view with breadcrumb navigation for deep structures
-- 20+ configurable faker types with smart field name detection
-- Per-field configuration with live preview and regenerate
-- Selective application to array items via "Apply to all" checkbox
-- Support for irregular arrays with field frequency indicators
-- Custom phone number formats
-- Configurable number ranges and decimal precision
-
-**Cross-Reference Detection & Synchronization (New in 3.1.1)**
-
-- **Key-based reference detection** - Automatically detects when field values appear in other fields with different keys
-- **Works for ANY field type** - Not limited to IDs; supports names, emails, companies, phone numbers, addresses, etc.
-- **"Update References" option** - Maintain data integrity by updating all references when randomizing a field
-- **Visual indicators** - Green badges in tree show configured fields and their faker types
-- **Review modal** - Preview all pending changes before applying, with ability to remove individual configurations
-- **Cleaner UI** - Streamlined tree view and object inspector for better navigation
-
-**UI/UX Improvements (3.1.1)**
-
-- Review changes before applying with dedicated review modal
-- Visual configuration indicators (green badges) on tree nodes
-- ObjectConfigPanel for viewing nested object structures
-- Fixed modal height prevents resizing when changing options
-- Shows only irregular fields in array structure warnings
-- Removed redundant field path and value displays
-- Path normalization works correctly in all zoom levels
-
-**Known Limitations:**
-
-- Some faker configurations may not work as expected
-- Edge cases with deeply nested irregular structures
-- Circular reference detection not yet implemented
-- Feature is under active development and subject to change
-
-**What's Next:**
-
-- Generate from prompt (AI-powered JSON generation)
-- Circular reference detection and warnings
-- Bulk configuration of similar fields
-- Configuration templates and presets
-- Additional faker types and configuration options
-- Stability improvements and bug fixes
+**v3.1.1** — Cross-reference detection, review modal, Randomize & Anonymize improvements
 
 ## v3.0 Changes
 
