@@ -2,6 +2,7 @@ package core
 
 import (
 	"mocktail-api/database"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -59,6 +60,7 @@ func CreateApi(c *fiber.Ctx) error {
 
 func InsertApi(api *Api) error {
 	db := database.DBConn
+	api.Endpoint = normalizeEndpoint(api.Endpoint)
 	api.Key = api.Method + api.Endpoint
 
 	// Set defaults if not provided
@@ -101,12 +103,12 @@ func UpdateApi(c *fiber.Ctx) error {
 	}
 
 	// Update fields
-	existingApi.Endpoint = updatedApi.Endpoint
+	existingApi.Endpoint = normalizeEndpoint(updatedApi.Endpoint)
 	existingApi.Method = updatedApi.Method
 	existingApi.StatusCode = updatedApi.StatusCode
 	existingApi.Delay = updatedApi.Delay
 	existingApi.Response = updatedApi.Response
-	existingApi.Key = updatedApi.Method + updatedApi.Endpoint
+	existingApi.Key = updatedApi.Method + existingApi.Endpoint
 
 	// Set defaults if not provided
 	if existingApi.StatusCode == 0 {
@@ -161,7 +163,7 @@ func ImportApis(c *fiber.Ctx) error {
 
 	for i := 0; i < len(apis.Apis); i++ {
 		importedApi := apis.Apis[i]
-		key := importedApi.Method + importedApi.Endpoint
+		key := importedApi.Method + normalizeEndpoint(importedApi.Endpoint)
 
 		// Check if already exists
 		var existing Api
@@ -211,6 +213,10 @@ func ImportApis(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+
+func normalizeEndpoint(endpoint string) string {
+	return strings.TrimLeft(endpoint, "/")
+}
 
 func isApiHTTPMethodValid(fl validator.FieldLevel) bool {
 	HTTPMethodList := [5]string{"GET", "POST", "PUT", "PATCH", "DELETE"}

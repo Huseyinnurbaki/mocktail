@@ -34,7 +34,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.5
+docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.6
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -301,6 +301,8 @@ curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
 ## Recent Changes
 
 See the full [Changelog](changelog.md) for all release notes.
+
+**v3.1.6** — Backend & MCP endpoint leading-slash normalization (fixes `/mocktail//posts/1`-style double-slash URLs)
 
 **v3.1.5** — MCP endpoint path normalization (fixes double slashes), catalog pagination
 

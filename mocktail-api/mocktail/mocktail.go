@@ -25,7 +25,8 @@ type ErrorResponse struct {
 }
 
 func MockApiHandler(c *fiber.Ctx) error {
-	key := strings.Replace(string(c.Request().URI().PathOriginal()), "/mocktail/", c.Method(), 1)
+	path := strings.TrimLeft(strings.TrimPrefix(string(c.Request().URI().PathOriginal()), "/mocktail"), "/")
+	key := c.Method() + path
 	db := database.DBConn
 	var api Api
 	db.Where("key = ?", key).First(&api)

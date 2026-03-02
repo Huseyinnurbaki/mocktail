@@ -13,7 +13,7 @@ if (!MOCKTAIL_URL) {
 }
 
 function normalizeEndpoint(endpoint) {
-  return "/" + endpoint.replace(/^\/+/, "").replace(/\/+/g, "/");
+  return endpoint.replace(/^\/+/, "");
 }
 
 async function mocktailRequest(path, options = {}) {
@@ -35,7 +35,7 @@ async function mocktailRequest(path, options = {}) {
 
 const server = new McpServer({
   name: "mocktail",
-  version: "3.1.5",
+  version: "3.1.6",
 });
 
 // list_mocks
@@ -47,7 +47,7 @@ server.tool(
     try {
       const mocks = await mocktailRequest("/core/v1/apis");
       return {
-        content: [{ type: "text", text: JSON.stringify(mocks, null, 2) + `\n\nMock endpoints are accessible at: ${MOCKTAIL_URL}/mocktail{Endpoint}` }],
+        content: [{ type: "text", text: JSON.stringify(mocks, null, 2) + `\n\nMock endpoints are accessible at: ${MOCKTAIL_URL}/mocktail/{Endpoint}` }],
       };
     } catch (err) {
       return {
@@ -83,7 +83,7 @@ server.tool(
           Delay: delay ?? 0,
         }),
       });
-      const accessUrl = `${MOCKTAIL_URL}/mocktail${endpoint}`;
+      const accessUrl = `${MOCKTAIL_URL}/mocktail/${endpoint}`;
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) + `\n\nAccessible at: ${method} ${accessUrl}` }],
       };
@@ -122,7 +122,7 @@ server.tool(
           Delay: delay ?? 0,
         }),
       });
-      const accessUrl = `${MOCKTAIL_URL}/mocktail${endpoint}`;
+      const accessUrl = `${MOCKTAIL_URL}/mocktail/${endpoint}`;
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) + `\n\nAccessible at: ${method} ${accessUrl}` }],
       };

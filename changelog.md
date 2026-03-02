@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.6] - 2026-03-02
+
+### 🔧 Fixed
+
+- **Backend & MCP:** Endpoint paths with any number of leading slashes are now stripped on both write (create/update/import) and read (request lookup), preventing `/mocktail//posts/1`-style double-slash URLs
+
 ## [3.1.5] - 2026-03-02
 
 ### 🔧 Fixed
