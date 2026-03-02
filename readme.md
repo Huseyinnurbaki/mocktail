@@ -23,7 +23,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 </div>
 
 <p align="center">
-  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail_V3.gif?raw=true" alt="mocktail_gif" />
+  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail_V3.mov?raw=true" alt="mocktail_gif" />
 </p>
 
 ## Quickstart
