@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
-## [3.1.7] - 2026-03-20
+## [3.1.8] - 2026-03-20
 
 ### 🔒 Security
 
 - **Backend:** Upgraded `github.com/gofiber/fiber/v2` from `v2.52.9` to `v2.52.12` (fixes CVE-2025-66630, CVE-2026-25882)
-- **Backend:** Upgraded Go toolchain from `go1.24.12` to `go1.24.13` (fixes CVE-2026-25679, CVE-2026-27142, CVE-2026-27139)
+- **Backend:** Upgraded Go toolchain from `go1.24.12` to `go1.26.1` (fixes CVE-2026-25679, CVE-2026-27142, CVE-2026-27139)
 
 ## [3.1.6] - 2026-03-02
 
