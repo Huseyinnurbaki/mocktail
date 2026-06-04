@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [3.1.9] - 2026-06-03
+
+### 🔒 Security
+
+- **Backend:** Upgraded `golang.org/x/crypto` from `v0.47.0` to `v0.52.0` (fixes CVE-2026-46595, CVE-2026-39834, CVE-2026-39833, CVE-2026-39832, CVE-2026-39831, CVE-2026-39830, CVE-2026-42508, CVE-2026-39829, CVE-2026-46597)
+- **Backend:** Upgraded `golang.org/x/net` from `v0.49.0` to `v0.55.0` (fixes CVE-2026-39821)
+
 ## [3.1.8] - 2026-03-20
 
 ### 🔒 Security
