@@ -4,3 +4,6 @@ build
 node_modules
 mocktail-dashboard/.env
 mocktail-api/.env
+design_handoff_mocktail_dashboard
+mocktail-api/mocktail-bin
+mocktail-api/go*.tar.gz

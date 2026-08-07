@@ -1,0 +1,130 @@
+import type { Draft, Method, Mock, RandomizeConfig } from './mocks'
+
+/** Backend record shape from `GET /core/v1/apis` (see mocktail-api/core/core.go). */
+interface ApiRecord {
+  ID: number
+  Endpoint: string
+  Method: string
+  Key: string
+  StatusCode: number
+  Delay: number
+  Response: unknown
+  Randomize?: RandomizeConfig | null
+}
+
+const METHODS: Method[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+function toMethod(m: string): Method {
+  const up = (m || '').toUpperCase()
+  return (METHODS.find((x) => x === up) as Method) ?? 'GET'
+}
+
+function toMock(a: ApiRecord): Mock {
+  // Backend normalizes endpoints without a leading slash ("api/v1/users");
+  // restore it so display, grouping, and prefix filtering stay consistent.
+  const path = a.Endpoint.startsWith('/') ? a.Endpoint : '/' + a.Endpoint
+  return {
+    id: a.ID,
+    method: toMethod(a.Method),
+    path,
+    status: a.StatusCode || 200,
+    delayMs: a.Delay || 0,
+    hits: 0, // backend hit-count tracking lands in v4; 0 until then
+    body: JSON.stringify(a.Response ?? {}, null, 2),
+    randomize: a.Randomize ?? {},
+  }
+}
+
+export async function fetchMocks(signal?: AbortSignal): Promise<Mock[]> {
+  const res = await fetch('/core/v1/apis', { signal })
+  if (!res.ok) throw new Error(`GET /core/v1/apis → ${res.status}`)
+  const data = (await res.json()) as ApiRecord[]
+  return Array.isArray(data) ? data.map(toMock) : []
+}
+
+interface SavePayload {
+  Endpoint: string
+  Method: string
+  StatusCode: number
+  Delay: number
+  Response: unknown
+  Randomize: RandomizeConfig | null
+}
+
+/** Throws if the body isn't valid JSON — callers should gate Save on validity first. */
+function draftToPayload(d: Draft): SavePayload {
+  const hasConfig = Object.keys(d.randomize ?? {}).length > 0
+  return {
+    Endpoint: d.path,
+    Method: d.method,
+    StatusCode: d.status,
+    Delay: d.delayMs,
+    Response: JSON.parse(d.body.trim() || '{}'),
+    Randomize: hasConfig ? d.randomize : null,
+  }
+}
+
+export interface ImportResult {
+  imported: number
+  skipped: number
+  failed: number
+}
+
+/** Imports mocks from an exported JSON array or a `{ "Apis": [...] }` object. */
+export async function importMocks(text: string): Promise<ImportResult> {
+  const parsed = JSON.parse(text)
+  const body = Array.isArray(parsed) ? { Apis: parsed } : parsed
+  const res = await fetch('/core/v1/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(await errMessage(res, 'POST /core/v1/import'))
+  const r = (await res.json()) as { imported?: number; skipped?: number; failed?: number }
+  return { imported: r.imported ?? 0, skipped: r.skipped ?? 0, failed: r.failed ?? 0 }
+}
+
+/** Runs the response through the randomize config server-side for a live sample. */
+export async function previewMock(body: string, config: RandomizeConfig): Promise<string> {
+  const res = await fetch('/core/v1/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ Response: JSON.parse(body.trim() || '{}'), Randomize: config }),
+  })
+  if (!res.ok) throw new Error(await errMessage(res, 'POST /core/v1/preview'))
+  return JSON.stringify(await res.json(), null, 2)
+}
+
+async function errMessage(res: Response, ctx: string): Promise<string> {
+  try {
+    const j = (await res.json()) as { message?: string }
+    return j?.message ? `${ctx}: ${j.message}` : `${ctx} → ${res.status}`
+  } catch {
+    return `${ctx} → ${res.status}`
+  }
+}
+
+export interface TestResult {
+  status: number
+  ms: number
+  body: string
+}
+
+/** Fire the actual mock endpoint and capture status, elapsed time, and body. */
+export async function sendMock(method: string, path: string): Promise<TestResult> {
+  const t0 = performance.now()
+  const res = await fetch('/mocktail' + path, { method })
+  const body = await res.text()
+  return { status: res.status, ms: Math.round(performance.now() - t0), body }
+}
+
+export async function saveMock(d: Draft): Promise<void> {
+  const isNew = d.id === null
+  const url = isNew ? '/core/v1/api' : `/core/v1/api/${d.id}`
+  const res = await fetch(url, {
+    method: isNew ? 'POST' : 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(draftToPayload(d)),
+  })
+  if (!res.ok) throw new Error(await errMessage(res, `${isNew ? 'POST' : 'PUT'} ${url}`))
+}

@@ -3,6 +3,7 @@ package mocktail
 import (
 	"encoding/json"
 	"mocktail-api/database"
+	"mocktail-api/randomize"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ type Api struct {
 	StatusCode int            `gorm:"default:200" json:"StatusCode"`
 	Delay      int            `gorm:"default:0" json:"Delay"`
 	Response   datatypes.JSON `validate:"required"`
+	Randomize  datatypes.JSON `json:"Randomize"` // optional per-field faker config; nil = serve Response as-is
 }
 
 type ErrorResponse struct {
@@ -54,6 +56,14 @@ func MockApiHandler(c *fiber.Ctx) error {
 	var response interface{}
 	if err := json.Unmarshal(api.Response, &response); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Message: "Invalid response data"})
+	}
+
+	// Apply per-field randomization on each request when configured.
+	if len(api.Randomize) > 0 {
+		var cfg randomize.Config
+		if err := json.Unmarshal(api.Randomize, &cfg); err == nil && len(cfg) > 0 {
+			response = randomize.Apply(response, cfg)
+		}
 	}
 
 	return c.Status(statusCode).JSON(response)
