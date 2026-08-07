@@ -255,6 +255,33 @@ Design when we build it:
 
 ---
 
+## Live traffic page (request/response observability)
+
+A live view that streams every request hitting the mock endpoints as it happens — for
+debugging client integrations without leaving the dashboard.
+
+**What it shows**, newest-first, updating in real time:
+- method · path · status · latency · timestamp
+- per-row expand: request (headers, query, body) and the exact response served (incl. any
+  per-request randomized values that were generated)
+- filters by method/status/path; pause/resume; clear
+
+**Backend:** builds on the existing logging foundation — the request-logging middleware in
+`main.go` and `GET /core/v1/logs` / `DELETE /core/v1/logs` (the old dashboard's Logs tab).
+For true "live", add a stream (SSE `GET /core/v1/logs/stream`, or WS) instead of polling; the
+middleware already sees every `/mocktail/*` request. Pairs naturally with the v4 **hit counts**
+(same request hook) and would capture the generated randomize output per request.
+
+**Frontend:** a new top-level **Live** view (peer of the catalog), or a tab — a virtualized
+append-only list subscribed to the stream. Relates to the deleted backlog's *Request History* /
+*Mock Analytics* ideas.
+
+*Consideration:* streaming/retaining request bodies has memory/PII implications — cap the
+in-memory ring buffer and make retention/redaction configurable (env), consistent with the
+existing CORS/API-key config style.
+
+---
+
 ## Landing page
 
 A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.
