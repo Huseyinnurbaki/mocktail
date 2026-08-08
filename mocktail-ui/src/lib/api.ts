@@ -51,23 +51,43 @@ interface SavePayload {
   Randomize: RandomizeConfig | null
 }
 
-/** Throws if the body isn't valid JSON — callers should gate Save on validity first. */
-function draftToPayload(d: Draft): SavePayload {
-  const hasConfig = Object.keys(d.randomize ?? {}).length > 0
-  return {
-    Endpoint: d.path,
-    Method: d.method,
-    StatusCode: d.status,
-    Delay: d.delayMs,
-    Response: JSON.parse(d.body.trim() || '{}'),
-    Randomize: hasConfig ? d.randomize : null,
-  }
+/** Runs a response object through a config server-side and returns the generated object. */
+async function bakeOnce(response: unknown, cfg: RandomizeConfig): Promise<unknown> {
+  const res = await fetch('/core/v1/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ Response: response, Randomize: cfg }),
+  })
+  if (!res.ok) throw new Error(await errMessage(res, 'POST /core/v1/preview'))
+  return res.json()
 }
 
 export interface ImportResult {
   imported: number
   skipped: number
   failed: number
+}
+
+export interface LogEntry {
+  timestamp: string
+  message: string
+  type: string
+  method?: string
+  path?: string
+  status?: number
+  duration?: string
+  responseBody?: string
+}
+
+export async function fetchLogs(): Promise<LogEntry[]> {
+  const res = await fetch('/core/v1/logs')
+  if (!res.ok) throw new Error(`GET /core/v1/logs → ${res.status}`)
+  const d = (await res.json()) as { logs?: LogEntry[] }
+  return d.logs ?? []
+}
+
+export async function clearLogs(): Promise<void> {
+  await fetch('/core/v1/logs', { method: 'DELETE' })
 }
 
 /** Imports mocks from an exported JSON array or a `{ "Apis": [...] }` object. */
@@ -119,12 +139,33 @@ export async function sendMock(method: string, path: string): Promise<TestResult
 }
 
 export async function saveMock(d: Draft): Promise<void> {
+  // Split fields: per-request stay as config; "once" fields are generated now and baked in.
+  const perRequest: RandomizeConfig = {}
+  const once: RandomizeConfig = {}
+  for (const [path, spec] of Object.entries(d.randomize ?? {})) {
+    const { once: isOnce, ...rest } = spec
+    if (isOnce) once[path] = rest
+    else perRequest[path] = rest
+  }
+
+  let response: unknown = JSON.parse(d.body.trim() || '{}')
+  if (Object.keys(once).length > 0) response = await bakeOnce(response, once)
+
+  const payload: SavePayload = {
+    Endpoint: d.path,
+    Method: d.method,
+    StatusCode: d.status,
+    Delay: d.delayMs,
+    Response: response,
+    Randomize: Object.keys(perRequest).length > 0 ? perRequest : null,
+  }
+
   const isNew = d.id === null
   const url = isNew ? '/core/v1/api' : `/core/v1/api/${d.id}`
   const res = await fetch(url, {
     method: isNew ? 'POST' : 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(draftToPayload(d)),
+    body: JSON.stringify(payload),
   })
   if (!res.ok) throw new Error(await errMessage(res, `${isNew ? 'POST' : 'PUT'} ${url}`))
 }

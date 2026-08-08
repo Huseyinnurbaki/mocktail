@@ -282,6 +282,67 @@ existing CORS/API-key config style.
 
 ---
 
+## Database — Postgres as an alternative (SQLite stays default)
+
+**Analysis: low effort.** The DB layer is pure GORM with **no raw/dialect SQL** (grepped —
+no `Raw`/`Exec`), a single open site (`main.go`), and `datatypes.JSON` (→ `TEXT` on SQLite,
+`jsonb` on Postgres). GORM emits per-dialect DDL via `AutoMigrate`.
+
+**What it takes:**
+- Add `gorm.io/driver/postgres`.
+- Replace the one `gorm.Open(sqlite.Open(...))` with a driver-select: if `MOCKTAIL_DATABASE_URL`
+  (Postgres DSN) is set → `postgres.Open(dsn)`, else default SQLite (~15 lines). SQLite stays the
+  **zero-config default**; Postgres is **opt-in**.
+- `AutoMigrate` handles schema on both — no migration scripts.
+
+**Gotchas (small):** normalize the two uppercase `db.Where("ID = ?", ...)` queries
+(`core.go:99,149`) to `db.First(&api, id)` — works in PG via lowercasing but fragile. PK
+auto-increment + unique `Key` are portable.
+
+**Bonus — go CGO-free.** SQLite currently uses the **CGO** driver (Dockerfile installs
+`gcc`/`musl-dev`, `CGO_ENABLED=1`, static-link dance). Swapping to a pure-Go SQLite driver
+(`glebarez/sqlite`, drop-in) makes **both** drivers pure Go → `CGO_ENABLED=0`, simpler/smaller
+Docker build, and trivial **cross-compilation** — which directly helps the **desktop multi-arch**
+binaries. Pair "add Postgres" with "drop CGO."
+
+**Migration & ops:** SQLite→Postgres data move isn't automatic, but the built-in **export/import
+JSON** is the path. Add an optional `postgres` service to `docker-compose.yml`.
+
+---
+
+## Security posture & hardening
+
+**Current reality (verified in `main.go`):**
+
+| Surface | Securable in-app today? | How |
+|---|---|---|
+| `/mocktail/*` (served mocks) | ✅ Yes | `MOCKTAIL_API_KEY` (`X-API-Key` / `?api_key=`) |
+| `/core/v1/*` (management CRUD, import, preview, logs) | ❌ No | *(nothing — no middleware)* |
+| `/` (dashboard) | ❌ No | *(nothing)* |
+
+- `apiKeyMiddleware` is applied **only** to the `/mocktail/*` group, never to `/core/v1/*`.
+- **The MCP `MOCKTAIL_API_KEY` is a no-op**: `mcp-server` sends `X-API-Key` on every call, but its
+  tools hit `/core/v1/*`, which doesn't check it. MCP *functionality* works regardless (core API is
+  open); the key just doesn't secure anything on that path.
+- Protecting core/dashboard today is **external only** (firewall / VPN / reverse-proxy auth).
+
+**Decision — no in-app API-key settings UI.** Desktop = localhost (moot); container = operator sets
+`MOCKTAIL_API_KEY` via env (correct model, not dashboard-changeable). A UI to set it would be
+security theater while the core API is open, and would expose the secret to anyone opening the
+(unauthenticated) dashboard. Keep the AI-provider "API keys" tab separate — that's an *outbound*
+secret, unrelated to inbound access control.
+
+**Hardening (only if a shared/public hosted instance ever becomes a goal):** apply key middleware
+to the `coreApi` group + have the dashboard send the key (prompt once → localStorage); MCP already
+sends it, so this also makes the MCP key *real*. Either reuse `MOCKTAIL_API_KEY` or add a separate
+`MOCKTAIL_ADMIN_KEY` for management vs serving. Not needed for desktop or a firewalled container.
+
+**Cleanup:** `PORT` env var is **dead** — referenced only in a commented line (`main.go:101`); the
+listen addr is hardcoded `:4000` (`main.go:184`). Wire it up (or a free-port pick) — also a
+prerequisite for the desktop free-port plan.
+
+---
+
 ## Landing page
 
 A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.

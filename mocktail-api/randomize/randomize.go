@@ -9,6 +9,7 @@
 package randomize
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -129,6 +130,13 @@ func set(node interface{}, segs []string, spec FieldSpec) {
 			set(n[segs[0]], segs[1:], spec)
 		}
 	case []interface{}:
+		// A numeric segment targets one element; otherwise apply to every element.
+		if idx, err := strconv.Atoi(segs[0]); err == nil {
+			if idx >= 0 && idx < len(n) {
+				set(n[idx], segs[1:], spec)
+			}
+			return
+		}
 		for _, item := range n {
 			set(item, segs, spec)
 		}

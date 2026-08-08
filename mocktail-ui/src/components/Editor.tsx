@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   COMMON_STATUS,
-  FAKER_TYPES,
   METHODS,
   type Draft,
   type FieldSpec,
@@ -49,6 +49,7 @@ export default function Editor({
   const [body, setBody] = useState(initial.body)
   const [randomize, setRandomize] = useState<RandomizeConfig>(initial.randomize)
   const [tab, setTab] = useState<Tab>('data')
+  const [selectedField, setSelectedField] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -111,7 +112,7 @@ export default function Editor({
         <button onClick={onClose} className="text-[13px] text-muted hover:text-fg">
           ← Catalog
         </button>
-        <span className="text-muted">/</span>
+        <span className="text-muted">›</span>
         <span className="font-mono text-[13px]">{title}</span>
         <div className="ml-auto flex items-center gap-3">
           {dirty && <span className="text-[12px] text-warning">Unsaved changes</span>}
@@ -217,7 +218,17 @@ export default function Editor({
             </div>
           </div>
           <div className="min-h-0 flex-1">
-            <CodeEditor value={body} onChange={setBody} highlights={highlights} />
+            <CodeEditor
+              value={body}
+              onChange={setBody}
+              highlights={highlights}
+              onSelectField={(p) => {
+                if (p) {
+                  setSelectedField(p)
+                  setTab('data')
+                }
+              }}
+            />
           </div>
           <div className="shrink-0 border-t border-border px-4 py-2 font-mono text-[11.5px] text-muted">
             ⌘S save · esc close
@@ -239,7 +250,14 @@ export default function Editor({
             ))}
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-4">
-            {tab === 'data' && <DataTab body={body} config={randomize} setConfig={setRandomize} />}
+            {tab === 'data' && (
+              <DataTab
+                body={body}
+                config={randomize}
+                setConfig={setRandomize}
+                selectedField={selectedField}
+              />
+            )}
             {tab === 'headers' && <HeadersTab />}
             {tab === 'snippets' && <SnippetsTab method={method} path={path} />}
             {tab === 'test' && <TestTab method={method} path={path} />}
@@ -250,52 +268,100 @@ export default function Editor({
   )
 }
 
-/** Leaf dot-paths in a JSON value; arrays use the element's paths (no index), matching the backend. */
-function leafPaths(data: unknown, prefix = ''): string[] {
-  if (Array.isArray(data)) return data.length ? leafPaths(data[0], prefix) : []
-  if (data && typeof data === 'object') {
-    return Object.entries(data as Record<string, unknown>).flatMap(([k, v]) =>
-      leafPaths(v, prefix ? `${prefix}.${k}` : k),
-    )
-  }
-  return prefix ? [prefix] : []
-}
-
 const NEEDS_RANGE = new Set(['number', 'float', 'price'])
 
-/** Dropdown of generators; the special modes (Custom / AI) are set apart in the accent color. */
-function GeneratorPicker({
-  value,
-  onChange,
-}: {
-  value: string | undefined
-  onChange: (type: string) => void
-}) {
+/** How many concrete fields a dot-path resolves to (arrays expand to every element). */
+function countTargets(data: unknown, segs: string[]): number {
+  if (Array.isArray(data)) return data.reduce((n, item) => n + countTargets(item, segs), 0)
+  if (segs.length === 0) return 1
+  if (data && typeof data === 'object' && segs[0] in (data as object)) {
+    return countTargets((data as Record<string, unknown>)[segs[0]], segs.slice(1))
+  }
+  return 0
+}
+
+function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button onClick={() => onChange(!on)} className="flex items-center gap-2 text-[12.5px]">
+      <span className={`relative h-[18px] w-[32px] rounded-full transition-colors ${on ? 'bg-accent' : 'bg-border'}`}>
+        <span
+          className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-surface transition-all ${on ? 'left-[16px]' : 'left-[2px]'}`}
+        />
+      </span>
+      {label}
+    </button>
+  )
+}
+
+const FAKER_GROUPS: { label: string; types: string[] }[] = [
+  { label: 'Identifiers', types: ['uuid'] },
+  { label: 'Person', types: ['firstName', 'lastName', 'fullName'] },
+  { label: 'Contact', types: ['email', 'phone', 'username'] },
+  { label: 'Internet', types: ['url', 'domain', 'ipv4'] },
+  { label: 'Numbers', types: ['number', 'float', 'price'] },
+  { label: 'Text', types: ['word', 'sentence', 'paragraph'] },
+  { label: 'Dates', types: ['pastDate', 'futureDate'] },
+  { label: 'Location', types: ['city', 'country', 'countryCode'] },
+  { label: 'Misc', types: ['bool', 'hexColor'] },
+]
+
+/** Searchable, grouped generator dropdown; special modes (Custom / AI) set apart in accent. */
+function GeneratorPicker({ value, onChange }: { value: string | undefined; onChange: (type: string) => void }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [query, setQuery] = useState('')
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const MENU_W = 210
+
+  function openMenu() {
+    const r = btnRef.current?.getBoundingClientRect()
+    if (r) setPos({ top: r.bottom + 4, left: Math.max(8, r.right - MENU_W) })
+    setQuery('')
+    setOpen(true)
+  }
 
   useEffect(() => {
+    if (!open) return
     function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (btnRef.current?.contains(t) || menuRef.current?.contains(t)) return
+      setOpen(false)
     }
-    if (open) document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    function close() {
+      setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
   }, [open])
 
   const isSpecial = value === 'fixed' || value === 'ai'
   const label = !value ? '— keep —' : value === 'fixed' ? 'Custom' : value === 'ai' ? '✨ AI prompt' : value
+  const item = 'block w-full rounded-[5px] px-2 py-1 text-left text-[12px] hover:bg-surface-sunken'
 
   function pick(v: string) {
     onChange(v)
     setOpen(false)
   }
 
-  const item = 'block w-full rounded-[5px] px-2 py-1 text-left text-[12px] hover:bg-surface-sunken'
+  const q = query.trim().toLowerCase()
+  const groups = q
+    ? FAKER_GROUPS.map((g) => ({ ...g, types: g.types.filter((t) => t.toLowerCase().includes(q)) })).filter(
+        (g) => g.types.length,
+      )
+    : FAKER_GROUPS
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={btnRef}
+        onClick={() => (open ? setOpen(false) : openMenu())}
         className={`flex items-center gap-1 rounded-[6px] border px-2 py-[3px] text-[12px] ${
           value
             ? isSpecial
@@ -306,72 +372,96 @@ function GeneratorPicker({
       >
         {label} <span className="text-[9px] opacity-70">▼</span>
       </button>
-      {open && (
-        <div className="absolute right-0 z-30 mt-1 max-h-[280px] w-[190px] overflow-auto rounded-[8px] border border-border bg-surface p-1 shadow-lg">
-          <button onClick={() => pick('')} className={`${item} text-muted`}>
-            — keep —
-          </button>
-          <div className="my-1 border-t border-border-subtle" />
-          <button onClick={() => pick('fixed')} className={`${item} font-medium text-param`}>
-            Custom (fixed value)
-          </button>
-          <button
-            disabled
-            title="AI generation isn't wired yet — see roadmap"
-            className={`${item} cursor-not-allowed font-medium text-param opacity-50`}
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{ top: pos.top, left: pos.left, width: MENU_W }}
+            className="fixed z-50 flex max-h-[340px] flex-col overflow-hidden rounded-[8px] border border-border bg-surface shadow-lg"
           >
-            ✨ AI prompt <span className="text-[9px] opacity-70">soon</span>
-          </button>
-          <div className="my-1 border-t border-border-subtle" />
-          {FAKER_TYPES.map((ty) => (
-            <button key={ty} onClick={() => pick(ty)} className={`${item} font-mono`}>
-              {ty}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+            <div className="border-b border-border-subtle p-1">
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.stopPropagation()
+                    setOpen(false)
+                  }
+                }}
+                placeholder="Search generators…"
+                className="w-full rounded-[5px] bg-surface-sunken px-2 py-1 text-[12px] outline-none placeholder:text-muted"
+              />
+            </div>
+            <div className="overflow-auto p-1">
+              {!q && (
+                <>
+                  <button onClick={() => pick('')} className={`${item} ${!value ? 'text-accent-text' : 'text-muted'}`}>
+                    — keep —
+                  </button>
+                  <button onClick={() => pick('fixed')} className={`${item} font-medium text-param`}>
+                    Custom (fixed value)
+                  </button>
+                  <button
+                    disabled
+                    title="AI generation isn't wired yet — see roadmap"
+                    className={`${item} cursor-not-allowed font-medium text-param opacity-50`}
+                  >
+                    ✨ AI prompt <span className="text-[9px] opacity-70">soon</span>
+                  </button>
+                  <div className="my-1 border-t border-border-subtle" />
+                </>
+              )}
+              {groups.map((g) => (
+                <div key={g.label}>
+                  <div className="px-2 pb-[2px] pt-1 text-[10px] uppercase tracking-[0.06em] text-muted">
+                    {g.label}
+                  </div>
+                  {g.types.map((ty) => (
+                    <button
+                      key={ty}
+                      onClick={() => pick(ty)}
+                      className={`${item} flex items-center justify-between font-mono ${value === ty ? 'text-accent-text' : ''}`}
+                    >
+                      <span>{ty}</span>
+                      {value === ty && <span>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              ))}
+              {q && groups.length === 0 && <div className="px-2 py-2 text-[12px] text-muted">No match</div>}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   )
 }
 
+/** Single-field inspector: configure the field clicked in the editor. */
 function DataTab({
   body,
   config,
   setConfig,
+  selectedField,
 }: {
   body: string
   config: RandomizeConfig
   setConfig: (c: RandomizeConfig) => void
+  selectedField: string | null
 }) {
   const [preview, setPreview] = useState<string | null>(null)
   const [previewErr, setPreviewErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  let paths: string[] = []
+  let parsed: unknown = null
   let parseError = false
   try {
-    paths = leafPaths(JSON.parse(body.trim() || '{}'))
+    parsed = JSON.parse(body.trim() || '{}')
   } catch {
     parseError = true
-  }
-
-  function update(path: string, patch: Partial<FieldSpec> | null) {
-    const next = { ...config }
-    if (patch === null) delete next[path]
-    else next[path] = { ...next[path], ...patch }
-    setConfig(next)
-  }
-
-  async function runPreview() {
-    setBusy(true)
-    setPreviewErr(null)
-    try {
-      setPreview(await previewMock(body, config))
-    } catch (e: unknown) {
-      setPreviewErr(e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
   }
 
   if (parseError) {
@@ -381,100 +471,135 @@ function DataTab({
       </div>
     )
   }
-  if (paths.length === 0) {
+  if (!selectedField) {
     return (
       <div className="text-[12.5px] text-muted">
-        Add fields to the response body, then pick a generator for each here.
+        Click a field in the editor to set how it’s generated. Configured fields are highlighted;
+        values regenerate on every request unless you turn that off.
       </div>
     )
   }
 
+  const field = selectedField
+  const segs = field.split('.')
+  const indexLessSegs = segs.filter((s) => !/^\d+$/.test(s))
+  const indexLess = indexLessSegs.join('.')
+  const hasIndex = indexLess !== field
+  const key = indexLessSegs[indexLessSegs.length - 1]
+  const count = countTargets(parsed, indexLessSegs)
+  // Scope: index-less key applies to all elements; the indexed key targets just this one.
+  const scopeThis = !!config[field]
+  const activeKey = scopeThis ? field : indexLess
+  const spec = config[activeKey]
+
+  function update(patch: Partial<FieldSpec> | null) {
+    const next = { ...config }
+    if (patch === null) delete next[activeKey]
+    else next[activeKey] = { ...next[activeKey], ...patch }
+    setConfig(next)
+  }
+
+  function setScopeAll(all: boolean) {
+    const from = all ? field : indexLess
+    const to = all ? indexLess : field
+    if (from === to) return
+    const next = { ...config }
+    if (next[from]) {
+      next[to] = next[from]
+      delete next[from]
+      setConfig(next)
+    }
+  }
+
+  async function runPreview() {
+    if (!spec) return
+    setBusy(true)
+    setPreviewErr(null)
+    try {
+      setPreview(await previewMock(body, { [activeKey]: spec }))
+    } catch (e: unknown) {
+      setPreviewErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-[12.5px] text-muted">
-        Pick a generator for any field. Unlisted fields stay as written; values are generated fresh
-        on every request.
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {paths.map((p) => {
-          const spec = config[p]
-          return (
-            <div key={p} className="rounded-[9px] border border-border p-2">
-              <div className="flex items-center gap-2">
-                <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{p}</span>
-                <GeneratorPicker
-                  value={spec?.type}
-                  onChange={(v) => update(p, v ? { type: v } : null)}
-                />
-              </div>
-
-              {spec?.type === 'ai' && (
-                <div className="mt-2">
-                  <textarea
-                    rows={2}
-                    placeholder="Describe the value, e.g. one of admin, editor, viewer (mostly viewer)"
-                    value={spec.prompt ?? ''}
-                    onChange={(e) => update(p, { prompt: e.target.value })}
-                    className="w-full resize-none rounded-[6px] border border-param/50 bg-surface px-2 py-[4px] font-mono text-[12px] outline-none"
-                  />
-                  <div className="mt-1 text-[11px] text-muted">
-                    Generated by the backend once an AI model is wired (beta).
-                  </div>
-                </div>
-              )}
-
-              {spec && NEEDS_RANGE.has(spec.type) && (
-                <div className="mt-2 flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="min"
-                    value={spec.min ?? ''}
-                    onChange={(e) =>
-                      update(p, { min: e.target.value === '' ? undefined : Number(e.target.value) })
-                    }
-                    className="w-[72px] rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
-                  />
-                  <input
-                    type="number"
-                    placeholder="max"
-                    value={spec.max ?? ''}
-                    onChange={(e) =>
-                      update(p, { max: e.target.value === '' ? undefined : Number(e.target.value) })
-                    }
-                    className="w-[72px] rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
-                  />
-                </div>
-              )}
-
-              {spec?.type === 'fixed' && (
-                <input
-                  placeholder="fixed value"
-                  value={String(spec.value ?? '')}
-                  onChange={(e) => update(p, { value: e.target.value })}
-                  className="mt-2 w-full rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
-                />
-              )}
-            </div>
-          )
-        })}
-      </div>
-
       <div>
-        <button
-          onClick={() => void runPreview()}
-          disabled={busy}
-          className="h-[30px] w-full rounded-[8px] border border-border text-[13px] hover:bg-surface-sunken disabled:opacity-40"
-        >
-          {busy ? 'Generating…' : '⟳ Preview generated response'}
-        </button>
-        {previewErr && <div className="mt-2 text-[12.5px] text-error">{previewErr}</div>}
-        {preview && (
-          <div className="mt-2">
-            <ResponseView body={preview} />
-          </div>
-        )}
+        <div className="text-[11px] uppercase tracking-[0.06em] text-muted">Field</div>
+        <div className="font-mono text-[13px]">{indexLess}</div>
       </div>
+
+      <div className="flex items-center gap-2">
+        <span className="text-[12.5px] text-muted">Generator</span>
+        <GeneratorPicker value={spec?.type} onChange={(v) => update(v ? { type: v } : null)} />
+      </div>
+
+      {spec && hasIndex && count > 1 && (
+        <Toggle
+          on={!scopeThis}
+          onChange={setScopeAll}
+          label={`Apply to all ${count} “${key}” at this level`}
+        />
+      )}
+
+      {spec && NEEDS_RANGE.has(spec.type) && (
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="min"
+            value={spec.min ?? ''}
+            onChange={(e) => update({ min: e.target.value === '' ? undefined : Number(e.target.value) })}
+            className="w-[72px] rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
+          />
+          <input
+            type="number"
+            placeholder="max"
+            value={spec.max ?? ''}
+            onChange={(e) => update({ max: e.target.value === '' ? undefined : Number(e.target.value) })}
+            className="w-[72px] rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
+          />
+        </div>
+      )}
+
+      {spec?.type === 'fixed' && (
+        <input
+          placeholder="fixed value"
+          value={String(spec.value ?? '')}
+          onChange={(e) => update({ value: e.target.value })}
+          className="w-full rounded-[6px] border border-border bg-surface px-2 py-[3px] font-mono text-[12px] outline-none"
+        />
+      )}
+
+      {spec && spec.type !== 'fixed' && (
+        <div className="flex flex-col gap-1">
+          <Toggle on={!spec.once} onChange={(v) => update({ once: !v })} label="Regenerate on every request" />
+          {spec.once && (
+            <div className="text-[11px] text-muted">
+              Frozen — generated once and baked into the response when you save.
+            </div>
+          )}
+        </div>
+      )}
+
+      {spec && (
+        <div>
+          <button
+            onClick={() => void runPreview()}
+            disabled={busy}
+            className="h-[30px] w-full rounded-[8px] border border-border text-[13px] hover:bg-surface-sunken disabled:opacity-40"
+          >
+            {busy ? 'Generating…' : '⟳ Preview'}
+          </button>
+          {previewErr && <div className="mt-2 text-[12.5px] text-error">{previewErr}</div>}
+          {preview && (
+            <div className="mt-2">
+              <ResponseView body={preview} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

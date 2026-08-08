@@ -6,6 +6,7 @@ import { sendMock, type TestResult } from './lib/api'
 import Editor from './components/Editor'
 import { ResponseView } from './components/ResponseView'
 import { SettingsModal, type SettingsTab } from './components/SettingsModal'
+import { LiveView } from './components/LiveView'
 
 const METHOD_BADGE: Record<Method, string> = {
   GET: 'bg-get-bg text-get-fg',
@@ -42,12 +43,10 @@ function PathText({ path, className = '' }: { path: string; className?: string }
 
 function TopBar({
   connected,
-  onNew,
-  onOpenSettings,
+  onOpenLive,
 }: {
   connected: boolean
-  onNew: () => void
-  onOpenSettings: (tab: SettingsTab) => void
+  onOpenLive: () => void
 }) {
   return (
     <header className="flex h-[52px] shrink-0 items-center gap-3 border-b border-border px-4">
@@ -80,16 +79,10 @@ function TopBar({
       </div>
 
       <button
-        onClick={() => onOpenSettings('theme')}
+        onClick={onOpenLive}
         className="flex h-[30px] items-center gap-1.5 rounded-[8px] border border-border px-3 text-[13px] hover:bg-surface-sunken"
       >
-        <span className="text-[13px]">⚙</span> Settings
-      </button>
-      <button
-        onClick={onNew}
-        className="h-[30px] rounded-[8px] bg-accent px-3 text-[13px] font-semibold text-accent-on"
-      >
-        + New mock
+        <span className="text-accent">◉</span> Live
       </button>
     </header>
   )
@@ -101,29 +94,32 @@ function LeftTree({
   onSelect,
   collapsed,
   onToggle,
+  onOpenSettings,
 }: {
   mocks: Mock[]
   selectedKey: string | null
   onSelect: (k: string | null) => void
   collapsed: Set<string>
   onToggle: (k: string) => void
+  onOpenSettings: (tab: SettingsTab) => void
 }) {
   const tree = useMemo(() => buildTree(mocks), [mocks])
   const row = 'flex w-full items-center justify-between rounded-[7px] px-2 py-[6px]'
   const sel = (active: boolean) => (active ? 'bg-accent-tint text-accent-text' : 'hover:bg-surface')
 
   return (
-    <nav className="hidden w-[236px] shrink-0 flex-col gap-1 overflow-auto border-r border-border bg-surface-sunken p-2 lg:flex">
-      <button onClick={() => onSelect(null)} className={`${row} text-[13px] ${sel(selectedKey === null)}`}>
-        <span>All mocks</span>
-        <span className="text-muted">{mocks.length}</span>
-      </button>
+    <nav className="hidden w-[236px] shrink-0 flex-col border-r border-border bg-surface-sunken lg:flex">
+      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-2">
+        <button onClick={() => onSelect(null)} className={`${row} text-[13px] ${sel(selectedKey === null)}`}>
+          <span>All mocks</span>
+          <span className="text-muted">{mocks.length}</span>
+        </button>
 
-      <div className="mt-2 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted">
-        Grouped by base path
-      </div>
+        <div className="mt-2 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted">
+          Grouped by base path
+        </div>
 
-      {tree.map((base) => {
+        {tree.map((base) => {
         const open = !collapsed.has(base.key)
         const hasChildren = base.resources.length > 0
         return (
@@ -158,7 +154,17 @@ function LeftTree({
             )}
           </div>
         )
-      })}
+        })}
+      </div>
+
+      <div className="border-t border-border p-2">
+        <button
+          onClick={() => onOpenSettings('theme')}
+          className="flex w-full items-center gap-1.5 rounded-[7px] px-2 py-[7px] text-[13px] hover:bg-surface"
+        >
+          <span className="text-[14px]">⚙</span> Settings
+        </button>
+      </div>
     </nav>
   )
 }
@@ -286,6 +292,7 @@ export default function App() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [editing, setEditing] = useState<Draft | null>(null)
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
+  const [liveOpen, setLiveOpen] = useState(false)
 
   const toggleGroup = (k: string) =>
     setCollapsed((s) => {
@@ -308,11 +315,7 @@ export default function App() {
 
   return (
     <div className="relative flex h-full flex-col bg-bg text-fg">
-      <TopBar
-        connected={!error}
-        onNew={() => setEditing(newDraft())}
-        onOpenSettings={setSettingsTab}
-      />
+      <TopBar connected={!error} onOpenLive={() => setLiveOpen(true)} />
       <div className="flex min-h-0 flex-1">
         <LeftTree
           mocks={mocks}
@@ -320,20 +323,19 @@ export default function App() {
           onSelect={setSelectedGroup}
           collapsed={collapsed}
           onToggle={toggleGroup}
+          onOpenSettings={setSettingsTab}
         />
 
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-3 border-b border-border px-[18px] py-3">
             <span className="font-mono text-[14px]">{selectedGroup ?? 'All mocks'}</span>
             <span className="text-[12px] text-muted">{rows.length} endpoints</span>
-            <div className="ml-auto flex gap-2">
-              <button className="h-[26px] rounded-[6px] border border-border px-2 text-[12px] hover:bg-surface-sunken">
-                Method ▾
-              </button>
-              <button className="h-[26px] rounded-[6px] border border-border px-2 text-[12px] hover:bg-surface-sunken">
-                Status ▾
-              </button>
-            </div>
+            <button
+              onClick={() => setEditing(newDraft())}
+              className="ml-auto h-[28px] rounded-[7px] bg-accent px-3 text-[12px] font-semibold text-accent-on"
+            >
+              + New mock
+            </button>
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto">
@@ -390,6 +392,8 @@ export default function App() {
           onClose={() => setSettingsTab(null)}
         />
       )}
+
+      {liveOpen && <LiveView onClose={() => setLiveOpen(false)} />}
     </div>
   )
 }

@@ -10,6 +10,7 @@ export interface FieldSpec {
   max?: number
   value?: unknown // used when type === "fixed"
   prompt?: string // used when type === "ai"
+  once?: boolean // true = generate once and bake into the body at save; else per-request
 }
 
 /** Maps a dot-path (e.g. "users.email") to its generator. */

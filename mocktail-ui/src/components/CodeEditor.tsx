@@ -3,8 +3,9 @@ import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, StateEffect, StateField, RangeSetBuilder, type Text } from '@codemirror/state'
 import { Decoration, WidgetType, type DecorationSet } from '@codemirror/view'
 import { json } from '@codemirror/lang-json'
-import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
+import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
+import type { SyntaxNode } from '@lezer/common'
 
 export interface Highlight {
   key: string
@@ -25,8 +26,8 @@ const theme = EditorView.theme({
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.85' },
   '.cm-content': { padding: '10px 0' },
   '.cm-gutters': { backgroundColor: 'var(--surface-sunken)', color: 'var(--text-muted)', border: 'none' },
-  '.cm-activeLine': { backgroundColor: 'transparent' },
-  '.cm-activeLineGutter': { backgroundColor: 'transparent' },
+  '.cm-activeLine': { backgroundColor: 'var(--border-subtle)' },
+  '.cm-activeLineGutter': { backgroundColor: 'var(--border-subtle)' },
   '.cm-cursor': { borderLeftColor: 'var(--accent)' },
   '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'var(--accent-tint)' },
   // Randomized-field decorations
@@ -91,6 +92,69 @@ const highlightField = StateField.define<{ deco: DecorationSet; keys: Highlight[
   provide: (f) => EditorView.decorations.from(f, (v) => v.deco),
 })
 
+// ---- Click → JSON path ------------------------------------------------------
+
+const VALUE_NODES = new Set(['Object', 'Array', 'String', 'Number', 'True', 'False', 'Null'])
+
+/**
+ * Dot-path of the field at `pos`, including array indices (e.g. "users.0.name").
+ * Returns null unless the click is on a *leaf* field — objects/arrays aren't
+ * configurable (you can't assign a generator to a whole array/object).
+ */
+function pathAtPos(state: EditorState, pos: number): string | null {
+  const inner: SyntaxNode = syntaxTree(state).resolveInner(pos, 0)
+
+  // Innermost enclosing property.
+  let prop: SyntaxNode | null = inner
+  while (prop && prop.name !== 'Property') prop = prop.parent
+  if (!prop) return null
+
+  // Reject container values — only scalar leaves get a generator.
+  if (prop.getChild('Object') || prop.getChild('Array')) return null
+
+  const segs: string[] = []
+  let n: SyntaxNode | null = prop
+  while (n) {
+    if (n.name === 'Property') {
+      const nameNode = n.getChild('PropertyName')
+      if (nameNode) {
+        const raw = state.doc.sliceString(nameNode.from, nameNode.to)
+        try {
+          segs.unshift(JSON.parse(raw) as string)
+        } catch {
+          segs.unshift(raw.replace(/^"|"$/g, ''))
+        }
+      }
+    }
+    // If this node is an array element, prepend its index.
+    const parent: SyntaxNode | null = n.parent
+    if (parent && parent.name === 'Array') {
+      let idx = 0
+      let c = parent.firstChild
+      while (c && c.from < n.from) {
+        if (VALUE_NODES.has(c.name)) idx++
+        c = c.nextSibling
+      }
+      segs.unshift(String(idx))
+    }
+    n = parent
+  }
+  return segs.length ? segs.join('.') : null
+}
+
+/**
+ * Path for a click: try the exact position, else fall back to the leaf field on
+ * the same line — so clicking anywhere on a field's row (after the comma, the
+ * trailing whitespace, etc.) still selects it.
+ */
+function pathAtClick(state: EditorState, pos: number): string | null {
+  const exact = pathAtPos(state, pos)
+  if (exact) return exact
+  const line = state.doc.lineAt(pos)
+  const q = line.text.indexOf('"')
+  return q >= 0 ? pathAtPos(state, line.from + q + 1) : null
+}
+
 // ---- Component --------------------------------------------------------------
 
 /** Controlled CodeMirror 6 JSON editor themed to the Mocktail tokens. */
@@ -98,32 +162,44 @@ export function CodeEditor({
   value,
   onChange,
   highlights = [],
+  onSelectField,
+  readOnly = false,
 }: {
   value: string
   onChange: (v: string) => void
   highlights?: Highlight[]
+  onSelectField?: (path: string | null) => void
+  readOnly?: boolean
 }) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const onSelectFieldRef = useRef(onSelectField)
+  onSelectFieldRef.current = onSelectField
 
   // Create the editor once.
   useEffect(() => {
     if (!host.current) return
-    const state = EditorState.create({
-      doc: value,
-      extensions: [
-        basicSetup,
-        json(),
-        syntaxHighlighting(highlight),
-        highlightField,
-        theme,
-        EditorView.updateListener.of((u) => {
-          if (u.docChanged) onChangeRef.current(u.state.doc.toString())
-        }),
-      ],
-    })
+    const extensions = [
+      basicSetup,
+      json(),
+      syntaxHighlighting(highlight),
+      highlightField,
+      theme,
+      EditorView.updateListener.of((u) => {
+        if (u.docChanged) onChangeRef.current(u.state.doc.toString())
+      }),
+      EditorView.domEventHandlers({
+        mouseup(e, v) {
+          const pos = v.posAtCoords({ x: e.clientX, y: e.clientY })
+          if (pos != null) onSelectFieldRef.current?.(pathAtClick(v.state, pos))
+          return false
+        },
+      }),
+    ]
+    if (readOnly) extensions.push(EditorState.readOnly.of(true), EditorView.editable.of(false))
+    const state = EditorState.create({ doc: value, extensions })
     const v = new EditorView({ state, parent: host.current })
     view.current = v
     return () => {
