@@ -232,14 +232,7 @@ export default function App() {
       </div>
 
       {editing && (
-        <Editor
-          initial={editing}
-          onClose={() => setEditing(null)}
-          onSaved={() => {
-            setEditing(null)
-            void reload()
-          }}
-        />
+        <Editor initial={editing} onClose={() => setEditing(null)} onReload={reload} />
       )}
 
       {settingsTab && (

@@ -1,7 +1,45 @@
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export const METHODS: Method[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-export const COMMON_STATUS = [200, 201, 202, 204, 301, 400, 401, 403, 404, 409, 422, 429, 500, 503]
+export const STATUS_GROUPS: { label: string; codes: [number, string][] }[] = [
+  {
+    label: 'Success · 2xx',
+    codes: [
+      [200, 'OK'],
+      [201, 'Created'],
+      [202, 'Accepted'],
+      [204, 'No Content'],
+    ],
+  },
+  {
+    label: 'Redirect · 3xx',
+    codes: [
+      [301, 'Moved Permanently'],
+      [302, 'Found'],
+      [304, 'Not Modified'],
+    ],
+  },
+  {
+    label: 'Client error · 4xx',
+    codes: [
+      [400, 'Bad Request'],
+      [401, 'Unauthorized'],
+      [403, 'Forbidden'],
+      [404, 'Not Found'],
+      [409, 'Conflict'],
+      [422, 'Unprocessable Entity'],
+      [429, 'Too Many Requests'],
+    ],
+  },
+  {
+    label: 'Server error · 5xx',
+    codes: [
+      [500, 'Internal Server Error'],
+      [502, 'Bad Gateway'],
+      [503, 'Service Unavailable'],
+    ],
+  },
+]
 
 /** Per-field faker spec sent to the backend (see mocktail-api/randomize). */
 export interface FieldSpec {

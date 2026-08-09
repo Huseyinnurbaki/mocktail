@@ -1,26 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { COMMON_STATUS, METHODS, type Draft, type Method, type RandomizeConfig } from '../lib/mocks'
-import { saveMock } from '../lib/api'
+import { METHODS, type Draft, type Method, type RandomizeConfig } from '../lib/mocks'
+import { saveMock, sendMock, type TestResult } from '../lib/api'
 import { METHOD_BADGE } from '../lib/methods'
 import { validateJson } from '../lib/json'
 import { CodeEditor } from './CodeEditor'
 import { DataTab } from './editor/DataTab'
 import { HeadersTab } from './editor/HeadersTab'
-import { SnippetsTab } from './editor/SnippetsTab'
 import { TestTab } from './editor/TestTab'
+import { StatusPicker } from './editor/StatusPicker'
 
-type Tab = 'data' | 'headers' | 'snippets' | 'test'
-const TABS: Tab[] = ['data', 'headers', 'snippets', 'test']
+type Tab = 'data' | 'headers' | 'test'
+const TABS: Tab[] = ['data', 'headers', 'test']
 
 
 export default function Editor({
   initial,
   onClose,
-  onSaved,
+  onReload,
 }: {
   initial: Draft
   onClose: () => void
-  onSaved: () => void
+  onReload: () => void
 }) {
   const [method, setMethod] = useState<Method>(initial.method)
   const [path, setPath] = useState(initial.path)
@@ -32,6 +32,16 @@ export default function Editor({
   const [selectedField, setSelectedField] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Live identity + the last-saved baseline, so we can save in place without closing.
+  const [currentId, setCurrentId] = useState(initial.id)
+  const [baseline, setBaseline] = useState(() => ({
+    method: initial.method,
+    path: initial.path,
+    status: initial.status,
+    delayMs: initial.delayMs,
+    body: initial.body,
+    randomize: initial.randomize,
+  }))
 
   const jsonError = useMemo(() => validateJson(body), [body])
 
@@ -47,25 +57,53 @@ export default function Editor({
     return [...seen.entries()].map(([key, label]) => ({ key, label }))
   }, [randomize])
   const dirty =
-    method !== initial.method ||
-    path !== initial.path ||
-    status !== initial.status ||
-    delayMs !== initial.delayMs ||
-    body !== initial.body ||
-    JSON.stringify(randomize) !== JSON.stringify(initial.randomize)
+    method !== baseline.method ||
+    path !== baseline.path ||
+    status !== baseline.status ||
+    delayMs !== baseline.delayMs ||
+    body !== baseline.body ||
+    JSON.stringify(randomize) !== JSON.stringify(baseline.randomize)
   const canSave = !saving && !jsonError && path.trim().length > 1
 
-  async function save() {
-    if (!canSave) return
+  /** Save in place (POST if new, PUT if existing), refresh the catalog, keep the editor open. */
+  async function persist(): Promise<boolean> {
+    if (!canSave) return false
     setSaving(true)
     setSaveError(null)
     try {
-      await saveMock({ id: initial.id, method, path: path.trim(), status, delayMs, body, randomize })
-      onSaved()
+      const id = await saveMock({ id: currentId, method, path: path.trim(), status, delayMs, body, randomize })
+      setCurrentId(id)
+      setBaseline({ method, path: path.trim(), status, delayMs, body, randomize })
+      onReload()
+      return true
     } catch (e: unknown) {
       setSaveError(e instanceof Error ? e.message : String(e))
+      return false
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function save() {
+    void persist() // save in place — does not close the editor
+  }
+
+  // First test on a never-saved mock saves then sends; afterwards it sends the saved version,
+  // with a note if there are unsaved edits.
+  async function runTest(): Promise<{ result?: TestResult; note?: string; error?: string }> {
+    if (currentId === null) {
+      if (!(await persist())) return { error: 'Fix the errors above, then try again.' }
+      try {
+        return { result: await sendMock(method, path.trim()) }
+      } catch (e: unknown) {
+        return { error: e instanceof Error ? e.message : String(e) }
+      }
+    }
+    try {
+      const result = await sendMock(baseline.method, baseline.path)
+      return { result, note: dirty ? 'Testing the last saved version — you have unsaved changes.' : undefined }
+    } catch (e: unknown) {
+      return { error: e instanceof Error ? e.message : String(e) }
     }
   }
 
@@ -83,7 +121,7 @@ export default function Editor({
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const title = initial.id === null ? 'New mock' : path
+  const title = currentId === null ? 'New mock' : path
 
   return (
     <div className="absolute inset-0 z-20 flex flex-col bg-bg text-fg">
@@ -100,11 +138,11 @@ export default function Editor({
             onClick={onClose}
             className="h-[30px] rounded-[8px] border border-border px-3 text-[13px] hover:bg-surface-sunken"
           >
-            Discard
+            Close
           </button>
           <button
             onClick={() => void save()}
-            disabled={!canSave}
+            disabled={!canSave || !dirty}
             className="h-[30px] rounded-[8px] bg-accent px-3 text-[13px] font-semibold text-accent-on disabled:opacity-40"
           >
             {saving ? 'Saving…' : 'Save mock'}
@@ -136,21 +174,8 @@ export default function Editor({
           placeholder="/api/v1/resource"
           className="h-[36px] min-w-[240px] flex-1 rounded-[9px] border border-border bg-surface px-3 font-mono text-[13.5px] outline-none focus:border-accent"
         />
-        <label className="flex h-[36px] items-center gap-2 rounded-[9px] border border-border px-3">
-          <span className="text-[12.5px] text-muted">Status</span>
-          <select
-            value={status}
-            onChange={(e) => setStatus(Number(e.target.value))}
-            className="bg-transparent font-mono text-[13px] text-accent-text outline-none"
-          >
-            {(COMMON_STATUS.includes(status) ? COMMON_STATUS : [status, ...COMMON_STATUS]).map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex h-[36px] items-center gap-2 rounded-[9px] border border-border px-3">
+        <StatusPicker value={status} onChange={setStatus} />
+        <div className="flex h-[36px] items-center gap-2 rounded-[9px] border border-border px-3">
           <span className="text-[12.5px] text-muted">Delay</span>
           <input
             type="range"
@@ -159,10 +184,22 @@ export default function Editor({
             step={50}
             value={delayMs}
             onChange={(e) => setDelayMs(Number(e.target.value))}
-            className="w-[110px] accent-[var(--accent)]"
+            className="w-[100px] accent-[var(--accent)]"
           />
-          <span className="w-[56px] font-mono text-[13px]">{delayMs}ms</span>
-        </label>
+          <input
+            type="number"
+            min={0}
+            max={30000}
+            value={delayMs === 0 ? '' : delayMs}
+            placeholder="0"
+            onChange={(e) => {
+              const n = Math.floor(Number(e.target.value))
+              setDelayMs(Number.isFinite(n) ? Math.min(30000, Math.max(0, n)) : 0)
+            }}
+            className="w-[56px] bg-transparent text-right font-mono text-[13px] outline-none placeholder:text-muted"
+          />
+          <span className="text-[12px] text-muted">ms</span>
+        </div>
       </div>
 
       {saveError && (
@@ -179,23 +216,14 @@ export default function Editor({
             <span className={`font-mono text-[11.5px] ${jsonError ? 'text-error' : 'text-muted'}`}>
               {jsonError ? `JSON · ${jsonError}` : 'JSON · valid'}
             </span>
-            <div className="ml-auto flex items-center gap-3">
-              <button
-                disabled
-                title="Describe the JSON you need and let AI build it — coming soon (see roadmap)"
-                className="flex cursor-not-allowed items-center gap-1 text-[12px] font-medium text-param opacity-50"
-              >
-                ✨ AI JSON <span className="text-[9px] opacity-70">beta</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (!jsonError) setBody(JSON.stringify(JSON.parse(body.trim() || '{}'), null, 2))
-                }}
-                className="text-[12px] text-muted hover:text-fg"
-              >
-                Format
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                if (!jsonError) setBody(JSON.stringify(JSON.parse(body.trim() || '{}'), null, 2))
+              }}
+              className="ml-auto text-[12px] text-muted hover:text-fg"
+            >
+              Format
+            </button>
           </div>
           <div className="min-h-0 flex-1">
             <CodeEditor
@@ -239,8 +267,9 @@ export default function Editor({
               />
             )}
             {tab === 'headers' && <HeadersTab />}
-            {tab === 'snippets' && <SnippetsTab method={method} path={path} />}
-            {tab === 'test' && <TestTab method={method} path={path} />}
+            {tab === 'test' && (
+              <TestTab isNew={currentId === null} method={method} path={path} onRun={runTest} />
+            )}
           </div>
         </aside>
       </div>

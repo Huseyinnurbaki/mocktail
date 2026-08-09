@@ -142,7 +142,8 @@ export async function sendMock(method: string, path: string): Promise<TestResult
   return { status: res.status, ms: Math.round(performance.now() - t0), body }
 }
 
-export async function saveMock(d: Draft): Promise<void> {
+/** Saves a mock (POST if new, PUT if existing) and returns its id. */
+export async function saveMock(d: Draft): Promise<number> {
   // Split fields: per-request stay as config; "once" fields are generated now and baked in.
   const perRequest: RandomizeConfig = {}
   const once: RandomizeConfig = {}
@@ -172,4 +173,6 @@ export async function saveMock(d: Draft): Promise<void> {
     body: JSON.stringify(payload),
   })
   if (!res.ok) throw new Error(await errMessage(res, `${isNew ? 'POST' : 'PUT'} ${url}`))
+  const saved = (await res.json()) as { ID?: number }
+  return saved.ID ?? d.id ?? 0
 }

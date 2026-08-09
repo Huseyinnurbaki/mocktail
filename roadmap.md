@@ -376,6 +376,42 @@ state. Already helping: CodeMirror is line-virtualized (big responses cheap); Li
 
 ---
 
+## Final responsiveness check (pre-ship)
+
+The redesign was built desktop-first; before shipping v4, do a responsive pass against the 1a
+breakpoints. Current state uses hard `lg:`/`xl:` show-hide with **no narrow-width fallbacks**, so
+several panels simply disappear on smaller screens — that's the gap to close.
+
+**Known gaps (build the fallbacks):**
+- **Left tree** is `hidden lg:flex` → below `lg` it vanishes with no way back. 1a wants it to become
+  an **overlay drawer** (hamburger in the top bar) at 780–1100px.
+- **Right panel** (Preview/Assistant) is `hidden xl:flex` → gone below `xl` with no fallback. 1a hides
+  the preview 1100–1280, but the **Assistant** still needs a route in (a tab/toggle) on narrow.
+- **Editor side panel** (Data/Headers/Test) is `hidden lg:flex` → **disappears below `lg`**, so
+  randomize/test are unreachable on small screens. 1a wants it as a **bottom sheet** < 1100px, and
+  tabs stacked above the editor < 780px.
+- **Live view** detail is `hidden lg:flex` — same "no fallback" issue.
+
+**Verify across widths (≥1280 · 1100–1280 · 780–1100 · <780):**
+- [ ] No horizontal scrolling at any width (per 1a — hits/delay columns drop first).
+- [ ] Catalog: tree drawer, list full-width, search moves full-width under the top bar < 780.
+- [ ] Editor: request bar wraps to two rows; side panel → bottom sheet; tabs stack.
+- [ ] Right panel: Assistant reachable when the preview is hidden.
+- [ ] Overlays (editor, settings, live, context menu, dropdowns) fit + reposition on small viewports.
+- [ ] Portaled menus (generator, status, context) clamp to viewport (status/generator already clamp).
+- [ ] Touch targets ≥ ~40px; hover-only affordances have a tap equivalent.
+- [ ] Both themes at each width.
+
+Once these fallbacks exist and pass, the redesign is ship-ready for v4.
+
+**Editor interaction — known issue:** double-click to select a word in the JSON editor doesn't
+work. Almost certainly the field-select `mouseup` handler in `CodeEditor` (resolves the clicked
+field → opens the Data tab) interferes with CodeMirror's native word/line selection on the second
+click. Fix: ignore multi-click in the handler (`if (e.detail > 1) return`) or only fire field-select
+on a single click, so double/triple-click keep CM's word/line selection.
+
+---
+
 ## Landing page
 
 A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.

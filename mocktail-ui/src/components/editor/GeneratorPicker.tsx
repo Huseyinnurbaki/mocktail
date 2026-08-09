@@ -45,12 +45,16 @@ export function GeneratorPicker({
     function close() {
       setOpen(false)
     }
+    function onScroll(e: Event) {
+      if (menuRef.current?.contains(e.target as Node)) return // scrolling inside the menu — keep open
+      close()
+    }
     document.addEventListener('mousedown', onDoc)
-    window.addEventListener('scroll', close, true)
+    window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', close)
     return () => {
       document.removeEventListener('mousedown', onDoc)
-      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', close)
     }
   }, [open])
