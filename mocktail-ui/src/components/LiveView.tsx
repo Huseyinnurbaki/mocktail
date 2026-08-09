@@ -1,49 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { clearLogs, fetchLogs, type LogEntry } from '../lib/api'
+import { beautify, statusBadgeClass } from '../lib/format'
 import { CodeEditor } from './CodeEditor'
-
-const METHOD_COLOR: Record<string, string> = {
-  GET: 'bg-get-bg text-get-fg',
-  POST: 'bg-post-bg text-post-fg',
-  PUT: 'bg-put-bg text-put-fg',
-  PATCH: 'bg-put-bg text-put-fg',
-  DELETE: 'bg-del-bg text-del-fg',
-}
-
-function statusClass(s: number): string {
-  if (s < 300) return 'bg-get-bg text-get-fg'
-  if (s < 400) return 'bg-put-bg text-put-fg'
-  return 'bg-del-bg text-del-fg'
-}
+import { MethodBadge } from './MethodBadge'
 
 function keyOf(l: LogEntry): string {
   return `${l.timestamp}|${l.method}|${l.path}|${l.status}|${l.duration}`
 }
 
-function beautify(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2)
-  } catch {
-    return text
-  }
-}
-
-function MethodBadge({ method }: { method?: string }) {
-  return (
-    <span
-      className={`inline-flex h-[18px] w-[58px] shrink-0 items-center justify-center rounded-[5px] font-mono text-[11px] font-semibold ${
-        METHOD_COLOR[method ?? ''] ?? 'bg-surface-sunken text-muted'
-      }`}
-    >
-      {method}
-    </span>
-  )
-}
-
 function StatusBadge({ status }: { status?: number }) {
   return (
     <span
-      className={`inline-flex h-[18px] min-w-[36px] shrink-0 items-center justify-center rounded-[5px] px-1 font-mono text-[11px] font-semibold ${statusClass(
+      className={`inline-flex h-[18px] min-w-[36px] shrink-0 items-center justify-center rounded-[5px] px-1 font-mono text-[11px] font-semibold ${statusBadgeClass(
         status ?? 0,
       )}`}
     >

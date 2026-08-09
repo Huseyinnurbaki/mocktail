@@ -1,288 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
-import { buildTree, matchesGroup, fmtHits, mockToDraft, newDraft, type Draft, type Method, type Mock } from './lib/mocks'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { matchesGroup, mockToDraft, newDraft, type Draft, type Mock } from './lib/mocks'
 import { useMocks } from './lib/useMocks'
 import { useTheme } from './lib/theme'
-import { sendMock, type TestResult } from './lib/api'
+import { deleteMock, saveMock } from './lib/api'
+import { useResizable } from './hooks/useResizable'
+import { useSend } from './hooks/useSend'
+import { useCatalogShortcuts } from './hooks/useCatalogShortcuts'
 import Editor from './components/Editor'
-import { ResponseView } from './components/ResponseView'
 import { SettingsModal, type SettingsTab } from './components/SettingsModal'
 import { LiveView } from './components/LiveView'
+import { ContextMenu } from './components/ContextMenu'
+import { TopBar } from './components/catalog/TopBar'
+import { LeftTree } from './components/catalog/LeftTree'
+import { CatalogRow } from './components/catalog/CatalogRow'
+import { PreviewPane } from './components/catalog/PreviewPane'
 
-const METHOD_BADGE: Record<Method, string> = {
-  GET: 'bg-get-bg text-get-fg',
-  POST: 'bg-post-bg text-post-fg',
-  PUT: 'bg-put-bg text-put-fg',
-  PATCH: 'bg-put-bg text-put-fg',
-  DELETE: 'bg-del-bg text-del-fg',
-}
-
-function MethodBadge({ method }: { method: Method }) {
-  return (
-    <span
-      className={`inline-flex h-[18px] w-[58px] shrink-0 items-center justify-center rounded-[5px] font-mono text-[11px] font-semibold ${METHOD_BADGE[method]}`}
-    >
-      {method}
-    </span>
-  )
-}
-
-/** Renders a path, tinting `:param` segments. */
-function PathText({ path, className = '' }: { path: string; className?: string }) {
-  const parts = path.split('/')
-  return (
-    <span className={`font-mono ${className}`}>
-      {parts.map((seg, i) => (
-        <span key={i} className={seg.startsWith(':') ? 'text-param' : undefined}>
-          {i === 0 ? '' : '/'}
-          {seg}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-function TopBar({
-  connected,
-  onOpenLive,
-}: {
-  connected: boolean
-  onOpenLive: () => void
-}) {
-  return (
-    <header className="flex h-[52px] shrink-0 items-center gap-3 border-b border-border px-4">
-      <div className="flex items-center gap-2">
-        <div className="flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-accent text-[12px] font-bold text-accent-on">
-          M
-        </div>
-        <span className="text-[15px] font-semibold">Mocktail</span>
-      </div>
-
-      {/* server status pill — reflects backend connectivity */}
-      <span
-        className={`ml-1 inline-flex items-center gap-[6px] rounded-full py-[4px] pl-[7px] pr-[9px] font-mono text-[11.5px] ${
-          connected ? 'bg-accent-tint text-accent-text' : 'bg-del-bg text-del-fg'
-        }`}
-      >
-        <span className={`h-[6px] w-[6px] rounded-full ${connected ? 'bg-accent' : 'bg-error'}`} />
-        {connected ? 'running · localhost:4000' : 'stopped'}
-      </span>
-
-      <div className="mx-auto flex h-[32px] w-full max-w-[420px] items-center gap-2 rounded-[8px] border border-border bg-surface px-3">
-        <span className="text-muted">⌕</span>
-        <input
-          className="w-full bg-transparent text-[13px] outline-none placeholder:text-muted"
-          placeholder="Search paths, methods, response bodies"
-        />
-        <kbd className="rounded-[4px] border border-border px-[5px] py-[1px] font-mono text-[10.5px] text-muted">
-          ⌘K
-        </kbd>
-      </div>
-
-      <button
-        onClick={onOpenLive}
-        className="flex h-[30px] items-center gap-1.5 rounded-[8px] border border-border px-3 text-[13px] hover:bg-surface-sunken"
-      >
-        <span className="text-accent">◉</span> Live
-      </button>
-    </header>
-  )
-}
-
-function LeftTree({
-  mocks,
-  selectedKey,
-  onSelect,
-  collapsed,
-  onToggle,
-  onOpenSettings,
-}: {
-  mocks: Mock[]
-  selectedKey: string | null
-  onSelect: (k: string | null) => void
-  collapsed: Set<string>
-  onToggle: (k: string) => void
-  onOpenSettings: (tab: SettingsTab) => void
-}) {
-  const tree = useMemo(() => buildTree(mocks), [mocks])
-  const row = 'flex w-full items-center justify-between rounded-[7px] px-2 py-[6px]'
-  const sel = (active: boolean) => (active ? 'bg-accent-tint text-accent-text' : 'hover:bg-surface')
-
-  return (
-    <nav className="hidden w-[236px] shrink-0 flex-col border-r border-border bg-surface-sunken lg:flex">
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-2">
-        <button onClick={() => onSelect(null)} className={`${row} text-[13px] ${sel(selectedKey === null)}`}>
-          <span>All mocks</span>
-          <span className="text-muted">{mocks.length}</span>
-        </button>
-
-        <div className="mt-2 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted">
-          Grouped by base path
-        </div>
-
-        {tree.map((base) => {
-        const open = !collapsed.has(base.key)
-        const hasChildren = base.resources.length > 0
-        return (
-          <div key={base.key}>
-            <button
-              onClick={() => {
-                onSelect(base.key)
-                if (hasChildren) onToggle(base.key)
-              }}
-              className={`${row} font-mono text-[12.5px] ${sel(selectedKey === base.key)}`}
-            >
-              <span>
-                <span className="text-muted">{hasChildren ? (open ? '▾ ' : '▸ ') : '  '}</span>
-                {base.label}
-              </span>
-              <span className="text-muted">{base.count}</span>
-            </button>
-
-            {open && hasChildren && (
-              <div className="ml-[15px] mt-1 flex flex-col gap-1 border-l border-border-subtle pl-2">
-                {base.resources.map((r) => (
-                  <button
-                    key={r.key}
-                    onClick={() => onSelect(r.key)}
-                    className={`${row} font-mono text-[12px] ${sel(selectedKey === r.key)}`}
-                  >
-                    <span className="truncate">{r.label}</span>
-                    <span className="text-muted">{r.count}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-        })}
-      </div>
-
-      <div className="border-t border-border p-2">
-        <button
-          onClick={() => onOpenSettings('theme')}
-          className="flex w-full items-center gap-1.5 rounded-[7px] px-2 py-[7px] text-[13px] hover:bg-surface"
-        >
-          <span className="text-[14px]">⚙</span> Settings
-        </button>
-      </div>
-    </nav>
-  )
-}
-
-function CatalogRow({
-  mock,
-  selected,
-  onSelect,
-  onOpen,
-}: {
-  mock: Mock
-  selected: boolean
-  onSelect: () => void
-  onOpen: () => void
-}) {
-  return (
-    <button
-      onClick={onSelect}
-      onDoubleClick={onOpen}
-      style={selected ? { boxShadow: 'inset 2px 0 0 var(--accent)' } : undefined}
-      className={`flex w-full items-center gap-3 border-b border-border-subtle px-[18px] py-[13px] text-left ${
-        selected ? 'bg-accent-tint' : 'hover:bg-surface-sunken'
-      }`}
-    >
-      <MethodBadge method={mock.method} />
-      <PathText path={mock.path} className="flex-1 text-[13.5px]" />
-      <span className={`font-mono text-[12px] ${mock.status < 300 ? 'text-success' : 'text-error'}`}>
-        {mock.status}
-      </span>
-      <span
-        className={`w-[64px] text-right font-mono text-[12px] ${
-          mock.delayMs > 0 ? 'text-warning' : 'text-muted'
-        }`}
-      >
-        {mock.delayMs}ms
-      </span>
-      <span className="w-[76px] text-right text-[12px] text-muted">{fmtHits(mock.hits)} hits</span>
-    </button>
-  )
-}
-
-function PreviewPane({ mock, onEdit }: { mock: Mock | null; onEdit: (m: Mock) => void }) {
-  const [result, setResult] = useState<TestResult | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
-
-  // Clear any prior response when the selected mock changes.
-  useEffect(() => {
-    setResult(null)
-    setErr(null)
-  }, [mock?.id])
-
-  if (!mock) {
-    return (
-      <aside className="hidden w-[330px] shrink-0 items-center justify-center border-l border-border p-6 text-[13px] text-muted xl:flex">
-        Select a mock to preview
-      </aside>
-    )
-  }
-
-  async function send(m: Mock) {
-    setBusy(true)
-    setErr(null)
-    try {
-      setResult(await sendMock(m.method, m.path))
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <aside className="hidden w-[330px] shrink-0 flex-col gap-4 overflow-auto border-l border-border p-4 xl:flex">
-      <div className="flex items-center gap-2">
-        <MethodBadge method={mock.method} />
-        <PathText path={mock.path} className="text-[13px]" />
-      </div>
-      <div className="flex gap-2">
-        <button
-          onClick={() => void send(mock)}
-          disabled={busy}
-          className="h-[32px] flex-1 rounded-[8px] bg-accent text-[13px] font-semibold text-accent-on disabled:opacity-40"
-        >
-          {busy ? 'Sending…' : '▶ Send request'}
-        </button>
-        <button
-          onClick={() => onEdit(mock)}
-          className="h-[32px] rounded-[8px] border border-border px-3 text-[13px] hover:bg-surface-sunken"
-        >
-          Edit
-        </button>
-      </div>
-      <dl className="rounded-[11px] border border-border text-[12.5px]">
-        {[
-          ['Status', String(mock.status)],
-          ['Delay', `${mock.delayMs} ms`],
-          ['Hits', fmtHits(mock.hits)],
-        ].map(([k, v]) => (
-          <div key={k} className="flex justify-between border-b border-border-subtle px-3 py-2 last:border-0">
-            <dt className="text-muted">{k}</dt>
-            <dd className="font-mono">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      {err && <div className="text-[12.5px] text-error">{err}</div>}
-      {result && (
-        <div>
-          <div className="mb-1 font-mono text-[12px]">
-            <span className={result.status < 300 ? 'text-success' : 'text-error'}>{result.status}</span>{' '}
-            · {result.ms}ms
-          </div>
-          <ResponseView body={result.body} />
-        </div>
-      )}
-    </aside>
-  )
-}
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+const MOD = IS_MAC ? '⌘' : 'Ctrl'
 
 export default function App() {
   const { theme, setTheme } = useTheme()
@@ -293,6 +27,11 @@ export default function App() {
   const [editing, setEditing] = useState<Draft | null>(null)
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [liveOpen, setLiveOpen] = useState(false)
+  const [ctx, setCtx] = useState<{ x: number; y: number; mock: Mock } | null>(null)
+  const [query, setQuery] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+  const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 340, 260, 720)
+  const { result: sendResult, busy: sendBusy, err: sendErr, run } = useSend(selectedId)
 
   const toggleGroup = (k: string) =>
     setCollapsed((s) => {
@@ -302,20 +41,82 @@ export default function App() {
       return n
     })
 
-  // Select the first mock once data arrives.
-  useEffect(() => {
-    if (selectedId === null && mocks.length > 0) setSelectedId(mocks[0].id)
-  }, [mocks, selectedId])
 
-  const rows = useMemo(
-    () => mocks.filter((m) => matchesGroup(m, selectedGroup)),
-    [mocks, selectedGroup],
-  )
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return mocks
+      .filter((m) => matchesGroup(m, selectedGroup))
+      .filter(
+        (m) =>
+          !q ||
+          m.path.toLowerCase().includes(q) ||
+          m.method.toLowerCase().includes(q) ||
+          m.body.toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method))
+  }, [mocks, selectedGroup, query])
   const selectedMock = mocks.find((m) => m.id === selectedId) ?? null
+
+  // Keep the selection within the visible rows — e.g. after switching base-path groups or on
+  // first load — so actions (run, ⌘D duplicate) always target a mock in the current view.
+  useEffect(() => {
+    if (rows.length > 0 && !rows.some((m) => m.id === selectedId)) {
+      setSelectedId(rows[0].id)
+    }
+  }, [rows, selectedId])
+
+  async function duplicate(mock: Mock) {
+    const existing = new Set(mocks.map((m) => m.path))
+    let path = `${mock.path}-copy`
+    let n = 2
+    while (existing.has(path)) path = `${mock.path}-copy-${n++}`
+    try {
+      await saveMock({
+        id: null,
+        method: mock.method,
+        path,
+        status: mock.status,
+        delayMs: mock.delayMs,
+        body: mock.body,
+        randomize: mock.randomize,
+      })
+      await reload()
+    } catch {
+      /* collision or network error — ignore for now */
+    }
+  }
+
+  async function remove(mock: Mock) {
+    try {
+      await deleteMock(mock.id)
+      if (selectedId === mock.id) setSelectedId(null)
+      await reload()
+    } catch {
+      /* ignore for now */
+    }
+  }
+
+  function moveSelection(delta: number) {
+    if (rows.length === 0) return
+    const idx = rows.findIndex((m) => m.id === selectedId)
+    const next = idx < 0 ? 0 : Math.max(0, Math.min(rows.length - 1, idx + delta))
+    setSelectedId(rows[next].id)
+  }
+
+  useCatalogShortcuts({
+    enabled: !editing && !settingsTab && !liveOpen,
+    selectedMock,
+    onFocusSearch: () => searchRef.current?.focus(),
+    onNew: () => setEditing(newDraft()),
+    onOpen: (m) => setEditing(mockToDraft(m)),
+    onRun: (m) => void run(m),
+    onDuplicate: (m) => void duplicate(m),
+    onMove: moveSelection,
+  })
 
   return (
     <div className="relative flex h-full flex-col bg-bg text-fg">
-      <TopBar connected={!error} onOpenLive={() => setLiveOpen(true)} />
+      <TopBar connected={!error} onOpenLive={() => setLiveOpen(true)} onNew={() => setEditing(newDraft())} />
       <div className="flex min-h-0 flex-1">
         <LeftTree
           mocks={mocks}
@@ -328,14 +129,44 @@ export default function App() {
 
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-3 border-b border-border px-[18px] py-3">
-            <span className="font-mono text-[14px]">{selectedGroup ?? 'All mocks'}</span>
-            <span className="text-[12px] text-muted">{rows.length} endpoints</span>
-            <button
-              onClick={() => setEditing(newDraft())}
-              className="ml-auto h-[28px] rounded-[7px] bg-accent px-3 text-[12px] font-semibold text-accent-on"
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="shrink-0 text-muted"
             >
-              + New mock
-            </button>
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.5" y2="16.5" />
+            </svg>
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setQuery('')
+                  e.currentTarget.blur()
+                }
+              }}
+              placeholder={`Search ${selectedGroup ?? 'all mocks'}…`}
+              className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted"
+            />
+            {selectedGroup && query.trim() && (
+              <button
+                onClick={() => setSelectedGroup(null)}
+                className="whitespace-nowrap text-[11.5px] text-accent-text hover:underline"
+              >
+                Search all mocks
+              </button>
+            )}
+            <span className="whitespace-nowrap text-[12px] text-muted">{rows.length} endpoints</span>
+            <kbd className="shrink-0 rounded-[4px] border border-border px-[4px] py-[1px] font-mono text-[10px] text-muted">
+              {MOD}F
+            </kbd>
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto">
@@ -349,7 +180,13 @@ export default function App() {
               </div>
             ) : rows.length === 0 ? (
               <div className="p-6 text-[13px] text-muted">
-                No mocks yet. Create one with <span className="font-mono">+ New mock</span>.
+                {query.trim() ? (
+                  <>No mocks match “{query.trim()}”.</>
+                ) : (
+                  <>
+                    No mocks yet. Create one with <span className="font-mono">+ New mock</span>.
+                  </>
+                )}
               </div>
             ) : (
               rows.map((m) => (
@@ -359,17 +196,35 @@ export default function App() {
                   selected={m.id === selectedId}
                   onSelect={() => setSelectedId(m.id)}
                   onOpen={() => setEditing(mockToDraft(m))}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    setSelectedId(m.id)
+                    setCtx({ x: e.clientX, y: e.clientY, mock: m })
+                  }}
                 />
               ))
             )}
           </div>
 
           <div className="shrink-0 border-t border-border px-[18px] py-2 font-mono text-[11.5px] text-muted">
-            ↑↓ navigate · ↵ open · ⌘⏎ run · ⌘D duplicate
+            ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate · {MOD}E new
           </div>
         </main>
 
-        <PreviewPane mock={selectedMock} onEdit={(m) => setEditing(mockToDraft(m))} />
+        <div
+          onMouseDown={startResize}
+          title="Drag to resize"
+          className="hidden w-[5px] shrink-0 cursor-col-resize hover:bg-accent/50 xl:block"
+        />
+        <PreviewPane
+          mock={selectedMock}
+          onEdit={(m) => setEditing(mockToDraft(m))}
+          onSend={(m) => void run(m)}
+          result={sendResult}
+          busy={sendBusy}
+          err={sendErr}
+          width={previewWidth}
+        />
       </div>
 
       {editing && (
@@ -394,6 +249,27 @@ export default function App() {
       )}
 
       {liveOpen && <LiveView onClose={() => setLiveOpen(false)} />}
+
+      {ctx && (
+        <ContextMenu
+          x={ctx.x}
+          y={ctx.y}
+          onClose={() => setCtx(null)}
+          items={[
+            { label: 'Open', onClick: () => setEditing(mockToDraft(ctx.mock)) },
+            { label: 'Run', onClick: () => void run(ctx.mock) },
+            { label: 'Copy path', onClick: () => void navigator.clipboard?.writeText(ctx.mock.path) },
+            { label: 'Duplicate', onClick: () => void duplicate(ctx.mock) },
+            {
+              label: 'Delete',
+              confirm: true,
+              confirmLabel: 'Click again to delete',
+              danger: true,
+              onClick: () => void remove(ctx.mock),
+            },
+          ]}
+        />
+      )}
     </div>
   )
 }

@@ -1,13 +1,5 @@
 import { useMemo, useState } from 'react'
-
-/** Pretty-print JSON when possible; leave non-JSON as-is. */
-function beautify(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2)
-  } catch {
-    return text
-  }
-}
+import { beautify } from '../lib/format'
 
 const PREVIEW_LINES = 16
 

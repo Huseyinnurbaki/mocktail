@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48">
+  <style>
+    path { fill: #1a1a1a; }
+    @media (prefers-color-scheme: dark) { path { fill: #ededed; } }
+  </style>
+  <g>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)"></path>
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)"></path>
+  </g>
+</svg>

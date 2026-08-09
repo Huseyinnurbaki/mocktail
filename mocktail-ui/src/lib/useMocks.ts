@@ -9,7 +9,7 @@ export interface MocksState {
   reload: () => Promise<void>
 }
 
-/** Loads mocks from the backend on mount; `reload()` refetches (e.g. after a save). */
+/** Loads mocks on mount; `reload()` refetches (e.g. after a save). */
 export function useMocks(): MocksState {
   const [mocks, setMocks] = useState<Mock[]>([])
   const [loading, setLoading] = useState(true)

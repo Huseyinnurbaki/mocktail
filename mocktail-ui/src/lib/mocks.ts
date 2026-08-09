@@ -30,7 +30,6 @@ export interface Mock {
   path: string
   status: number
   delayMs: number
-  hits: number
   /** Pretty-printed JSON response body. */
   body: string
   randomize: RandomizeConfig
@@ -110,23 +109,30 @@ export function buildTree(mocks: Mock[]): TreeBase[] {
     if (arr) arr.push(m)
     else bases.set(b, [m])
   }
-  return [...bases.entries()].map(([key, items]) => {
-    const resCount = new Map<string, number>()
-    for (const m of items) {
-      const r = resourceKey(m.path)
-      if (r) resCount.set(r, (resCount.get(r) ?? 0) + 1)
-    }
-    const resources: TreeResource[] = [...resCount.entries()].map(([rk, count]) => ({
-      key: rk,
-      label: '/' + pathSegs(rk).slice(2).join('/'), // 3rd segment onward → /users
-      count,
-    }))
-    return { key, label: key, count: items.length, resources }
-  })
+  return [...bases.entries()]
+    .map(([key, items]) => {
+      const resMocks = new Map<string, number>()
+      const resPaths = new Map<string, Set<string>>()
+      for (const m of items) {
+        const r = resourceKey(m.path)
+        if (!r) continue
+        resMocks.set(r, (resMocks.get(r) ?? 0) + 1)
+        const set = resPaths.get(r) ?? new Set<string>()
+        set.add(m.path)
+        resPaths.set(r, set)
+      }
+      const resources: TreeResource[] = [...resMocks.entries()]
+        // Only show a resource that groups more than one distinct endpoint path — a
+        // single-path resource IS an endpoint, so it lives in the list, not the tree.
+        .filter(([rk]) => (resPaths.get(rk)?.size ?? 0) > 1)
+        .map(([rk, count]) => ({
+          key: rk,
+          label: pathSegs(rk).slice(2).join('/'), // 3rd segment onward → "users"
+          count,
+        }))
+        .sort((a, b) => a.key.localeCompare(b.key))
+      return { key, label: key, count: items.length, resources }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
 }
 
-export function fmtHits(n: number): string {
-  if (n < 1000) return String(n)
-  const k = n / 1000
-  return (k >= 10 ? Math.round(k) : k.toFixed(1)) + 'k'
-}

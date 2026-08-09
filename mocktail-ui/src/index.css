@@ -107,6 +107,9 @@
 
 @layer base {
   html, body, #root { height: 100%; }
+  /* Hide scrollbars everywhere but keep scrolling. */
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
   body {
     margin: 0;
     background: var(--bg);

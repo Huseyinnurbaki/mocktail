@@ -29,7 +29,6 @@ function toMock(a: ApiRecord): Mock {
     path,
     status: a.StatusCode || 200,
     delayMs: a.Delay || 0,
-    hits: 0, // backend hit-count tracking lands in v4; 0 until then
     body: JSON.stringify(a.Response ?? {}, null, 2),
     randomize: a.Randomize ?? {},
   }
@@ -49,6 +48,11 @@ interface SavePayload {
   Delay: number
   Response: unknown
   Randomize: RandomizeConfig | null
+}
+
+export async function deleteMock(id: number): Promise<void> {
+  const res = await fetch(`/core/v1/api/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(await errMessage(res, `DELETE /core/v1/api/${id}`))
 }
 
 /** Runs a response object through a config server-side and returns the generated object. */
