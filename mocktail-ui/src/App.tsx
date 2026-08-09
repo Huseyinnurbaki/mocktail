@@ -13,7 +13,7 @@ import { ContextMenu } from './components/ContextMenu'
 import { TopBar } from './components/catalog/TopBar'
 import { LeftTree } from './components/catalog/LeftTree'
 import { CatalogRow } from './components/catalog/CatalogRow'
-import { PreviewPane } from './components/catalog/PreviewPane'
+import { RightPanel, type RightTab } from './components/catalog/RightPanel'
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 const MOD = IS_MAC ? '⌘' : 'Ctrl'
@@ -28,6 +28,7 @@ export default function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [liveOpen, setLiveOpen] = useState(false)
   const [ctx, setCtx] = useState<{ x: number; y: number; mock: Mock } | null>(null)
+  const [rightTab, setRightTab] = useState<RightTab>('preview')
   const [query, setQuery] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
   const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 340, 260, 720)
@@ -216,7 +217,7 @@ export default function App() {
           title="Drag to resize"
           className="hidden w-[5px] shrink-0 cursor-col-resize hover:bg-accent/50 xl:block"
         />
-        <PreviewPane
+        <RightPanel
           mock={selectedMock}
           onEdit={(m) => setEditing(mockToDraft(m))}
           onSend={(m) => void run(m)}
@@ -224,6 +225,9 @@ export default function App() {
           busy={sendBusy}
           err={sendErr}
           width={previewWidth}
+          tab={rightTab}
+          setTab={setRightTab}
+          onOpenSettings={setSettingsTab}
         />
       </div>
 

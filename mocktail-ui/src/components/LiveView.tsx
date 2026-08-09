@@ -4,10 +4,6 @@ import { beautify, statusBadgeClass } from '../lib/format'
 import { CodeEditor } from './CodeEditor'
 import { MethodBadge } from './MethodBadge'
 
-function keyOf(l: LogEntry): string {
-  return `${l.timestamp}|${l.method}|${l.path}|${l.status}|${l.duration}`
-}
-
 function StatusBadge({ status }: { status?: number }) {
   return (
     <span
@@ -25,7 +21,7 @@ export function LiveView({ onClose }: { onClose: () => void }) {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [paused, setPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selected, setSelected] = useState<LogEntry | null>(null)
+  const [selected, setSelected] = useState<(LogEntry & { i: number }) | null>(null)
   const pausedRef = useRef(paused)
   pausedRef.current = paused
 
@@ -61,10 +57,9 @@ export function LiveView({ onClose }: { onClose: () => void }) {
 
   // Only mock traffic — exclude the dashboard's own /core/v1 calls.
   const requests = logs
+    .map((l, i) => ({ ...l, i }))
     .filter((l) => l.type === 'request' && (l.path ?? '').startsWith('/mocktail'))
     .reverse()
-
-  const selectedKey = selected ? keyOf(selected) : null
 
   async function clear() {
     await clearLogs()
@@ -115,16 +110,16 @@ export function LiveView({ onClose }: { onClose: () => void }) {
               </div>
             </div>
           ) : (
-            requests.map((l, i) => {
+            requests.map((l) => {
               const path = (l.path ?? '').replace(/^\/mocktail/, '') || '/'
               const time = l.timestamp.split(' ')[1] ?? l.timestamp
-              const isSel = selectedKey === keyOf(l)
+              const isSel = selected?.i === l.i
               return (
                 <button
-                  key={i}
+                  key={l.i}
                   onClick={() => setSelected(l)}
                   style={isSel ? { boxShadow: 'inset 2px 0 0 var(--accent)' } : undefined}
-                  className={`flex w-full items-center gap-3 border-b border-border-subtle px-[18px] py-[9px] text-left ${
+                  className={`flex w-full items-center gap-3 border-b border-border-subtle px-[18px] py-[9px] text-left focus:outline-none ${
                     isSel ? 'bg-accent-tint' : 'hover:bg-surface-sunken'
                   }`}
                 >

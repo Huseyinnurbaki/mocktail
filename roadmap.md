@@ -343,6 +343,39 @@ prerequisite for the desktop free-port plan.
 
 ---
 
+## AI assistant (embedded)
+
+An in-app assistant that both **does things** (agentic) and **teaches** ("how does X work"),
+surfaced as a **tab in the catalog's right panel** (Preview | ✨ Assistant) and — later — as an
+**AI tab in the editor** (scoped to the open mock, replacing the stubbed `✨ AI JSON` button).
+
+**Tiered by cost/complexity:**
+- **Pre-baked FAQ — built.** Curated question → canned answer, no LLM/key/backend/DB. Ships now,
+  validates the shell. (`components/catalog/AssistantPanel.tsx`.)
+- **Free-form chat — gated behind a user API key (BYO).** Needs the pluggable provider wired; the
+  input is disabled with "Add an API key to chat" → Settings → API keys. **No DB** — chat is
+  ephemeral (React state, optionally localStorage per session), never the mock DB.
+
+**Agentic side (later):** reuse the **MCP tool schemas** (`create/update/delete/import/list`) as the
+assistant's toolset so it can create/edit mocks from natural language — the in-app, no-external-Claude
+version of MCP, with the catalog updating live as it works. Needs the provider's tool-use support
+(varies per provider) + confirm-before-destructive.
+
+**Staging:** provider (text) → Q&A/chat → tools. See the pluggable-provider design under the
+Randomization section. Not a weekend feature once tools/streaming are in scope; the FAQ + chat-shell
+is the shippable slice (done / gated).
+
+**Performance (hard constraint — long transcripts must stay cheap):** a growing chat is the classic
+RAM/render trap (every message + big block stays mounted). Build with: (1) **virtualized message
+list** (render only on-screen messages) — the single biggest fix; (2) **bounded transcript** (ring
+buffer, ~100 msgs, older behind "load earlier"); (3) **collapse large blocks** (reuse ResponseView's
+`+N lines`); (4) **batched streaming** (buffer tokens, flush on rAF, re-render only the streaming
+message); (5) **memoized messages** + stable keys; (6) keep strings, not heavy parsed objects, in
+state. Already helping: CodeMirror is line-virtualized (big responses cheap); Live is bounded by the
+500-entry log buffer. Next virtualization candidates if data grows: the catalog list and Live list.
+
+---
+
 ## Landing page
 
 A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.
