@@ -17,7 +17,7 @@ it echoes the v3.0 precedent (the last major).
 data), v4.0 as scoped **breaks nothing** — additive `AutoMigrate` columns, same routes. Headline:
 **"v4 — a complete redesign, zero migration required."**
 
-**Scope:** Workbench redesign + Vite migration + hit counts + response headers. Consider folding
+**Scope:** Workbench redesign + Vite migration + response headers. Consider folding
 the CLI formula / desktop app into the same story (as 4.0 or a 4.1 fast-follow) — *"Mocktail v4:
 redesigned, and now native."*
 
@@ -82,6 +82,29 @@ browser-serves-latest), a native app bundle needs an explicit update story. Two 
   Go binary) — you don't update the Go binary separately.
 
 **Update strategy:** Path A now → Path B + notarization later, if/when the in-app UX is wanted.
+
+**Resilience / recovery (build with the desktop shell).** Desktop is the only surface where the
+*product* owns the backend process, so it must handle a dead/failed sidecar itself — there's no
+terminal (CLI: re-run it; Docker: `restart` policy). Three layers:
+- **Supervision (automatic).** The Tauri (Rust) shell owns the sidecar lifecycle — Tauri's sidecar
+  API gives the child handle + an event stream; on unexpected `Terminated`, **respawn with backoff**
+  (e.g. 3× over a few seconds). Most transient crashes self-heal invisibly. Primary mechanism.
+- **Manual "Restart server" (desktop-only).** When auto-restart exhausts retries, drop into a
+  recovery panel (reuse the red status pill): `[Restart server] [View logs] [Reset data…]`.
+  "Restart" = webview `invoke('restart_backend')` → a `#[tauri::command]` that kills the child and
+  respawns → pill goes green. Hidden/disabled in browser/CLI builds (the UI can't restart a process
+  it didn't spawn). Nuclear option: Tauri `app.restart()` relaunches the whole shell.
+- **Reset vs restart.** Restart bounces the process (crashes/hangs); **Reset** wipes/repairs *state*
+  for a corrupt or locked SQLite DB — delete/recreate the DB file, gated behind an **"Export first?"**
+  prompt (destructive). Depends on the **app-data-dir** item (the shell knows exactly where the DB
+  lives).
+- **Detection:** the status pill already gives reactive HTTP-reachability for free; the shell should
+  *also* listen to the sidecar **process-exit** event so it catches "crashed" faster than "requests
+  started failing."
+- **⚠️ No orphan processes:** on app quit/restart the shell **must kill the sidecar**, or a headless
+  `mocktail` leaks, holds the port, and makes the next launch fail. Classic sidecar footgun — test it.
+- **Prevention:** **free-port selection** kills the #1 startup failure (`:4000` already taken) and
+  feeds the pill's real port; pairs directly with recovery.
 
 ### Both, from one binary
 
@@ -170,28 +193,46 @@ Until then, Docker stays pointed at the old dir.
 Verified against the Go `Api` model and dashboard `src`. Functionally ~85% is already there —
 1a is mostly a reskin/relayout of existing capability. Genuinely new:
 
-**Needs backend (both additive, backward-compatible — `AutoMigrate` adds columns, existing
+**Needs backend (additive, backward-compatible — `AutoMigrate` adds a column, existing
 `apis.db` upgrades silently, no breaking change):**
-1. **Hit counts** — add `Hits int \`gorm:"default:0"\`` to the `Api` struct; increment
-   atomically in `MockApiHandler` (`db.Model(&api).UpdateColumn("hits", gorm.Expr("hits + 1"))`);
-   already returned by `GetApis`. Powers the `hits` column + status-pill counts. *Caveat:* a DB
-   write per mock request — fine for dev/testing; if load-tested, flush an in-memory counter
-   periodically instead of writing per-request.
-2. **Response headers** (not request headers) — add optional `Headers datatypes.JSON` (no
-   `validate:"required"`, nullable); apply via `c.Set(k, v)` before responding; let user headers
-   win over the default `Content-Type`. Flows through import/export automatically. *(Request-header
-   matching — conditional responses based on the caller's headers — is a separate, bigger feature,
-   NOT in 1a.)*
+- **Response headers** (not request headers) — add optional `Headers datatypes.JSON` (no
+  `validate:"required"`, nullable); apply before responding. Flows through import/export
+  automatically. *(Request-header matching — conditional responses based on the caller's headers —
+  is a separate, bigger feature, NOT in 1a.)*
+
+  **Implementation findings (verified against the code — it mirrors the shipped `Randomize`
+  column, so ~80% is a proven copy):**
+  - *Model:* the `Api` struct is **defined twice** — `mocktail/mocktail.go` **and** `core/core.go`.
+    Add `Headers datatypes.JSON` to **both**. `AutoMigrate` adds the column silently.
+  - *CRUD (all easy):* `CreateApi` picks it up via `BodyParser` for free; `UpdateApi` needs one
+    line to copy `existingApi.Headers` (like it copies `Randomize`); `ImportApis` needs
+    `Headers: importedApi.Headers` in `newApi` (the exact one-liner we just added for Randomize);
+    `GetApis` returns it automatically → **import/export work for free**.
+  - *⚠️ Content-Type gotcha (the one real subtlety):* `MockApiHandler` ends with
+    `c.Status(code).JSON(response)`, and Fiber's `.JSON()` **forces `Content-Type: application/json`**,
+    overwriting anything set via `c.Set`. To let a user's custom `Content-Type` win (the headline
+    use case — non-JSON / `application/problem+json`), set the headers, then if the user specified a
+    `Content-Type`, marshal the body yourself and `c.Send(body)` instead of `.JSON()`. Skip this and
+    the feature is half-broken.
+  - *Frontend:* add `headers` to `Mock`/`Draft`, map `a.Headers` in `toMock`, include in the
+    `saveMock` payload, wire `headers` state + dirty-check + baseline in `Editor.tsx`. The
+    `HeadersTab` is currently a stub — needs a real **add/remove key-value rows** editor (~60–80
+    lines, straightforward).
+  - *Effort:* ~half-day, low risk. Test that a custom `Content-Type` **and** a custom `X-*` header
+    both come back on a served mock.
+
+*(Hit counts — a per-mock request counter — was considered and **dropped**: not worth a DB write
+per request, and the counter UI added noise without real value.)*
 
 **Frontend-only (data already exists):**
 - Base-path tree (derived from `Endpoint`)
-- Command palette (`⌘K`)
 - Keyboard shortcuts (`↑↓ ↵ ⌘⏎ ⌘D ⌫ ⌘S ⌘N ⌘E`)
 - Dark theme + system/light/dark toggle (not implemented today)
-- Filter chips (Method / Status) + "Failing mocks only" saved filter
 - Inline randomized-field decorations in the editor (today randomize lives in a modal)
 - Right preview pane (send + response preview + segmented snippet control)
-- Server status pill (`/health` exists; needs UI + surfaced port)
+- Server status pill — ✅ **built** (`TopBar`, reactive off `connected={!error}`, no polling).
+  Only remaining: the `localhost:4000` label is **hardcoded** — surface the *actual* port once
+  **free-port selection** lands (the two are a pair). Fine as-is while the port is hardcoded `:4000`.
 - Duplicate mock (`⌘D`)
 
 **Already supported — just reskinned/reorganized (not gaps):** CRUD + methods + status +
@@ -199,8 +240,7 @@ delay + JSON body/validation · Randomize/Anonymize/AI faker (20+ types, fixed v
 live preview, apply-all) · snippets (cURL/Node/Python/Go) · import/export · test/send ·
 irregular-array support.
 
-Both backend items are deferrable — the redesign can ship with the hits column and Headers tab
-stubbed, then fill them in.
+The Headers tab is deferrable — the redesign can ship with it stubbed, then fill it in later.
 
 ---
 
@@ -214,8 +254,14 @@ a nullable `Randomize` column (additive/backward-compatible), generation applied
 save) with inline editor decorations (tinted line + `⟳ type` label).
 
 **Remaining randomize follow-ups:** array-multiply (`repeat N` items — high value for list
-endpoints, MCP only bakes static), enum/pick (weighted), Anonymize (paste real response → fake
-it, a one-shot edit-time transform), and full irregular-array field discovery.
+endpoints, MCP only bakes static), enum/pick (weighted), and full irregular-array field discovery.
+
+**Anonymize — not a separate feature.** Generation *is* anonymization: pick a generator for a
+field (frozen-once via the "Regenerate on every request" toggle = a baked fake) and you've
+replaced a real value with a safe fake. Rather than build a distinct whole-body scrub + auto-detect
++ backend endpoint, the Data tab now carries a short explainer that frames the existing generators
+as the anonymization path ("paste a real response and swap names/emails/IDs for safe fakes"). Good
+enough; revisit a one-click whole-body auto-detect only if users ask.
 
 **AI field generation — deferred, UI present but disabled.** The `✨ AI prompt` option shows in
 the generator dropdown (so the capability is discoverable) but is **disabled** until wired.
@@ -269,8 +315,8 @@ debugging client integrations without leaving the dashboard.
 **Backend:** builds on the existing logging foundation — the request-logging middleware in
 `main.go` and `GET /core/v1/logs` / `DELETE /core/v1/logs` (the old dashboard's Logs tab).
 For true "live", add a stream (SSE `GET /core/v1/logs/stream`, or WS) instead of polling; the
-middleware already sees every `/mocktail/*` request. Pairs naturally with the v4 **hit counts**
-(same request hook) and would capture the generated randomize output per request.
+middleware already sees every `/mocktail/*` request and would capture the generated randomize
+output per request.
 
 **Frontend:** a new top-level **Live** view (peer of the catalog), or a tab — a virtualized
 append-only list subscribed to the stream. Relates to the deleted backlog's *Request History* /
@@ -279,6 +325,19 @@ append-only list subscribed to the stream. Relates to the deleted backlog's *Req
 *Consideration:* streaming/retaining request bodies has memory/PII implications — cap the
 in-memory ring buffer and make retention/redaction configurable (env), consistent with the
 existing CORS/API-key config style.
+
+**Status — built so far:** the Live view exists with method/status/path/latency/timestamp rows
+(newest-first, `/mocktail`-only), pause/resume, clear, and a right-hand **response-body** detail
+pane. Now also: **filter bar** (multi-select method chips + 2xx/3xx/4xx/5xx status-class chips +
+a **searchable path dropdown** — exact paths seen *plus* auto-derived `/prefix/*` wildcards that
+group ≥2 paths, matched by prefix; AND across / OR within), a **300-item display cap** (pill shows
+`300+`), and **memoized rows** so each 1.5s poll only re-renders changed rows. Polling stops on close (view
+unmounts). **Remaining:** (1) true streaming (SSE/WS) to replace polling — *deferred; polling-while-
+open is acceptable*; (2) **request-side detail** — `LogEntry` captures nothing about the request
+(no headers / query / body); needs backend capture + UI; (3) **retention/redaction config** (PII) —
+pairs with #2; (4) narrow-width fallback for the detail pane (part of the responsiveness pass);
+(5) show served response headers once that feature lands. True list virtualization deferred — the
+300 cap + memoized rows suffice at this size.
 
 ---
 
@@ -299,14 +358,68 @@ no `Raw`/`Exec`), a single open site (`main.go`), and `datatypes.JSON` (→ `TEX
 (`core.go:99,149`) to `db.First(&api, id)` — works in PG via lowercasing but fragile. PK
 auto-increment + unique `Key` are portable.
 
-**Bonus — go CGO-free.** SQLite currently uses the **CGO** driver (Dockerfile installs
-`gcc`/`musl-dev`, `CGO_ENABLED=1`, static-link dance). Swapping to a pure-Go SQLite driver
-(`glebarez/sqlite`, drop-in) makes **both** drivers pure Go → `CGO_ENABLED=0`, simpler/smaller
-Docker build, and trivial **cross-compilation** — which directly helps the **desktop multi-arch**
-binaries. Pair "add Postgres" with "drop CGO."
+**Bonus — go CGO-free.** SQLite currently uses the **CGO** driver `mattn/go-sqlite3` (Dockerfile
+installs `gcc`/`musl-dev`, `CGO_ENABLED=1`, `-linkmode external` static-link dance). Swapping to a
+pure-Go SQLite driver makes **both** drivers pure Go → `CGO_ENABLED=0`.
+
+- **Driver choice:** prefer **`ncruces/go-sqlite3` + its first-party `gormlite` driver** (SQLite
+  compiled to WASM, run via the pure-Go `wazero` runtime; actively maintained, first-party GORM
+  support, behavior closest to upstream SQLite). Fallback: **`glebarez/sqlite`** (a thin GORM shim
+  over `modernc.org/sqlite`, which transpiles SQLite C → Go). Both are genuinely CGO-free; ncruces
+  has the better-maintained, single-owner engine+driver story.
+- **What it buys (be precise):** *not* a smaller image — the final stage is already `FROM scratch`,
+  and pure-Go SQLite is if anything slightly **larger** than the C. The wins are a **simpler,
+  faster, less fragile build** (drop the C toolchain install + static-link flags; no C compile
+  step) and — the real prize — **trivial cross-compilation**: every target becomes a plain
+  `GOOS=… GOARCH=… go build` from one machine, no per-OS C cross-toolchain. That's what unblocks
+  cheap **desktop/CLI multi-arch** binaries via GoReleaser.
+- Pair "add Postgres" with "drop CGO" (Postgres' driver is already pure Go, so SQLite is the only
+  thing forcing CGO).
 
 **Migration & ops:** SQLite→Postgres data move isn't automatic, but the built-in **export/import
 JSON** is the path. Add an optional `postgres` service to `docker-compose.yml`.
+
+---
+
+## Testing & CI
+
+**Current reality (verified):** the only Go test is `randomize/randomize_test.go`. There are **no
+tests for the HTTP handlers** (`core` CRUD/import, `MockApiHandler`) and **no UI tests**. The
+existing workflows (`docker-onpublish.yml`, `dockerize.yml`, `npm-publish.yml`, `npm-onpublish.yml`)
+are all **publish-triggered** — **nothing runs on push/PR**, so a broken build or handler can land
+on `master` unnoticed.
+
+### Backend API tests
+
+Table-driven handler tests using Fiber's `app.Test(httptest.NewRequest(...))` against an in-memory
+SQLite (`file::memory:?cache=shared`) so each test gets a clean DB with no fixtures on disk. Cover:
+- **`core` CRUD:** create → get → update → delete round-trips; `Key` uniqueness; endpoint
+  normalization (leading-slash strip); the two uppercase `db.Where("ID = ?")` queries.
+- **Import/export:** array vs `{ "Apis": [...] }` shapes; **existing paths skipped** (not
+  overwritten); `imported/skipped/failed` counts; `Randomize` (and, once added, `Headers`) survive
+  the round-trip.
+- **`MockApiHandler`:** status code default (200), `204/304` → no body, `404` for unknown key,
+  delay applied, per-request `Randomize` actually varies the output, and — once built — response
+  headers incl. the **custom `Content-Type` override**.
+- Keep `randomize` unit tests; add cases for array-index paths and the `once`/bake path.
+
+Aim for meaningful coverage of the request surface, not a % target. These also become the
+regression net for the v4 "non-breaking" guarantee (response shapes, import/export format).
+
+### CI on every push (the actual gap)
+
+Add a **`ci.yml`** GitHub Actions workflow triggered on `push` + `pull_request` (all branches):
+- **Backend job:** `setup-go` → `go vet ./...` → `go build ./...` → `go test ./...` (in
+  `mocktail-api`). Pairs naturally with **drop-CGO** — `CGO_ENABLED=0` makes the CI runner need no C
+  toolchain, so it's faster and simpler.
+- **Frontend job:** `setup-node` + yarn cache → `yarn install --frozen-lockfile` → typecheck →
+  `yarn build` (in `mocktail-ui`). (No UI unit tests yet; build + typecheck is the floor.)
+- Later: `golangci-lint` + `eslint`, and a UI test runner (**Vitest** — Vite-native) if/when
+  component tests are worth it.
+
+Sequencing: the CI job is cheap and high-leverage — it protects the whole v4 push. Worth adding
+**early** (even before all the tests exist) so build/typecheck regressions are caught immediately,
+then grow the test suite into it.
 
 ---
 
@@ -404,11 +517,19 @@ several panels simply disappear on smaller screens — that's the gap to close.
 
 Once these fallbacks exist and pass, the redesign is ship-ready for v4.
 
-**Editor interaction — known issue:** double-click to select a word in the JSON editor doesn't
-work. Almost certainly the field-select `mouseup` handler in `CodeEditor` (resolves the clicked
-field → opens the Data tab) interferes with CodeMirror's native word/line selection on the second
-click. Fix: ignore multi-click in the handler (`if (e.detail > 1) return`) or only fire field-select
-on a single click, so double/triple-click keep CM's word/line selection.
+**Editor interaction — ✅ fixed:** double-click to select a word in the JSON editor appeared
+broken. Debugging (console-logged the selection state) showed CM's **native** word-select wasn't
+firing in this setup *and* — the real kicker — even when selection was set correctly, it was
+**invisible**, so it looked like nothing happened. Two root causes, two fixes:
+1. Native word-select suppressed → select the word **explicitly** on `dblclick` via
+   `view.state.wordAt(pos)` + `dispatch({ selection })` + `focus()` in `CodeEditor`.
+2. The word *was* selected but the **opaque active-line background painted over the selection
+   layer** (which sits behind the content), hiding the highlight on the very line you clicked.
+   Fixed by making `.cm-activeLine` translucent (`color-mix … / transparent`) and bumping the
+   `.cm-selectionBackground` accent mix to ~70% so it's clearly visible.
+
+(The earlier deferred-timer / `e.detail` disambiguation theory was wrong — the field-select
+`mouseup` handler was never the cause; it was native-suppression + an invisible highlight.)
 
 ---
 
@@ -420,7 +541,13 @@ A marketing / docs landing page for Mocktail, served via **GitHub Pages** from t
   / `COPY ./mocktail-dashboard`, so a new top-level folder is never bundled.
 - **Option A:** static site in a `docs/` folder → Pages "deploy from branch."
 - **Option B:** `landing/` source + a Pages build workflow (fits the existing `.github/workflows/`).
-- Mind the project-page base path (`/mocktail/`) for absolute asset URLs, unless a custom domain is set.
+- **Domain:** **`getmocktail.com`** (chosen; register on Cloudflare/Porkbun ~$10–13/yr flat). Using a
+  custom domain serves at **root**, so the `/mocktail/` project-page base-path caveat goes away.
+  Tagline: **"Mock with Mocktail."** For a future hosted tier, tenant endpoints would live on
+  subdomains (`acme.getmocktail.com`) or a dedicated API domain (`mocktail.rest`) — Phase 2.
+- **⚠️ `#install` anchor is a contract:** the in-app Settings "update available" badge deep-links to
+  `getmocktail.com/#install` (`SITE_URL` in `SettingsModal.tsx`). The landing page **must** have an
+  `#install` section covering upgrade steps per install method (brew / Docker / desktop).
 
 ---
 

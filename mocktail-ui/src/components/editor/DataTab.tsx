@@ -39,11 +39,23 @@ export function DataTab({
       </div>
     )
   }
+
+  const intro = (
+    <div className="rounded-[8px] border border-border-subtle bg-surface-sunken px-3 py-2 text-[11.5px] leading-[1.55] text-muted">
+      Click a field in the editor, then choose a generator to replace its value with realistic fake
+      data — regenerated on every request, or frozen once. This doubles as{' '}
+      <span className="font-medium text-fg">anonymization</span>: paste a real response and swap
+      names, emails, IDs and the like for safe fakes.
+    </div>
+  )
+
   if (!selectedField) {
     return (
-      <div className="text-[12.5px] text-muted">
-        Click a field in the editor to set how it’s generated. Configured fields are highlighted;
-        values regenerate on every request unless you turn that off.
+      <div className="flex flex-col gap-3">
+        {intro}
+        <div className="text-[12.5px] text-muted">
+          No field selected yet — click one in the editor to configure it.
+        </div>
       </div>
     )
   }
@@ -94,6 +106,7 @@ export function DataTab({
 
   return (
     <div className="flex flex-col gap-3">
+      {intro}
       <div>
         <div className="text-[11px] uppercase tracking-[0.06em] text-muted">Field</div>
         <div className="font-mono text-[13px]">{indexLess}</div>

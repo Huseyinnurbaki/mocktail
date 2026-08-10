@@ -4,6 +4,57 @@ import { ACCENTS, type Accent, type Theme } from '../lib/theme'
 
 export type SettingsTab = 'theme' | 'import' | 'apikeys'
 
+const REPO = 'Huseyinnurbaki/mocktail'
+// Landing page. Update-available sends users here for install/upgrade docs, not the raw GitHub
+// release. The `#install` section is the contract — keep it on the landing page.
+const SITE_URL = 'https://getmocktail.com/#install'
+
+type ReleaseState = { status: 'checking' | 'latest' | 'outdated' | 'unknown'; latest?: string; url?: string }
+// Session cache — check GitHub at most once per app run (and never block anything on it).
+let releaseCache: ReleaseState | null = null
+
+function cmpVer(a: string, b: string): number {
+  const pa = a.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0)
+  const pb = b.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0)
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
+    if (d !== 0) return d
+  }
+  return 0
+}
+
+/** Checks GitHub's latest release once (on first Settings open) and compares to the running version. */
+function useLatestRelease(): ReleaseState {
+  const [state, setState] = useState<ReleaseState>(releaseCache ?? { status: 'checking' })
+  useEffect(() => {
+    if (releaseCache) return
+    let alive = true
+    fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: { tag_name?: string; html_url?: string }) => {
+        const tag = (d.tag_name ?? '').trim()
+        releaseCache = tag
+          ? {
+              status: cmpVer(tag, __APP_VERSION__) > 0 ? 'outdated' : 'latest',
+              latest: tag.replace(/^v/, ''),
+              url: d.html_url,
+            }
+          : { status: 'unknown' }
+        if (alive) setState(releaseCache)
+      })
+      .catch(() => {
+        releaseCache = { status: 'unknown' }
+        if (alive) setState(releaseCache)
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
+  return state
+}
+
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'theme', label: 'Theme' },
   { id: 'import', label: 'Import' },
@@ -28,6 +79,7 @@ export function SettingsModal({
   initialTab?: SettingsTab
 }) {
   const [tab, setTab] = useState<SettingsTab>(initialTab)
+  const release = useLatestRelease()
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -62,7 +114,66 @@ export function SettingsModal({
               {t.label}
             </button>
           ))}
-          <div className="mt-auto px-2 py-1 font-mono text-[11px] text-muted">v{__APP_VERSION__}</div>
+          <div className="mt-auto flex items-center gap-2 px-2 py-1">
+            <a
+              href="https://github.com/Huseyinnurbaki/mocktail"
+              target="_blank"
+              rel="noreferrer noopener"
+              title="View Mocktail on GitHub"
+              aria-label="View Mocktail on GitHub"
+              className="text-muted transition-colors hover:text-fg"
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.05-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.12-.31-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.18.77.84 1.24 1.91 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.82.58C20.56 22.29 24 17.79 24 12.5 24 5.87 18.63.5 12 .5Z" />
+              </svg>
+            </a>
+            <span className="font-mono text-[11px] text-muted">v{__APP_VERSION__}</span>
+            {release.status === 'outdated' ? (
+              <a
+                href={SITE_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                title={`Update available — v${release.latest}. Click for install & upgrade docs.`}
+                aria-label={`Update available: version ${release.latest}`}
+                className="ml-auto text-accent-text transition-colors hover:text-accent"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 16V8" />
+                  <path d="M8.5 11.5 12 8l3.5 3.5" />
+                </svg>
+              </a>
+            ) : release.status === 'latest' ? (
+              <span
+                title="Up to date — you’re on the latest version"
+                aria-label="Up to date"
+                className="ml-auto text-success"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m8.5 12 2.5 2.5 4.5-5" />
+                </svg>
+              </span>
+            ) : null}
+          </div>
         </div>
 
         {/* content */}

@@ -26,10 +26,14 @@ const theme = EditorView.theme({
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.85' },
   '.cm-content': { padding: '10px 0' },
   '.cm-gutters': { backgroundColor: 'var(--surface-sunken)', color: 'var(--text-muted)', border: 'none' },
-  '.cm-activeLine': { backgroundColor: 'var(--border-subtle)' },
-  '.cm-activeLineGutter': { backgroundColor: 'var(--border-subtle)' },
+  // Keep these translucent — an opaque active-line fill paints over the selection
+  // layer (which sits behind the content) and hides the highlighted word.
+  '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--border-subtle) 45%, transparent)' },
+  '.cm-activeLineGutter': { backgroundColor: 'color-mix(in srgb, var(--border-subtle) 45%, transparent)' },
   '.cm-cursor': { borderLeftColor: 'var(--accent)' },
-  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'var(--accent-tint)' },
+  '.cm-selectionLayer .cm-selectionBackground, &.cm-focused .cm-selectionLayer .cm-selectionBackground':
+    { backgroundColor: 'color-mix(in srgb, var(--accent) 70%, transparent)' },
+  '.cm-content ::selection': { backgroundColor: 'color-mix(in srgb, var(--accent) 70%, transparent)' },
   // Randomized-field decorations
   '.cm-rand-line': { backgroundColor: 'var(--accent-tint)' },
   '.cm-rand-label': { color: 'var(--accent-text)', fontStyle: 'italic', opacity: '0.9' },
@@ -192,9 +196,22 @@ export function CodeEditor({
       }),
       EditorView.domEventHandlers({
         mouseup(e, v) {
+          if (e.detail > 1) return false // word/line selection — handled below
           const pos = v.posAtCoords({ x: e.clientX, y: e.clientY })
           if (pos != null) onSelectFieldRef.current?.(pathAtClick(v.state, pos))
           return false
+        },
+        // Explicitly select the word on double-click (don't rely on native
+        // word-select, which something in this setup was suppressing).
+        // Native word-select is being suppressed in this setup, so select the
+        // word explicitly on double-click via CM's own API.
+        dblclick(e, v) {
+          const pos = v.posAtCoords({ x: e.clientX, y: e.clientY })
+          const word = pos != null ? v.state.wordAt(pos) : null
+          if (!word) return false
+          v.dispatch({ selection: { anchor: word.from, head: word.to } })
+          v.focus()
+          return true
         },
       }),
     ]
