@@ -3,6 +3,7 @@ import { matchesGroup, mockToDraft, newDraft, type Draft, type Mock } from './li
 import { useMocks } from './lib/useMocks'
 import { useTheme } from './lib/theme'
 import { deleteMock, saveMock } from './lib/api'
+import { downloadMocks } from './lib/export'
 import { useResizable } from './hooks/useResizable'
 import { useSend } from './hooks/useSend'
 import { useCatalogShortcuts } from './hooks/useCatalogShortcuts'
@@ -19,7 +20,7 @@ const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(naviga
 const MOD = IS_MAC ? '⌘' : 'Ctrl'
 
 export default function App() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, accent, setAccent } = useTheme()
   const { mocks, loading, error, reload } = useMocks()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
@@ -168,6 +169,28 @@ export default function App() {
             <kbd className="shrink-0 rounded-[4px] border border-border px-[4px] py-[1px] font-mono text-[10px] text-muted">
               {MOD}F
             </kbd>
+            <button
+              onClick={() => downloadMocks(rows)}
+              disabled={rows.length === 0}
+              title={`Export ${rows.length} mock${rows.length === 1 ? '' : 's'}${query.trim() ? ' matching search' : ''} as JSON`}
+              aria-label="Export mocks"
+              className="shrink-0 text-muted hover:text-fg disabled:opacity-40"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto">
@@ -240,6 +263,8 @@ export default function App() {
           initialTab={settingsTab}
           theme={theme}
           setTheme={setTheme}
+          accent={accent}
+          setAccent={setAccent}
           onImported={reload}
           onClose={() => setSettingsTab(null)}
         />

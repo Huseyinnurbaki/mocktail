@@ -20,7 +20,11 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'How do I import mocks?',
-    a: 'Settings → Import: paste an exported JSON array (or { "Apis": [...] }) or choose a file. Existing paths are skipped.',
+    a: 'Settings → Import: paste an exported JSON array (or { "Apis": [...] }) or choose a file. Existing paths are skipped, not overwritten.',
+  },
+  {
+    q: 'How do I export mocks?',
+    a: 'Click the download icon next to the ⌘F search in the catalog header — it saves the listed mocks as a timestamped JSON file. If a search or group filter is active, only those are exported (hover the icon for the count). The file re-imports via Settings → Import.',
   },
   {
     q: 'How do I protect my mocks with a key?',

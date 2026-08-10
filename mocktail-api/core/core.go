@@ -196,6 +196,7 @@ func ImportApis(c *fiber.Ctx) error {
 			StatusCode: statusCode,
 			Delay:      delay,
 			Response:   importedApi.Response,
+			Randomize:  importedApi.Randomize,
 		}
 
 		// Try to insert
