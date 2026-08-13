@@ -1,4 +1,4 @@
-import type { Draft, Method, Mock, RandomizeConfig } from './mocks'
+import type { Draft, HeadersConfig, Method, Mock, RandomizeConfig } from './mocks'
 
 /** Backend record shape from `GET /core/v1/apis` (see mocktail-api/core/core.go). */
 interface ApiRecord {
@@ -10,6 +10,7 @@ interface ApiRecord {
   Delay: number
   Response: unknown
   Randomize?: RandomizeConfig | null
+  Headers?: HeadersConfig | null
 }
 
 const METHODS: Method[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
@@ -31,6 +32,7 @@ function toMock(a: ApiRecord): Mock {
     delayMs: a.Delay || 0,
     body: JSON.stringify(a.Response ?? {}, null, 2),
     randomize: a.Randomize ?? {},
+    headers: a.Headers ?? {},
   }
 }
 
@@ -48,6 +50,7 @@ interface SavePayload {
   Delay: number
   Response: unknown
   Randomize: RandomizeConfig | null
+  Headers: HeadersConfig | null
 }
 
 export async function deleteMock(id: number): Promise<void> {
@@ -163,6 +166,12 @@ export async function saveMock(d: Draft): Promise<number> {
   let response: unknown = JSON.parse(d.body.trim() || '{}')
   if (Object.keys(once).length > 0) response = await bakeOnce(response, once)
 
+  // Drop blank header rows before saving.
+  const headers: HeadersConfig = {}
+  for (const [k, v] of Object.entries(d.headers ?? {})) {
+    if (k.trim()) headers[k.trim()] = v
+  }
+
   const payload: SavePayload = {
     Endpoint: d.path,
     Method: d.method,
@@ -170,6 +179,7 @@ export async function saveMock(d: Draft): Promise<number> {
     Delay: d.delayMs,
     Response: response,
     Randomize: Object.keys(perRequest).length > 0 ? perRequest : null,
+    Headers: Object.keys(headers).length > 0 ? headers : null,
   }
 
   const isNew = d.id === null

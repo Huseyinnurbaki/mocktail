@@ -18,6 +18,7 @@ export function downloadMocks(mocks: Mock[]) {
         Response: response,
       }
       if (Object.keys(m.randomize).length > 0) api.Randomize = m.randomize
+      if (Object.keys(m.headers).length > 0) api.Headers = m.headers
       return api
     }),
   }

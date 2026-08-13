@@ -202,14 +202,17 @@ Verified against the Go `Api` model and dashboard `src`. Functionally ~85% is al
 
 **Needs backend (additive, backward-compatible — `AutoMigrate` adds a column, existing
 `apis.db` upgrades silently, no breaking change):**
-- **Response headers** (not request headers) — **backend ✅ DONE**, UI pending. Added
+- **Response headers** (not request headers) — ✅ **DONE end-to-end** (backend + tests + UI). Added
   `Headers datatypes.JSON` to both `Api` structs; `UpdateApi`/`ImportApis` carry it; `MockApiHandler`
   applies each via `c.Set(k,v)` and, when the user sets a custom **`Content-Type`**, marshals + uses
   `c.Send()` so Fiber's `.JSON()` doesn't overwrite it (headers also apply to `204`/`304`). Flows
   through import/export automatically. **4 tests green**: import keeps Headers, update sets Headers,
-  custom `X-*` header returned (default CT stays JSON), custom `Content-Type` wins. **Remaining:**
-  the Headers-tab KV-rows UI + frontend plumbing (`headers` on `Mock`/`Draft`, `toMock`, `saveMock`,
-  Editor state/dirty/baseline). *(Request-header matching is a separate, bigger feature, NOT in 1a.)*
+  custom `X-*` header returned (default CT stays JSON), custom `Content-Type` wins. **UI ✅:**
+  `headers` on `Mock`/`Draft`, threaded through `toMock`/`saveMock`/`export` and Editor
+  state/dirty/baseline; the **HeadersTab** is a real add/remove key-value editor (common-header
+  datalist, blank rows dropped on save). Verified live: create-with-headers → served response
+  carries `X-Total-Count` and a custom `Content-Type`. *(Request-header matching is a separate,
+  bigger feature, NOT in 1a.)*
 
   **Implementation findings (verified against the code — it mirrors the shipped `Randomize`
   column, so ~80% is a proven copy):**

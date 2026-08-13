@@ -90,6 +90,7 @@ export default function App() {
         delayMs: mock.delayMs,
         body: mock.body,
         randomize: mock.randomize,
+        headers: mock.headers,
       })
       await reload()
     } catch {

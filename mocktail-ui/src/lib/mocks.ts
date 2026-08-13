@@ -54,6 +54,9 @@ export interface FieldSpec {
 /** Maps a dot-path (e.g. "users.email") to its generator. */
 export type RandomizeConfig = Record<string, FieldSpec>
 
+/** Custom response headers: header name → value. */
+export type HeadersConfig = Record<string, string>
+
 /** Plain generator types the backend supports (special modes "fixed"/"ai" handled separately). */
 export const FAKER_TYPES = [
   'uuid', 'firstName', 'lastName', 'fullName', 'email', 'phone', 'username',
@@ -71,6 +74,7 @@ export interface Mock {
   /** Pretty-printed JSON response body. */
   body: string
   randomize: RandomizeConfig
+  headers: HeadersConfig
 }
 
 /** Editable form state for the endpoint editor. `id === null` means a new mock. */
@@ -82,10 +86,20 @@ export interface Draft {
   delayMs: number
   body: string
   randomize: RandomizeConfig
+  headers: HeadersConfig
 }
 
 export function newDraft(): Draft {
-  return { id: null, method: 'GET', path: '/', status: 200, delayMs: 0, body: '{\n  \n}', randomize: {} }
+  return {
+    id: null,
+    method: 'GET',
+    path: '/',
+    status: 200,
+    delayMs: 0,
+    body: '{\n  \n}',
+    randomize: {},
+    headers: {},
+  }
 }
 
 export function mockToDraft(m: Mock): Draft {
@@ -97,6 +111,7 @@ export function mockToDraft(m: Mock): Draft {
     delayMs: m.delayMs,
     body: m.body,
     randomize: m.randomize,
+    headers: m.headers,
   }
 }
 

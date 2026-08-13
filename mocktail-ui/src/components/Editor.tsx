@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { METHODS, type Draft, type Method, type RandomizeConfig } from '../lib/mocks'
+import { METHODS, type Draft, type HeadersConfig, type Method, type RandomizeConfig } from '../lib/mocks'
 import { saveMock, sendMock, type TestResult } from '../lib/api'
 import { METHOD_BADGE } from '../lib/methods'
 import { validateJson } from '../lib/json'
@@ -28,6 +28,7 @@ export default function Editor({
   const [delayMs, setDelayMs] = useState(initial.delayMs)
   const [body, setBody] = useState(initial.body)
   const [randomize, setRandomize] = useState<RandomizeConfig>(initial.randomize)
+  const [headers, setHeaders] = useState<HeadersConfig>(initial.headers)
   const [tab, setTab] = useState<Tab>('data')
   const [selectedField, setSelectedField] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -41,6 +42,7 @@ export default function Editor({
     delayMs: initial.delayMs,
     body: initial.body,
     randomize: initial.randomize,
+    headers: initial.headers,
   }))
 
   const jsonError = useMemo(() => validateJson(body), [body])
@@ -62,7 +64,8 @@ export default function Editor({
     status !== baseline.status ||
     delayMs !== baseline.delayMs ||
     body !== baseline.body ||
-    JSON.stringify(randomize) !== JSON.stringify(baseline.randomize)
+    JSON.stringify(randomize) !== JSON.stringify(baseline.randomize) ||
+    JSON.stringify(headers) !== JSON.stringify(baseline.headers)
   const canSave = !saving && !jsonError && path.trim().length > 1
 
   /** Save in place (POST if new, PUT if existing), refresh the catalog, keep the editor open. */
@@ -71,9 +74,9 @@ export default function Editor({
     setSaving(true)
     setSaveError(null)
     try {
-      const id = await saveMock({ id: currentId, method, path: path.trim(), status, delayMs, body, randomize })
+      const id = await saveMock({ id: currentId, method, path: path.trim(), status, delayMs, body, randomize, headers })
       setCurrentId(id)
-      setBaseline({ method, path: path.trim(), status, delayMs, body, randomize })
+      setBaseline({ method, path: path.trim(), status, delayMs, body, randomize, headers })
       onReload()
       return true
     } catch (e: unknown) {
@@ -266,7 +269,7 @@ export default function Editor({
                 selectedField={selectedField}
               />
             )}
-            {tab === 'headers' && <HeadersTab />}
+            {tab === 'headers' && <HeadersTab headers={headers} setHeaders={setHeaders} />}
             {tab === 'test' && (
               <TestTab isNew={currentId === null} method={method} path={path} onRun={runTest} />
             )}
