@@ -221,8 +221,12 @@ Verified against the Go `Api` model and dashboard `src`. Functionally ~85% is al
   `headers` on `Mock`/`Draft`, threaded through `toMock`/`saveMock`/`export` and Editor
   state/dirty/baseline; the **HeadersTab** is a real add/remove key-value editor (common-header
   datalist, blank rows dropped on save). Verified live: create-with-headers → served response
-  carries `X-Total-Count` and a custom `Content-Type`. *(Request-header matching is a separate,
-  bigger feature, NOT in 1a.)*
+  carries `X-Total-Count` and a custom `Content-Type`. Both the **Test tab** (via `sendMock`
+  `res.headers`) and the **Live page** now display the served response headers — the latter required
+  capturing them server-side: middleware `c.Response().Header.VisitAll` → `LogEntry.ResponseHeaders`
+  → `GetLast` (fixed a manual field-copy that silently dropped the new field; **added a logger test**
+  to guard it) → Live detail pane. *(Live's **request**-side detail — headers/query/body + redaction —
+  is still pending. Request-header **matching** is separate, NOT in 1a.)*
 
   **Implementation findings (verified against the code — it mirrors the shipped `Randomize`
   column, so ~80% is a proven copy):**
@@ -359,9 +363,9 @@ group ≥2 paths, matched by prefix; AND across / OR within), a **300-item displ
 unmounts). **Remaining:** (1) true streaming (SSE/WS) to replace polling — *deferred; polling-while-
 open is acceptable*; (2) **request-side detail** — `LogEntry` captures nothing about the request
 (no headers / query / body); needs backend capture + UI; (3) **retention/redaction config** (PII) —
-pairs with #2; (4) narrow-width fallback for the detail pane (part of the responsiveness pass);
-(5) show served response headers once that feature lands. True list virtualization deferred — the
-300 cap + memoized rows suffice at this size.
+pairs with #2; (4) narrow-width fallback for the detail pane (part of the responsiveness pass).
+✅ **Served response headers now shown** in the detail pane (`LogEntry.ResponseHeaders`). True list
+virtualization deferred — the 300 cap + memoized rows suffice at this size.
 
 ---
 

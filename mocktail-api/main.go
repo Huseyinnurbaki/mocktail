@@ -204,12 +204,19 @@ func main() {
 		method := string([]byte(c.Method()))
 		pathCopy := string([]byte(path))
 
+		// Capture the response headers actually served (custom Content-Type, X-*, etc.).
+		respHeaders := map[string]string{}
+		c.Response().Header.VisitAll(func(k, v []byte) {
+			respHeaders[string(k)] = string(v)
+		})
+
 		logger.LogRequest(
 			method,
 			pathCopy,
 			status,
 			duration.Round(time.Millisecond).String(),
 			responseBody,
+			respHeaders,
 		)
 
 		return err

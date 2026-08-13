@@ -67,6 +67,19 @@ export function TestTab({
               {copied ? 'Copied ✓' : 'Copy cURL'}
             </button>
           </div>
+          {result.headers.length > 0 && (
+            <div className="mb-2 rounded-[6px] border border-border-subtle bg-surface-sunken px-2 py-1.5">
+              <div className="mb-1 text-[10px] uppercase tracking-[0.06em] text-muted">Response headers</div>
+              <div className="flex max-h-[140px] flex-col gap-[2px] overflow-auto font-mono text-[11px]">
+                {result.headers.map(([k, v]) => (
+                  <div key={k} className="flex gap-2">
+                    <span className="shrink-0 text-muted">{k}:</span>
+                    <span className="min-w-0 break-all">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <ResponseView body={result.body} />
         </div>
       )}

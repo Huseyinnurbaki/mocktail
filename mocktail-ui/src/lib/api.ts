@@ -84,6 +84,7 @@ export interface LogEntry {
   status?: number
   duration?: string
   responseBody?: string
+  responseHeaders?: Record<string, string>
 }
 
 export async function fetchLogs(): Promise<LogEntry[]> {
@@ -142,14 +143,17 @@ export interface TestResult {
   status: number
   ms: number
   body: string
+  headers: [string, string][]
 }
 
-/** Fire the actual mock endpoint and capture status, elapsed time, and body. */
+/** Fire the actual mock endpoint and capture status, elapsed time, body, and response headers. */
 export async function sendMock(method: string, path: string): Promise<TestResult> {
   const t0 = performance.now()
   const res = await fetch('/mocktail' + path, { method })
   const body = await res.text()
-  return { status: res.status, ms: Math.round(performance.now() - t0), body }
+  const headers: [string, string][] = []
+  res.headers.forEach((v, k) => headers.push([k, v]))
+  return { status: res.status, ms: Math.round(performance.now() - t0), body, headers }
 }
 
 /** Saves a mock (POST if new, PUT if existing) and returns its id. */
