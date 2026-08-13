@@ -382,8 +382,8 @@ Your mock endpoints will work unchanged - only the internal database structure c
 # Run backend dev server
 make dev-api
 
-# Run dashboard dev server (in another terminal)
-make dev-dashboard
+# Run UI dev server (in another terminal)
+make dev-ui
 
 # Build everything
 make build
@@ -405,15 +405,15 @@ go run main.go
 > The backend reads `mocktail-api/.env` on startup (gitignored). `make dev-api` / `make run` already
 > point `MOCKTAIL_DB_PATH` at the in-repo `db/apis.db` so your local mocks persist there.
 
-**Dashboard:**
+**Dashboard UI:**
 
 ```console
-cd mocktail-dashboard
+cd mocktail-ui
 yarn install
-yarn start
+yarn dev
 ```
 
-Backend runs on **localhost:6625**, Dashboard on **localhost:3001**
+Backend runs on **localhost:6625**, UI dev server on **localhost:3001**
 
 VSCode debug configuration is included for Go debugging.
 

@@ -183,14 +183,17 @@ Repo layout:
 **Port-then-retire:** move stack-agnostic logic across (`fakerConfigs`, `applyRandomization`,
 `referenceDetection`, the faker/array-analysis hooks); throw away only the view layer.
 
-**Cutover** (one commit, when `mocktail-ui` hits parity):
-- [ ] Dockerfile `builder-dashboard`: `COPY ./mocktail-dashboard` → `./mocktail-ui`
-- [ ] Makefile dev/build targets
-- [ ] `.dockerignore` path
-- [ ] `readme.md` dev-setup references
-- [ ] `git rm -r mocktail-dashboard`
+**Cutover — ✅ DONE.**
+- [x] Dockerfile: `builder-dashboard` (CRA + `openssl-legacy-provider`) → **`builder-ui`** building
+      `mocktail-ui` (Vite → `./build`); final stage `COPY --from=builder-ui /src/build /build`.
+- [x] Makefile: `build-dashboard`/`dev-dashboard` → **`build-ui`/`dev-ui`** (`yarn dev`/`build` in
+      `mocktail-ui`); `build`, `.PHONY`, `clean` updated.
+- [x] `.dockerignore`: `mocktail-dashboard/*` → `mocktail-ui/{node_modules,build,.env*}`; also
+      excludes `mocktail-api/.env`.
+- [x] `readme.md` dev-setup references point at `mocktail-ui` / `yarn dev`.
+- [x] **`git rm -r mocktail-dashboard`** — the CRA/Chakra dashboard is retired.
 
-Until then, Docker stays pointed at the old dir.
+Docker now builds and serves the new Vite UI.
 
 ### Feature gaps vs. current app
 
@@ -555,7 +558,7 @@ firing in this setup *and* — the real kicker — even when selection was set c
 A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.
 
 - Excluded from the Docker image for free — the Dockerfile uses explicit `COPY ./mocktail-api`
-  / `COPY ./mocktail-dashboard`, so a new top-level folder is never bundled.
+  / `COPY ./mocktail-ui`, so a new top-level folder is never bundled.
 - **Option A:** static site in a `docs/` folder → Pages "deploy from branch."
 - **Option B:** `landing/` source + a Pages build workflow (fits the existing `.github/workflows/`).
 - **Domain:** **`getmocktail.com`** (chosen; register on Cloudflare/Porkbun ~$10–13/yr flat). Using a
