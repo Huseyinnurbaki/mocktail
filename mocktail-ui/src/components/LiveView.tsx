@@ -441,7 +441,7 @@ export function LiveView({ onClose }: { onClose: () => void }) {
         <div className="border-b border-border bg-del-bg px-4 py-2 text-[12.5px] text-del-fg">{error}</div>
       )}
 
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
         {/* list */}
         <div className="min-h-0 min-w-0 flex-1 overflow-auto">
           {shown.length === 0 ? (
@@ -479,10 +479,20 @@ export function LiveView({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* detail */}
-        <aside className="hidden w-[42%] min-w-[320px] max-w-[560px] shrink-0 flex-col border-l border-border lg:flex">
+        <aside
+          className={`${
+            selected ? 'flex' : 'hidden'
+          } absolute inset-0 z-30 flex-col border-l border-border bg-bg lg:static lg:z-auto lg:flex lg:w-[42%] lg:min-w-[320px] lg:max-w-[560px] lg:shrink-0`}
+        >
           {selected ? (
             <>
               <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+                <button
+                  onClick={() => setSelectedI(null)}
+                  className="shrink-0 text-[13px] text-muted hover:text-fg lg:hidden"
+                >
+                  ←
+                </button>
                 <MethodBadge method={selected.method} />
                 <StatusBadge status={selected.status} />
                 <span className="min-w-0 flex-1 truncate font-mono text-[13px]">

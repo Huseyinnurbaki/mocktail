@@ -538,15 +538,23 @@ The redesign was built desktop-first; before shipping v4, do a responsive pass a
 breakpoints. Current state uses hard `lg:`/`xl:` show-hide with **no narrow-width fallbacks**, so
 several panels simply disappear on smaller screens — that's the gap to close.
 
-**Known gaps (build the fallbacks):**
-- **Left tree** is `hidden lg:flex` → below `lg` it vanishes with no way back. 1a wants it to become
-  an **overlay drawer** (hamburger in the top bar) at 780–1100px.
-- **Right panel** (Preview/Assistant) is `hidden xl:flex` → gone below `xl` with no fallback. 1a hides
-  the preview 1100–1280, but the **Assistant** still needs a route in (a tab/toggle) on narrow.
-- **Editor side panel** (Data/Headers/Test) is `hidden lg:flex` → **disappears below `lg`**, so
-  randomize/test are unreachable on small screens. 1a wants it as a **bottom sheet** < 1100px, and
-  tabs stacked above the editor < 780px.
-- **Live view** detail is `hidden lg:flex` — same "no fallback" issue.
+**Reachability fixes — ✅ done (needs visual QA at each breakpoint):**
+- **Left tree** → ✅ now a **slide-in drawer** below `lg`, toggled by a hamburger in the top bar
+  (`lg:hidden`), with a backdrop; selecting a group closes it. Static sidebar on `lg+`.
+- **Editor side panel** (Data/Headers/Test) → ✅ **reflows to stack below the body** (`flex-col`,
+  ~45% height, own scroll) below `lg` instead of vanishing — randomize/headers/test stay reachable.
+  (Pragmatic reflow, not the full 1a bottom-sheet, but reachable.)
+- **Live view** detail → ✅ becomes a **full overlay** (with a `←` back button) when a row is
+  selected below `lg`; static side pane on `lg+`.
+- **Right panel** (Preview/Assistant) → ✅ now **narrows then hides**: `width: clamp(260px, 40vw,
+  draggedWidth)` — the dragged width on wide screens, tracking `40vw` as the window narrows (so the
+  `flex-1` list always keeps ~60vw and can't collapse), floored at 260px, hidden below `md` (768px).
+  (First attempt with `flexBasis`+shrink was wrong — the `flex-1` list collapsed first.) The
+  **Assistant** (a stub) still has no narrow route — acceptable for v4.
+
+**Still to verify (visual, at each width — I can't eyeball breakpoints headless):** no horizontal
+scroll anywhere; the editor request bar wraps cleanly; drawer/overlay z-index + backdrop feel right;
+touch targets ≥ ~40px; both themes.
 
 **Verify across widths (≥1280 · 1100–1280 · 780–1100 · <780):**
 - [ ] No horizontal scrolling at any width (per 1a — hits/delay columns drop first).

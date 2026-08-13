@@ -211,9 +211,9 @@ export default function Editor({
         </div>
       )}
 
-      {/* body + side panel */}
-      <div className="flex min-h-0 flex-1">
-        <section className="flex min-w-0 flex-1 flex-col border-r border-border">
+      {/* body + side panel (stacks below the body on narrow so Data/Headers/Test stay reachable) */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col border-border lg:border-r">
           <div className="flex items-center gap-3 border-b border-border px-4 py-2">
             <span className="text-[13px] font-semibold">Response body</span>
             <span className={`font-mono text-[11.5px] ${jsonError ? 'text-error' : 'text-muted'}`}>
@@ -246,7 +246,7 @@ export default function Editor({
           </div>
         </section>
 
-        <aside className="hidden w-[400px] shrink-0 flex-col lg:flex">
+        <aside className="flex w-full shrink-0 basis-[45%] flex-col overflow-hidden border-t border-border lg:w-[400px] lg:basis-auto lg:border-t-0">
           <div className="flex shrink-0 border-b border-border">
             {TABS.map((t) => (
               <button

@@ -32,6 +32,7 @@ export default function App() {
   const [rightTab, setRightTab] = useState<RightTab>('preview')
   const [query, setQuery] = useState('')
   const [port, setPort] = useState<number | null>(null)
+  const [treeOpen, setTreeOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   // Read the backend's actual listen port for the status pill (once, when reachable).
@@ -133,15 +134,26 @@ export default function App() {
         port={port ?? undefined}
         onOpenLive={() => setLiveOpen(true)}
         onNew={() => setEditing(newDraft())}
+        onToggleTree={() => setTreeOpen((v) => !v)}
       />
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
+        {treeOpen && (
+          <div
+            onClick={() => setTreeOpen(false)}
+            className="absolute inset-0 z-10 bg-black/30 lg:hidden"
+          />
+        )}
         <LeftTree
           mocks={mocks}
           selectedKey={selectedGroup}
-          onSelect={setSelectedGroup}
+          onSelect={(k) => {
+            setSelectedGroup(k)
+            setTreeOpen(false)
+          }}
           collapsed={collapsed}
           onToggle={toggleGroup}
           onOpenSettings={setSettingsTab}
+          open={treeOpen}
         />
 
         <main className="flex min-w-0 flex-1 flex-col">
@@ -253,7 +265,7 @@ export default function App() {
         <div
           onMouseDown={startResize}
           title="Drag to resize"
-          className="hidden w-[5px] shrink-0 cursor-col-resize hover:bg-accent/50 xl:block"
+          className="hidden w-[5px] shrink-0 cursor-col-resize hover:bg-accent/50 md:block"
         />
         <RightPanel
           mock={selectedMock}

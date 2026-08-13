@@ -44,8 +44,10 @@ export function RightPanel({
 
   return (
     <aside
-      style={{ width }}
-      className="hidden shrink-0 flex-col overflow-hidden border-l border-border xl:flex"
+      // Use the dragged width on wide screens, but scale down with the viewport (never past 260px)
+      // so the list keeps ~60% instead of the panel resisting; hide only < md.
+      style={{ width: `clamp(260px, 40vw, ${width}px)` }}
+      className="hidden shrink-0 flex-col overflow-hidden border-l border-border md:flex"
     >
       <div className="flex shrink-0 border-b border-border">
         {tabBtn('preview', 'Preview')}

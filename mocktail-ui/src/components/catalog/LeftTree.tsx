@@ -9,6 +9,7 @@ export function LeftTree({
   collapsed,
   onToggle,
   onOpenSettings,
+  open = false,
 }: {
   mocks: Mock[]
   selectedKey: string | null
@@ -16,13 +17,19 @@ export function LeftTree({
   collapsed: Set<string>
   onToggle: (k: string) => void
   onOpenSettings: (tab: SettingsTab) => void
+  open?: boolean
 }) {
   const tree = useMemo(() => buildTree(mocks), [mocks])
   const row = 'flex w-full items-center justify-between rounded-[7px] px-2 py-[6px]'
   const sel = (active: boolean) => (active ? 'bg-accent-tint text-accent-text' : 'hover:bg-surface')
 
+  // Static sidebar on lg+; a slide-in drawer (toggled from the top bar) on narrow.
   return (
-    <nav className="hidden w-[236px] shrink-0 flex-col border-r border-border bg-surface-sunken lg:flex">
+    <nav
+      className={`${
+        open ? 'flex' : 'hidden'
+      } absolute inset-y-0 left-0 z-20 w-[236px] shrink-0 flex-col border-r border-border bg-surface-sunken lg:static lg:z-auto lg:flex`}
+    >
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-2">
         <button onClick={() => onSelect(null)} className={`${row} text-[13px] ${sel(selectedKey === null)}`}>
           <span>All mocks</span>
