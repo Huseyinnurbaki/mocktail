@@ -26,6 +26,10 @@ export function PreviewContent({
       </div>
     )
   }
+
+  // Before sending: the mock's configured custom headers. After sending: the actually-served headers.
+  const headerEntries: [string, string][] = result ? result.headers : Object.entries(mock.headers)
+
   return (
     <>
       <div className="flex gap-2 border-b border-border p-3">
@@ -56,6 +60,21 @@ export function PreviewContent({
             <span className="uppercase tracking-[0.06em] text-muted">Response body</span>
           )}
         </div>
+        {headerEntries.length > 0 && (
+          <div className="border-b border-border px-3 py-2">
+            <div className="mb-1 text-[10px] uppercase tracking-[0.06em] text-muted">
+              {result ? 'Response headers' : 'Custom headers'}
+            </div>
+            <div className="flex max-h-[110px] flex-col gap-[2px] overflow-auto font-mono text-[11px]">
+              {headerEntries.map(([k, v]) => (
+                <div key={k} className="flex gap-2">
+                  <span className="shrink-0 text-muted">{k}:</span>
+                  <span className="min-w-0 break-all">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="min-h-0 flex-1">
           <CodeEditor value={beautify(result ? result.body : mock.body)} onChange={() => {}} readOnly />
         </div>

@@ -221,8 +221,9 @@ Verified against the Go `Api` model and dashboard `src`. Functionally ~85% is al
   `headers` on `Mock`/`Draft`, threaded through `toMock`/`saveMock`/`export` and Editor
   state/dirty/baseline; the **HeadersTab** is a real add/remove key-value editor (common-header
   datalist, blank rows dropped on save). Verified live: create-with-headers → served response
-  carries `X-Total-Count` and a custom `Content-Type`. Both the **Test tab** (via `sendMock`
-  `res.headers`) and the **Live page** now display the served response headers — the latter required
+  carries `X-Total-Count` and a custom `Content-Type`. The **Test tab** (via `sendMock`
+  `res.headers`), the **Preview pane** (configured `mock.headers`, or served headers after a send),
+  and the **Live page** now display response headers — the latter required
   capturing them server-side: middleware `c.Response().Header.VisitAll` → `LogEntry.ResponseHeaders`
   → `GetLast` (fixed a manual field-copy that silently dropped the new field; **added a logger test**
   to guard it) → Live detail pane. *(Live's **request**-side detail — headers/query/body + redaction —
