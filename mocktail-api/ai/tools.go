@@ -47,8 +47,19 @@ func mockTools() []ToolSpec {
 	return []ToolSpec{
 		{
 			Name:        "list_mocks",
-			Description: "List all configured mock endpoints (id, method, path, status).",
+			Description: "List all configured mock endpoints (id, method, path, status). Use to discover what exists; it does not include response bodies.",
 			InputSchema: map[string]any{"type": "object", "properties": map[string]any{}},
+		},
+		{
+			Name:        "get_mock",
+			Description: "Read one mock's full definition — response body, status, headers, randomize — by id (from list_mocks) or by path. Use when the user asks what an endpoint returns or how it's configured.",
+			InputSchema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"id":   map[string]any{"type": "integer", "description": "mock id from list_mocks"},
+					"path": map[string]any{"type": "string", "description": "path like /api/users (matches any method on that path)"},
+				},
+			},
 		},
 		{
 			Name:        "create_mock",
@@ -101,11 +112,17 @@ func toolNote(name string, input json.RawMessage) string {
 		ID       int    `json:"id"`
 		Method   string `json:"method"`
 		Endpoint string `json:"endpoint"`
+		Path     string `json:"path"`
 	}
 	_ = json.Unmarshal(input, &a)
 	switch name {
 	case "list_mocks":
 		return "Listing mocks"
+	case "get_mock":
+		if a.ID != 0 {
+			return fmt.Sprintf("Reading #%d", a.ID)
+		}
+		return "Reading " + withSlash(a.Path)
 	case "create_mock":
 		return fmt.Sprintf("Creating %s %s", a.Method, withSlash(a.Endpoint))
 	case "update_mock":
@@ -125,6 +142,8 @@ func executeMockTool(name string, input json.RawMessage) (string, bool) {
 	switch name {
 	case "list_mocks":
 		return listMocks()
+	case "get_mock":
+		return getMock(input)
 	case "create_mock":
 		return createMock(input)
 	case "update_mock":
@@ -150,6 +169,47 @@ func listMocks() (string, bool) {
 	out := make([]row, 0, len(apis))
 	for _, a := range apis {
 		out = append(out, row{ID: a.ID, Method: a.Method, Path: withSlash(a.Endpoint), Status: a.StatusCode})
+	}
+	b, _ := json.Marshal(out)
+	return string(b), false
+}
+
+func getMock(input json.RawMessage) (string, bool) {
+	var args struct {
+		ID   uint   `json:"id"`
+		Path string `json:"path"`
+	}
+	if err := json.Unmarshal(input, &args); err != nil {
+		return "invalid arguments: " + err.Error(), true
+	}
+	var apis []core.Api
+	switch {
+	case args.ID != 0:
+		database.DBConn.Where("id = ?", args.ID).Find(&apis)
+	case args.Path != "":
+		database.DBConn.Where("endpoint = ?", strings.TrimLeft(args.Path, "/")).Find(&apis)
+	default:
+		return "provide an id or path", true
+	}
+	if len(apis) == 0 {
+		return "no matching mock", true
+	}
+	type detail struct {
+		ID        uint            `json:"id"`
+		Method    string          `json:"method"`
+		Path      string          `json:"path"`
+		Status    int             `json:"status"`
+		Delay     int             `json:"delay,omitempty"`
+		Response  json.RawMessage `json:"response"`
+		Randomize json.RawMessage `json:"randomize,omitempty"`
+		Headers   json.RawMessage `json:"headers,omitempty"`
+	}
+	out := make([]detail, 0, len(apis))
+	for _, a := range apis {
+		out = append(out, detail{
+			ID: a.ID, Method: a.Method, Path: withSlash(a.Endpoint), Status: a.StatusCode, Delay: a.Delay,
+			Response: json.RawMessage(a.Response), Randomize: json.RawMessage(a.Randomize), Headers: json.RawMessage(a.Headers),
+		})
 	}
 	b, _ := json.Marshal(out)
 	return string(b), false

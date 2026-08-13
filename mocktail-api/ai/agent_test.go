@@ -131,6 +131,18 @@ func TestExecuteMockToolCreateAndList(t *testing.T) {
 	if !strings.Contains(list, "/api/login") || !strings.Contains(list, "POST") {
 		t.Fatalf("list = %s, want the created mock", list)
 	}
+
+	// list_mocks is index-only; get_mock returns the body on demand.
+	if strings.Contains(list, "token") {
+		t.Fatalf("list_mocks should not include response bodies: %s", list)
+	}
+	got, isErr := executeMockTool("get_mock", json.RawMessage(`{"path":"/api/login"}`))
+	if isErr {
+		t.Fatalf("get_mock errored: %s", got)
+	}
+	if !strings.Contains(got, "token") || !strings.Contains(got, "\"status\":201") {
+		t.Fatalf("get_mock = %s, want the response body + status", got)
+	}
 }
 
 func TestCreateMockStoresRandomize(t *testing.T) {

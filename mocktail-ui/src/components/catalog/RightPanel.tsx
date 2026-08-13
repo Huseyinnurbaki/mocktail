@@ -16,10 +16,12 @@ export function RightPanel({
   busy,
   err,
   width,
+  port,
   tab,
   setTab,
   onOpenSettings,
   onMocksChanged,
+  configNonce,
 }: {
   mock: Mock | null
   onEdit: (m: Mock) => void
@@ -28,10 +30,12 @@ export function RightPanel({
   busy: boolean
   err: string | null
   width: number
+  port?: number
   tab: RightTab
   setTab: (t: RightTab) => void
   onOpenSettings: (t: SettingsTab) => void
   onMocksChanged: () => void
+  configNonce: number
 }) {
   const tabBtn = (id: RightTab, label: React.ReactNode) => (
     <button
@@ -60,11 +64,19 @@ export function RightPanel({
           </span>,
         )}
       </div>
-      {tab === 'preview' ? (
-        <PreviewContent mock={mock} onEdit={onEdit} onSend={onSend} result={result} busy={busy} err={err} />
-      ) : (
-        <AssistantPanel onOpenSettings={onOpenSettings} onMocksChanged={onMocksChanged} />
-      )}
+      {/* Both stay mounted (toggled with `hidden`) so an in-progress chat survives tab switches. */}
+      <div className={tab === 'preview' ? 'flex min-h-0 flex-1 flex-col' : 'hidden'}>
+        <PreviewContent mock={mock} onEdit={onEdit} onSend={onSend} result={result} busy={busy} err={err} port={port} />
+      </div>
+      <div className={tab === 'assistant' ? 'flex min-h-0 flex-1 flex-col' : 'hidden'}>
+        <AssistantPanel
+          onOpenSettings={onOpenSettings}
+          onMocksChanged={onMocksChanged}
+          active={tab === 'assistant'}
+          selectedMock={mock}
+          configNonce={configNonce}
+        />
+      </div>
     </aside>
   )
 }

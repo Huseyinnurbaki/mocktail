@@ -12,8 +12,9 @@ import {
   type ImportResult,
 } from '../lib/api'
 import { ACCENTS, type Accent, type Theme } from '../lib/theme'
+import { FaqAccordion } from './FaqAccordion'
 
-export type SettingsTab = 'theme' | 'import' | 'apikeys'
+export type SettingsTab = 'theme' | 'import' | 'apikeys' | 'help'
 
 const REPO = 'Huseyinnurbaki/mocktail'
 // Landing page. Update-available sends users here for install/upgrade docs, not the raw GitHub
@@ -70,6 +71,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'theme', label: 'Theme' },
   { id: 'import', label: 'Import' },
   { id: 'apikeys', label: 'API keys' },
+  { id: 'help', label: 'Help' },
 ]
 
 export function SettingsModal({
@@ -201,6 +203,7 @@ export function SettingsModal({
             )}
             {tab === 'import' && <ImportTab onImported={onImported} />}
             {tab === 'apikeys' && <ApiKeysTab />}
+            {tab === 'help' && <FaqAccordion />}
           </div>
         </div>
       </div>

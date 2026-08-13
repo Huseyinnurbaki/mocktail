@@ -184,17 +184,13 @@ func PostChat(c *fiber.Ctx) error {
 		maxTokens = maxTokensCeiling
 	}
 
-	// Give the assistant a read-only snapshot of the current mocks so it can reason about
-	// existing endpoints without a list_mocks round-trip.
-	system := SystemPrompt
-	if cat := catalogContext(); cat != "" {
-		system += "\n\n" + cat
-	}
+	// The mocks are NOT injected up front — the assistant reads them only when a question
+	// needs it, via the list_mocks / get_mock tools. Keeps every message cheap and private.
 
 	// Detach from the request context: SetBodyStreamWriter runs after this handler returns,
 	// so the upstream call gets its own context, cancelled when the client disconnects.
 	ctx, cancel := context.WithCancel(context.Background())
-	ch, err := p.Agent(ctx, key, body.Messages, ChatOptions{Model: model, MaxTokens: maxTokens, System: system}, mockTools(), executeMockTool)
+	ch, err := p.Agent(ctx, key, body.Messages, ChatOptions{Model: model, MaxTokens: maxTokens, System: SystemPrompt}, mockTools(), executeMockTool)
 	if err != nil {
 		cancel()
 		return c.Status(502).JSON(fiber.Map{"error": err.Error()})

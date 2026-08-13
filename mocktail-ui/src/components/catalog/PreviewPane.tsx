@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Mock } from '../../lib/mocks'
 import type { TestResult } from '../../lib/api'
 import { beautify, statusColor } from '../../lib/format'
@@ -11,6 +12,7 @@ export function PreviewContent({
   result,
   busy,
   err,
+  port,
 }: {
   mock: Mock | null
   onEdit: (m: Mock) => void
@@ -18,7 +20,10 @@ export function PreviewContent({
   result: TestResult | null
   busy: boolean
   err: string | null
+  port?: number
 }) {
+  const [copied, setCopied] = useState<'url' | 'body' | null>(null)
+
   if (!mock) {
     return (
       <div className="flex h-full items-center justify-center p-6 text-center text-[13px] text-muted">
@@ -29,6 +34,14 @@ export function PreviewContent({
 
   // Before sending: the mock's configured custom headers. After sending: the actually-served headers.
   const headerEntries: [string, string][] = result ? result.headers : Object.entries(mock.headers)
+  const mockUrl = `http://localhost:${port ?? 6625}/mocktail${mock.path}`
+  const responseBody = beautify(result ? result.body : mock.body)
+
+  const copy = (what: 'url' | 'body', text: string) => {
+    void navigator.clipboard?.writeText(text)
+    setCopied(what) // shows a ✓ + accent flash on the button briefly
+    setTimeout(() => setCopied((c) => (c === what ? null : c)), 1000)
+  }
 
   return (
     <>
@@ -50,7 +63,7 @@ export function PreviewContent({
 
       <div className="flex min-h-0 flex-1 flex-col">
         {err && <div className="border-b border-border bg-del-bg px-3 py-2 text-[12.5px] text-del-fg">{err}</div>}
-        <div className="border-b border-border px-3 py-2 font-mono text-[11.5px]">
+        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 font-mono text-[11.5px]">
           {result ? (
             <span className="flex items-center gap-2">
               <span className={`font-semibold ${statusColor(result.status)}`}>{result.status}</span>
@@ -59,6 +72,21 @@ export function PreviewContent({
           ) : (
             <span className="uppercase tracking-[0.06em] text-muted">Response body</span>
           )}
+          <div className="flex shrink-0 items-center gap-3">
+            <button
+              onClick={() => copy('url', mockUrl)}
+              title={mockUrl}
+              className={`text-[11px] transition-colors duration-150 ${copied === 'url' ? 'text-accent' : 'text-accent-text hover:text-accent'}`}
+            >
+              Copy URL<span className="inline-block w-[11px] text-center">{copied === 'url' ? '✓' : ''}</span>
+            </button>
+            <button
+              onClick={() => copy('body', responseBody)}
+              className={`text-[11px] transition-colors duration-150 ${copied === 'body' ? 'text-accent' : 'text-accent-text hover:text-accent'}`}
+            >
+              Copy Response<span className="inline-block w-[11px] text-center">{copied === 'body' ? '✓' : ''}</span>
+            </button>
+          </div>
         </div>
         {headerEntries.length > 0 && (
           <div className="border-b border-border px-3 py-2">
@@ -76,7 +104,7 @@ export function PreviewContent({
           </div>
         )}
         <div className="min-h-0 flex-1">
-          <CodeEditor value={beautify(result ? result.body : mock.body)} onChange={() => {}} readOnly />
+          <CodeEditor value={responseBody} onChange={() => {}} readOnly />
         </div>
       </div>
     </>

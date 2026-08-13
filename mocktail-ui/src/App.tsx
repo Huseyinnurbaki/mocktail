@@ -24,9 +24,18 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Draft | null>(null)
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
+  // Bumped when Settings closes, so the assistant re-reads AI config (a key may have changed).
+  const [aiConfigNonce, setAiConfigNonce] = useState(0)
   const [liveOpen, setLiveOpen] = useState(false)
   const [ctx, setCtx] = useState<{ x: number; y: number; mock: Mock } | null>(null)
-  const [rightTab, setRightTab] = useState<RightTab>('preview')
+  // Persist the right-panel tab so a refresh keeps you where you were.
+  const [rightTab, setRightTabState] = useState<RightTab>(
+    () => (localStorage.getItem('mocktail-right-tab') === 'assistant' ? 'assistant' : 'preview'),
+  )
+  const setRightTab = (t: RightTab) => {
+    setRightTabState(t)
+    localStorage.setItem('mocktail-right-tab', t)
+  }
   const [query, setQuery] = useState('')
   const [port, setPort] = useState<number | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -152,7 +161,6 @@ export default function App() {
         connected={!error}
         port={port ?? undefined}
         onOpenLive={() => setLiveOpen(true)}
-        onOpenSettings={() => setSettingsTab('theme')}
         onNew={() => setEditing(newDraft())}
       />
       <div className="relative flex min-h-0 flex-1">
@@ -265,7 +273,27 @@ export default function App() {
           </div>
 
           <div className="shrink-0 border-t border-border px-[18px] py-2 font-mono text-[11.5px] text-muted">
-            ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate · {MOD}E new · {MOD}L live · {MOD}O settings
+            ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate ·{' '}
+            <button
+              onClick={() => setEditing(newDraft())}
+              className="text-accent-text transition-colors hover:text-accent"
+            >
+              {MOD}E new
+            </button>{' '}
+            ·{' '}
+            <button
+              onClick={() => setLiveOpen(true)}
+              className="text-accent-text transition-colors hover:text-accent"
+            >
+              {MOD}L live
+            </button>{' '}
+            ·{' '}
+            <button
+              onClick={() => setSettingsTab('theme')}
+              className="text-accent-text transition-colors hover:text-accent"
+            >
+              {MOD}O settings
+            </button>
           </div>
         </main>
 
@@ -282,10 +310,12 @@ export default function App() {
           busy={sendBusy}
           err={sendErr}
           width={previewWidth}
+          port={port ?? undefined}
           tab={rightTab}
           setTab={setRightTab}
           onOpenSettings={setSettingsTab}
           onMocksChanged={reload}
+          configNonce={aiConfigNonce}
         />
       </div>
 
@@ -301,7 +331,10 @@ export default function App() {
           accent={accent}
           setAccent={setAccent}
           onImported={reload}
-          onClose={() => setSettingsTab(null)}
+          onClose={() => {
+            setSettingsTab(null)
+            setAiConfigNonce((n) => n + 1)
+          }}
         />
       )}
 
