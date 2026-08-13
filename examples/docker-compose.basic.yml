@@ -1,0 +1,12 @@
+# Minimal Mocktail — no auth, SQLite persisted to ./data
+# Run:  docker compose -f docker-compose.basic.yml up -d   →   http://localhost:6625
+services:
+  mocktail:
+    image: hhaluk/mocktail:latest
+    container_name: mocktail
+    ports:
+      - "6625:6625"
+    volumes:
+      # SQLite DB — the image pins MOCKTAIL_DB_PATH=/db/apis.db, so this persists it on the host.
+      - ./data:/db
+    restart: unless-stopped

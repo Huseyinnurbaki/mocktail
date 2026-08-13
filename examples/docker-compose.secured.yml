@@ -1,0 +1,34 @@
+# Mocktail with protected mock endpoints + tightened CORS.
+# Run:  docker compose -f docker-compose.secured.yml up -d   →   http://localhost:6625
+services:
+  mocktail:
+    image: hhaluk/mocktail:latest
+    container_name: mocktail
+    ports:
+      - "6625:6625"
+    volumes:
+      - ./data:/db
+    restart: unless-stopped
+    environment:
+      # ── Implemented ────────────────────────────────────────────────
+      # Protect served mocks: callers must send X-API-Key: <key> (or ?api_key=<key>).
+      # This is for the *app under test* / mock consumers — NOT the dashboard.
+      MOCKTAIL_API_KEY: "change-me-mock-consumer-key"
+
+      # CORS for the served mocks
+      MOCKTAIL_CORS_ORIGINS: "https://myapp.com,http://localhost:3000"
+      MOCKTAIL_CORS_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      MOCKTAIL_CORS_CREDENTIALS: "true"   # note: origins can't be "*" when credentials=true
+
+      # ── Planned (designed, NOT yet wired — see ../roadmap.md) ──────
+      # Auth on the management/core API (/core/v1/*). Separate from MOCKTAIL_API_KEY above.
+      #   unset = open · "<value>" = that key · "auto" = random per launch
+      # MOCKTAIL_ADMIN_KEY: "change-me-admin-key"
+
+      # Server-side AI provider (key never touches the frontend).
+      # MOCKTAIL_AI_PROVIDER: "anthropic"
+      # MOCKTAIL_AI_API_KEY: "sk-ant-..."
+      # MOCKTAIL_AI_MODEL: "claude-..."   # else the recommended model from the live list
+
+      # Postgres instead of SQLite.
+      # MOCKTAIL_DATABASE_URL: "postgres://user:pass@postgres:5432/mocktail?sslmode=disable"

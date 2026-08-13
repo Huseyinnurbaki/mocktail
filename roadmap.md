@@ -447,9 +447,8 @@ format). **Remaining:** cases for `Headers` once that lands; running the *same* 
 
 **`.github/workflows/ci.yml`** runs on `push` + `pull_request` (all branches), with
 `concurrency` cancel-in-progress:
-- **Backend job** (`mocktail-api`): `setup-go` (version from `go.mod`) → `go build ./...` →
-  `go vet ./...` → `go test ./...`. *(Still CGO — `ubuntu-latest` has gcc; **drop-CGO** will let the
-  runner skip the C toolchain and speed this up.)*
+- **Backend job** (`mocktail-api`): pins **`CGO_ENABLED=0`** (pure Go — no C toolchain needed) →
+  `setup-go` (version from `go.mod`) → `go build ./...` → `go vet ./...` → `go test ./...`.
 - **Frontend job** (`mocktail-ui`): `setup-node@20` + yarn cache → `yarn install --frozen-lockfile`
   → `yarn typecheck` (`tsc --noEmit`) → `yarn build`. (Build + typecheck is the floor; no UI unit
   tests yet.)
@@ -457,6 +456,34 @@ format). **Remaining:** cases for `Headers` once that lands; running the *same* 
 Both command sets verified locally green. **Later:** `golangci-lint` + `eslint`, and a UI test
 runner (**Vitest** — Vite-native) once the backend API tests (above) and any component tests are
 worth wiring in.
+
+### Integration tests — DB setup & startup (planned)
+
+The current handler tests inject a **pre-seeded in-memory DB** — they never exercise the real
+**setup/startup path** (`resolveDBPath` → `os.MkdirAll` → `gorm.Open` → `AutoMigrate` → routes →
+listen). Add integration tests that boot the real thing against a **temp on-disk DB** and assert the
+wiring, not just the handlers:
+
+- **DB path resolution** (`resolveDBPath`): `MOCKTAIL_DB_PATH` override wins; unset → OS app-data
+  dir; no-HOME → legacy `db/apis.db` fallback. (Currently only manual smoke tests.)
+- **`initDatabase`**: creates the parent dir, opens the file DB, `AutoMigrate(&Api{})` builds the
+  schema (assert the `apis` table + expected columns incl. `Randomize`, `Headers` exist).
+- **Persistence / reopen**: write a mock → close → reopen the same file → row survives with all
+  fields intact (the real "does the DB actually persist" check).
+- **Port resolution** (`bindListener`): fixed number binds it; `auto`/`0` picks a free port and
+  `/health` reports the actual `port`; a taken 6625 falls through to 6626+. (Automate the current
+  manual checks.)
+- **Full boot smoke**: start the server on an ephemeral port + temp DB via `net/http` (not just
+  `app.Test`) → `/health` ok, create-via-`/core/v1/api` → serve via `/mocktail/*` → response +
+  custom headers come back; static `/` serves `index.html`.
+- **Cross-dialect**: run the same integration suite against **Postgres** (Docker service in CI, gated
+  by `MOCKTAIL_TEST_DATABASE_URL`) once the driver-select lands — this is where `jsonb`/auto-increment/
+  constraint quirks surface (see the Database section).
+
+Shape: a Go build tag or `_test.go` that spins the server in-process with `t.TempDir()` for the DB;
+CI adds a `postgres:` service container for the cross-dialect run. Keep them separate from the fast
+unit tests (they touch disk/network) — e.g. `go test -run Integration` or a `//go:build integration`
+tag so the default `go test ./...` stays fast.
 
 ---
 
@@ -532,7 +559,76 @@ state. Already helping: CodeMirror is line-virtualized (big responses cheap); Li
 
 ---
 
-## Final responsiveness check (pre-ship)
+## AI providers, key storage & API auth (v4 design — no implementation until approved)
+
+The concrete, agreed design for wiring real AI (chat + generation). **Absolute rule: the API key is a
+backend secret; it never lives in or passes through the frontend as storage. All provider calls are
+server-side.** (Direct browser→provider calls are explicitly rejected — insecure.)
+
+### Provider abstraction (backend, pluggable)
+```go
+type Provider interface {
+    ListModels(ctx) ([]Model, error)       // powers the dynamic model dropdown
+    Chat(ctx, msgs, opts) (stream, error)  // streams tokens (SSE to the browser)
+}
+```
+A registry maps a provider id → impl. **Single active provider** at a time (set in Settings). Ship
+**Anthropic** first; OpenAI/Gemini later implement the same two methods — the frontend never changes.
+
+### Models — fetched live, never hardcoded
+- Model dropdown is populated from **`GET /core/v1/ai/models`** (backend calls the active provider's
+  models endpoint — Anthropic `GET /v1/models`, etc.), **curated/filtered server-side** to current-gen
+  chat models, newest-first, with a **recommended** default (a cheap/fast one for the assistant).
+- **Fallback:** if the call fails (no/invalid key, offline), a **small hardcoded default list**, clearly
+  labeled — the only place a model id is written down, and just a safety net.
+- Entering the key + fetching models is one call → doubles as **key validation**. New provider models
+  appear automatically; nothing goes stale.
+
+### Provider key storage (backend-only, per surface)
+| Surface | Where the key lives | At rest |
+|---|---|---|
+| **Container/Docker** | **env** `MOCKTAIL_AI_API_KEY` (operator-set; app never writes it) | managed by orchestrator/secrets-manager |
+| **Desktop / CLI** | **OS keychain** via Go `zalando/go-keyring` (macOS Keychain / Windows Credential Manager / Linux Secret Service) | ✅ OS-encrypted + access-controlled |
+| **Headless Linux (no Secret Service)** | `0600` file in app-data dir, or env | perms-protected plaintext, **documented** (no false-security custom crypto) |
+
+- **Frontend contract — never returns the raw key:**
+  `GET /core/v1/ai/config` → `{configured, source:"env"|"stored"|"none", provider, model, keyHint:"sk-…a1b2"}`;
+  `POST /core/v1/ai/config` (key goes in, never comes back); `DELETE` clears it.
+- **`env` wins and makes the Settings key field read-only** ("Managed via `MOCKTAIL_AI_API_KEY`").
+- **Localhost-only key entry:** the "set key" UI is enabled **only when the request is loopback**
+  (desktop/local). A remotely-accessed instance forces the env path — no key ever crosses a network
+  from a browser.
+
+### Core-API admin auth (`MOCKTAIL_ADMIN_KEY`) — separate from `MOCKTAIL_API_KEY`
+`/core/v1/*` is currently **open**; AI is the first thing behind it with a real cost (credits). Gate it.
+`MOCKTAIL_API_KEY` stays for *mock consumers*; `MOCKTAIL_ADMIN_KEY` is for the *dashboard/management*.
+Tri-state, mirroring `MOCKTAIL_PORT`:
+- **unset** → auth **off** (open; default, backward-compatible)
+- **`=<value>`** → auth **on** with that key (containers)
+- **`=auto`** → auth **on**, backend **generates a random key** at startup (`crypto/rand`, ephemeral per
+  launch — no storage needed)
+
+Middleware guards the `coreApi` group; **`/` (static) and `/health` stay open** so the app loads and the
+pill polls. How the dashboard obtains the key:
+- **Desktop (with shell):** shell injects the key into the webview → transparent.
+- **CLI / local (no shell needed):** backend prints a ready URL `http://localhost:6625/#admin_key=<token>`;
+  the dashboard reads it from the **URL fragment** (`#` — never sent to the server or logged), moves it to
+  `sessionStorage`, clears the fragment. (Jupyter token model.)
+- **Container:** prefer an **explicit** `MOCKTAIL_ADMIN_KEY=value` (stable across restarts vs. log-scraping).
+
+### Chat + must-dos
+- **Chat is ephemeral** — React state (+ optional `sessionStorage`), **never the DB**; bounded ring
+  buffer + virtualized transcript (see perf notes above). Streaming via **SSE** (provider → backend →
+  browser).
+- **Never log the key**; exclude `/core/v1/ai/*` from the request-log buffer (like other core paths).
+
+### Scope / sequencing
+- Provider layer + Anthropic (`ListModels` + streaming `Chat`), `POST /core/v1/ai/chat` (SSE) +
+  `GET /core/v1/ai/models`; Settings API-keys tab (provider/key/model + live fetch + validation); wire the
+  AssistantPanel chat input.
+- **Admin auth via env works in v4 now**; the **desktop auto-key inject** lands with the Tauri shell
+  (until then, `auto` surfaces via the CLI URL-fragment print).
+- Example env/compose per scenario → see `examples/`.
 
 The redesign was built desktop-first; before shipping v4, do a responsive pass against the 1a
 breakpoints. Current state uses hard `lg:`/`xl:` show-hide with **no narrow-width fallbacks**, so
