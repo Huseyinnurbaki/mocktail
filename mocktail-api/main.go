@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"mocktail-api/core"
 	"mocktail-api/database"
@@ -114,21 +115,36 @@ func initDatabase() {
 // boundPort is the TCP port the server actually listens on (resolved at startup, reported by /health).
 var boundPort int
 
-// listenAddr resolves the bind address from the environment: MOCKTAIL_PORT wins, then the
-// platform-standard PORT, else 4000. A value of "0" or "auto" lets the OS pick a free port —
-// used by the desktop app to avoid clashing with a Docker instance already on :4000.
-func listenAddr() string {
+// autoPortBase is Mocktail's signature default port. Common ports (3000/4000/8080) are often
+// already taken on a dev machine, so Mocktail uses a quiet one — 6625 spells "MOCK" on a phone
+// keypad (M-O-C-K) and sits well clear of the busy ranges.
+const autoPortBase = 6625
+
+// bindListener opens the TCP listener based on MOCKTAIL_PORT (then the platform-standard PORT):
+//   - a number → that exact port (fails if busy — an explicit request)
+//   - unset    → 6625 (the default; Docker maps 6625:6625)
+//   - "auto"/0 → prefer 6625, scan the next 10, else any OS-assigned free port. For the desktop
+//     app, which has no terminal to resolve a port clash.
+func bindListener() (net.Listener, error) {
 	p := os.Getenv("MOCKTAIL_PORT")
 	if p == "" {
 		p = os.Getenv("PORT")
 	}
-	if p == "" {
-		p = "4000"
+
+	switch {
+	case p == "":
+		return net.Listen("tcp", fmt.Sprintf(":%d", autoPortBase))
+	case !strings.EqualFold(p, "auto") && p != "0":
+		return net.Listen("tcp", ":"+p)
 	}
-	if strings.EqualFold(p, "auto") {
-		p = "0"
+
+	// auto: try the quiet range first, then fall back to an OS-assigned free port.
+	for i := 0; i < 10; i++ {
+		if ln, err := net.Listen("tcp", fmt.Sprintf(":%d", autoPortBase+i)); err == nil {
+			return ln, nil
+		}
 	}
-	return ":" + p
+	return net.Listen("tcp", ":0")
 }
 
 func main() {
@@ -218,10 +234,9 @@ func main() {
 
 	setupRoutes(app)
 
-	addr := listenAddr()
-	ln, err := net.Listen("tcp", addr)
+	ln, err := bindListener()
 	if err != nil {
-		log.Fatalf("Failed to bind %s: %v", addr, err)
+		log.Fatalf("Failed to bind a port: %v", err)
 	}
 	boundPort = ln.Addr().(*net.TCPAddr).Port
 	logger.Log("Mocktail listening on http://localhost:%d", boundPort)

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { matchesGroup, mockToDraft, newDraft, type Draft, type Mock } from './lib/mocks'
 import { useMocks } from './lib/useMocks'
 import { useTheme } from './lib/theme'
-import { deleteMock, saveMock } from './lib/api'
+import { deleteMock, fetchHealth, saveMock } from './lib/api'
 import { downloadMocks } from './lib/export'
 import { useResizable } from './hooks/useResizable'
 import { useSend } from './hooks/useSend'
@@ -31,7 +31,16 @@ export default function App() {
   const [ctx, setCtx] = useState<{ x: number; y: number; mock: Mock } | null>(null)
   const [rightTab, setRightTab] = useState<RightTab>('preview')
   const [query, setQuery] = useState('')
+  const [port, setPort] = useState<number | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  // Read the backend's actual listen port for the status pill (once, when reachable).
+  useEffect(() => {
+    if (error || port !== null) return
+    fetchHealth()
+      .then((h) => h.port && setPort(h.port))
+      .catch(() => {})
+  }, [error, port])
   const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 340, 260, 720)
   const { result: sendResult, busy: sendBusy, err: sendErr, run } = useSend(selectedId)
 
@@ -118,7 +127,12 @@ export default function App() {
 
   return (
     <div className="relative flex h-full flex-col bg-bg text-fg">
-      <TopBar connected={!error} onOpenLive={() => setLiveOpen(true)} onNew={() => setEditing(newDraft())} />
+      <TopBar
+        connected={!error}
+        port={port ?? undefined}
+        onOpenLive={() => setLiveOpen(true)}
+        onNew={() => setEditing(newDraft())}
+      />
       <div className="flex min-h-0 flex-1">
         <LeftTree
           mocks={mocks}

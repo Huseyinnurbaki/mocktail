@@ -2,10 +2,12 @@ import { Mark } from '../Mark'
 
 export function TopBar({
   connected,
+  port,
   onOpenLive,
   onNew,
 }: {
   connected: boolean
+  port?: number
   onOpenLive: () => void
   onNew: () => void
 }) {
@@ -23,7 +25,7 @@ export function TopBar({
         }`}
       >
         <span className={`h-[6px] w-[6px] rounded-full ${connected ? 'bg-accent' : 'bg-error'}`} />
-        {connected ? 'running · localhost:4000' : 'stopped'}
+        {connected ? `running · localhost:${port ?? 6625}` : 'stopped'}
       </span>
 
       <button

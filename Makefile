@@ -21,7 +21,7 @@ build-docker: ## Build Docker image
 build: build-dashboard build-api ## Build both dashboard and API
 
 run: ## Run the API locally (requires built dashboard in mocktail-api/build)
-	@echo "Starting API server on :4000..."
+	@echo "Starting API server on :6625..."
 	cd mocktail-api && MOCKTAIL_DB_PATH=db/apis.db ./mocktail-api
 
 dev-dashboard: ## Run dashboard in development mode
@@ -29,7 +29,7 @@ dev-dashboard: ## Run dashboard in development mode
 	cd mocktail-dashboard && yarn start
 
 dev-api: ## Run API in development mode (debug with VSCode or go run)
-	@echo "Starting API dev server on :4000..."
+	@echo "Starting API dev server on :6625..."
 	cd mocktail-api && MOCKTAIL_DB_PATH=db/apis.db go run main.go
 
 docker-up: ## Start with docker-compose

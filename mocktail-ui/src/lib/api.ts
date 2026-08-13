@@ -94,6 +94,13 @@ export async function clearLogs(): Promise<void> {
   await fetch('/core/v1/logs', { method: 'DELETE' })
 }
 
+/** The port the backend actually bound to (for the status pill). */
+export async function fetchHealth(): Promise<{ port?: number }> {
+  const res = await fetch('/health')
+  if (!res.ok) throw new Error(`GET /health → ${res.status}`)
+  return (await res.json()) as { port?: number }
+}
+
 /** Imports mocks from an exported JSON array or a `{ "Apis": [...] }` object. */
 export async function importMocks(text: string): Promise<ImportResult> {
   const parsed = JSON.parse(text)

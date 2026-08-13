@@ -16,7 +16,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that l
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MOCKTAIL_URL` | Yes | Base URL of your Mocktail instance (e.g. `http://localhost:4000`) |
+| `MOCKTAIL_URL` | Yes | Base URL of your Mocktail instance (e.g. `http://localhost:6625`) |
 | `MOCKTAIL_API_KEY` | No | API key, sent as `X-API-Key` header |
 
 > **Note:** If you're running Mocktail behind a reverse proxy or custom domain (via `MOCKTAIL_BASE_URL`), use that host as `MOCKTAIL_URL` (e.g. `MOCKTAIL_URL=https://api.mycompany.com`).
@@ -28,7 +28,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that l
 **Claude Code:**
 ```bash
 claude mcp add mocktail \
-  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_URL=http://localhost:6625 \
   -e MOCKTAIL_API_KEY=your-api-key \
   -- npx mocktail-mcp
 ```
@@ -41,7 +41,7 @@ claude mcp add mocktail \
       "command": "npx",
       "args": ["mocktail-mcp"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_URL": "http://localhost:6625",
         "MOCKTAIL_API_KEY": "your-api-key"
       }
     }
@@ -60,7 +60,7 @@ cd mcp-server && npm install
 **Claude Code:**
 ```bash
 claude mcp add mocktail \
-  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_URL=http://localhost:6625 \
   -e MOCKTAIL_API_KEY=your-api-key \
   -- node /absolute/path/to/mcp-server/index.js
 ```
@@ -73,7 +73,7 @@ claude mcp add mocktail \
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/index.js"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_URL": "http://localhost:6625",
         "MOCKTAIL_API_KEY": "your-api-key"
       }
     }

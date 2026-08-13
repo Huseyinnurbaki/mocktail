@@ -2,7 +2,7 @@
 
 Options under consideration for how Mocktail is packaged, distributed, and presented.
 Today Mocktail ships as a single self-contained Go binary (serves the API **and** the
-React dashboard on `:4000`) plus a Docker image. Everything below builds on that.
+React dashboard on `:6625`) plus a Docker image. Everything below builds on that.
 
 ---
 
@@ -41,7 +41,7 @@ Ship the existing Go binary via a Homebrew **formula** so users can:
 
 ```console
 brew install mocktail
-mocktail            # starts the server; open http://localhost:4000
+mocktail            # starts the server; open http://localhost:6625
 ```
 
 - **UI:** the full existing dashboard (the binary already serves it) — just in a browser tab.
@@ -49,7 +49,7 @@ mocktail            # starts the server; open http://localhost:4000
   start, lighter footprint, one-line install. Aimed at devs who don't have / don't want
   Docker just to run a mock server.
 - **Signing:** none needed. CLI binaries aren't Gatekeeper-quarantined → genuinely free.
-- **Nice touch:** auto-open the browser on launch (`open http://localhost:4000`).
+- **Nice touch:** auto-open the browser on launch (`open http://localhost:6625`).
 
 ### Desktop app — native window + dock icon
 
@@ -103,7 +103,7 @@ terminal (CLI: re-run it; Docker: `restart` policy). Three layers:
   started failing."
 - **⚠️ No orphan processes:** on app quit/restart the shell **must kill the sidecar**, or a headless
   `mocktail` leaks, holds the port, and makes the next launch fail. Classic sidecar footgun — test it.
-- **Prevention:** **free-port selection** kills the #1 startup failure (`:4000` already taken) and
+- **Prevention:** **free-port selection** kills the #1 startup failure (default port already taken) and
   feeds the pill's real port; pairs directly with recovery.
 
 ### Both, from one binary
@@ -234,9 +234,9 @@ per request, and the counter UI added noise without real value.)*
 - Dark theme + system/light/dark toggle (not implemented today)
 - Inline randomized-field decorations in the editor (today randomize lives in a modal)
 - Right preview pane (send + response preview + segmented snippet control)
-- Server status pill — ✅ **built** (`TopBar`, reactive off `connected={!error}`, no polling).
-  Only remaining: the `localhost:4000` label is **hardcoded** — surface the *actual* port once
-  **free-port selection** lands (the two are a pair). Fine as-is while the port is hardcoded `:4000`.
+- Server status pill — ✅ **done** (`TopBar`, reactive off `connected={!error}`, no polling). Now
+  reads the **real port from `/health.port`** (fetched once when reachable; falls back to `6625`),
+  so it stays correct under `MOCKTAIL_PORT`/`auto`.
 - Duplicate mock (`⌘D`)
 
 **Already supported — just reskinned/reorganized (not gaps):** CRUD + methods + status +
@@ -461,12 +461,15 @@ to the `coreApi` group + have the dashboard send the key (prompt once → localS
 sends it, so this also makes the MCP key *real*. Either reuse `MOCKTAIL_API_KEY` or add a separate
 `MOCKTAIL_ADMIN_KEY` for management vs serving. Not needed for desktop or a firewalled container.
 
-**Cleanup — ✅ done:** the `PORT` env is now wired. `main.go` resolves the bind address via
-`listenAddr()` — **`MOCKTAIL_PORT`** wins, then the platform-standard **`PORT`**, else `4000`; a
-value of **`0`/`auto`** binds `:0` so the OS picks a **free port** (the desktop plan). The server
-binds via `net.Listen` + `app.Listener`, logs the actual port, and **`/health` now returns
-`"port"`** so the status pill can show the real port (frontend still hardcodes `localhost:4000` —
-swap it to read `/health.port` when convenient).
+**Cleanup — ✅ done:** the `PORT` env is wired and the default port moved to a **signature port**.
+`main.go`'s `bindListener()` resolves: a **number** → that exact port; **unset** → **`6625`** (the
+new default — "MOCK" on a phone keypad, clear of busy `3000`/`4000`/`8080`); **`auto`/`0`** → prefer
+`6625`, scan `6626`…`6634`, else any OS-assigned free port (desktop, no terminal). `MOCKTAIL_PORT`
+wins, then platform-standard `PORT`. Binds via `net.Listen` + `app.Listener`, logs the actual port,
+and **`/health` returns `"port"`**. **Status pill ✅ reads `/health.port`** now (fetched once when
+reachable; falls back to `6625`). Everything moved off `4000` → `6625`: Dockerfile `EXPOSE`,
+compose `ports`, Vite dev proxy, Makefile, TestTab curl, and all READMEs. ⚠️ **Breaking for existing
+users** (bookmarks / `-p 4000:4000` / MCP `MOCKTAIL_URL`) — call it out in the v4 release notes.
 
 ---
 

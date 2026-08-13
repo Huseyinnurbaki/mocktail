@@ -28,7 +28,7 @@ export function TestTab({
 
   async function copyCurl() {
     try {
-      await navigator.clipboard.writeText(`curl -X ${method} 'http://localhost:4000/mocktail${path}'`)
+      await navigator.clipboard.writeText(`curl -X ${method} 'http://localhost:6625/mocktail${path}'`)
       setCopied(true)
       setTimeout(() => setCopied(false), 1200)
     } catch {

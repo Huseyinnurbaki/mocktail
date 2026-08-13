@@ -32,7 +32,7 @@ FROM scratch
 
 COPY --from=builder-api /app /app
 COPY --from=builder-dashboard /src/build /build
-EXPOSE 4000
+EXPOSE 6625
 
 # Keep the DB at /db (mounted as a volume in docker-compose) — scratch has no HOME, so the
 # app-data default can't resolve here; this pins it explicitly and preserves existing volumes.

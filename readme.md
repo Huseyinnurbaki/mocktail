@@ -34,12 +34,12 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 4000:4000 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.6
+docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.6
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
 
-### Go to **localhost:4000** 🏃
+### Go to **localhost:6625** 🏃
 
 </details>
 
@@ -58,7 +58,7 @@ Or build and run:
 docker-compose up -d --build
 ```
 
-### Go to **localhost:4000** 🏃
+### Go to **localhost:6625** 🏃
 
 The database is automatically persisted in `./mocktail-api/db/` on your host machine.
 
@@ -108,7 +108,7 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
 
 ```bash
 claude mcp add mocktail \
-  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_URL=http://localhost:6625 \
   -e MOCKTAIL_API_KEY=your-api-key \
   -- npx mocktail-mcp
 ```
@@ -124,7 +124,7 @@ Add to your config file (`~/Library/Application Support/Claude/claude_desktop_co
       "command": "npx",
       "args": ["mocktail-mcp"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_URL": "http://localhost:6625",
         "MOCKTAIL_API_KEY": "your-api-key"
       }
     }
@@ -143,7 +143,7 @@ If you cloned the repo and want to run the MCP server locally:
 
 ```bash
 claude mcp add mocktail \
-  -e MOCKTAIL_URL=http://localhost:4000 \
+  -e MOCKTAIL_URL=http://localhost:6625 \
   -e MOCKTAIL_API_KEY=your-api-key \
   -- node /path/to/mocktail/mcp-server/index.js
 ```
@@ -157,7 +157,7 @@ claude mcp add mocktail \
       "command": "node",
       "args": ["/path/to/mocktail/mcp-server/index.js"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:4000",
+        "MOCKTAIL_URL": "http://localhost:6625",
         "MOCKTAIL_API_KEY": "your-api-key"
       }
     }
@@ -171,7 +171,7 @@ claude mcp add mocktail \
 
 | Variable           | Required | Description                                                       |
 | ------------------ | -------- | ----------------------------------------------------------------- |
-| `MOCKTAIL_URL`     | Yes      | Base URL of your Mocktail instance (e.g. `http://localhost:4000`) |
+| `MOCKTAIL_URL`     | Yes      | Base URL of your Mocktail instance (e.g. `http://localhost:6625`) |
 | `MOCKTAIL_API_KEY` | No       | API key sent as `X-API-Key` header on all requests                |
 
 > **Note:** If you configured `MOCKTAIL_BASE_URL` for a custom domain or reverse proxy, use that same URL for `MOCKTAIL_URL` (e.g. `https://api.mycompany.com/mocktail` becomes `MOCKTAIL_URL=https://api.mycompany.com`).
@@ -184,11 +184,11 @@ claude mcp add mocktail \
 
 **`MOCKTAIL_PORT`** (optional)
 
-Port the server listens on. Defaults to `4000`. Set it to `auto` (or `0`) to bind a **free port** chosen by the OS — useful for the desktop app so it doesn't clash with a Docker instance already on `4000`. The platform-standard `PORT` variable is also honored.
+Port the server listens on. Defaults to **`6625`** (Mocktail's signature port — "MOCK" on a phone keypad, and clear of the busy `3000`/`4000`/`8080` range). Set it to `auto` (or `0`) to **auto-select** a port: Mocktail prefers `6625`, scans the next 10 (`6626`…`6634`), then falls back to any free port the OS hands out — handy for the desktop app, which has no terminal to resolve a clash. The platform-standard `PORT` variable is also honored.
 
 ```bash
 MOCKTAIL_PORT=8080     # fixed port
-MOCKTAIL_PORT=auto     # OS-assigned free port
+MOCKTAIL_PORT=auto     # prefer 6625, else next free port
 ```
 
 **`MOCKTAIL_DB_PATH`** (optional)
@@ -222,7 +222,7 @@ MOCKTAIL_BASE_URL=https://gateway.example.com/mocktail
 
 If not set, defaults to:
 
-- **Development:** `http://localhost:4000/mocktail`
+- **Development:** `http://localhost:6625/mocktail`
 - **Production:** `[your-domain]/mocktail`
 
 **CORS Configuration** (optional)
@@ -250,7 +250,7 @@ MOCKTAIL_CORS_CREDENTIALS=true
 **Docker Example:**
 
 ```bash
-docker run -p 4000:4000 \
+docker run -p 6625:6625 \
   -e MOCKTAIL_CORS_ORIGINS=https://myapp.com \
   -e MOCKTAIL_CORS_CREDENTIALS=true \
   hhaluk/mocktail:latest
@@ -263,7 +263,7 @@ services:
   mocktail:
     image: hhaluk/mocktail:latest
     ports:
-      - "4000:4000"
+      - "6625:6625"
     environment:
       MOCKTAIL_CORS_ORIGINS: "https://myapp.com,http://localhost:3000"
       MOCKTAIL_CORS_CREDENTIALS: "true"
@@ -306,11 +306,11 @@ Clients must provide the key via header or query parameter:
 
 ```bash
 # Via header (recommended)
-curl http://localhost:4000/mocktail/users \
+curl http://localhost:6625/mocktail/users \
   -H "X-API-Key: your-secret-key-here"
 
 # Via query parameter
-curl http://localhost:4000/mocktail/users?api_key=your-secret-key-here
+curl http://localhost:6625/mocktail/users?api_key=your-secret-key-here
 ```
 
 **What's Protected:**
@@ -398,8 +398,12 @@ make build-docker
 
 ```console
 cd mocktail-api
+cp .env.example .env   # optional — set MOCKTAIL_PORT, MOCKTAIL_DB_PATH, CORS, etc. (auto-loaded)
 go run main.go
 ```
+
+> The backend reads `mocktail-api/.env` on startup (gitignored). `make dev-api` / `make run` already
+> point `MOCKTAIL_DB_PATH` at the in-repo `db/apis.db` so your local mocks persist there.
 
 **Dashboard:**
 
@@ -409,7 +413,7 @@ yarn install
 yarn start
 ```
 
-Backend runs on **localhost:4000**, Dashboard on **localhost:3001**
+Backend runs on **localhost:6625**, Dashboard on **localhost:3001**
 
 VSCode debug configuration is included for Go debugging.
 
