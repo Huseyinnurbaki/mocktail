@@ -202,10 +202,14 @@ Verified against the Go `Api` model and dashboard `src`. Functionally ~85% is al
 
 **Needs backend (additive, backward-compatible — `AutoMigrate` adds a column, existing
 `apis.db` upgrades silently, no breaking change):**
-- **Response headers** (not request headers) — add optional `Headers datatypes.JSON` (no
-  `validate:"required"`, nullable); apply before responding. Flows through import/export
-  automatically. *(Request-header matching — conditional responses based on the caller's headers —
-  is a separate, bigger feature, NOT in 1a.)*
+- **Response headers** (not request headers) — **backend ✅ DONE**, UI pending. Added
+  `Headers datatypes.JSON` to both `Api` structs; `UpdateApi`/`ImportApis` carry it; `MockApiHandler`
+  applies each via `c.Set(k,v)` and, when the user sets a custom **`Content-Type`**, marshals + uses
+  `c.Send()` so Fiber's `.JSON()` doesn't overwrite it (headers also apply to `204`/`304`). Flows
+  through import/export automatically. **4 tests green**: import keeps Headers, update sets Headers,
+  custom `X-*` header returned (default CT stays JSON), custom `Content-Type` wins. **Remaining:**
+  the Headers-tab KV-rows UI + frontend plumbing (`headers` on `Mock`/`Draft`, `toMock`, `saveMock`,
+  Editor state/dirty/baseline). *(Request-header matching is a separate, bigger feature, NOT in 1a.)*
 
   **Implementation findings (verified against the code — it mirrors the shipped `Randomize`
   column, so ~80% is a proven copy):**

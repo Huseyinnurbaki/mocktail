@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"mocktail-api/database"
@@ -102,6 +103,65 @@ func TestServe204NoBody(t *testing.T) {
 	}
 	if len(body) != 0 {
 		t.Errorf("204 body = %q, want empty", body)
+	}
+}
+
+func TestServeCustomHeaders(t *testing.T) {
+	setupDB(t)
+	app := testApp()
+	insert(t, &Api{
+		Endpoint:  "hdr",
+		Method:    "GET",
+		StatusCode: 200,
+		Response:  rawJSON(`{"ok":true}`),
+		Headers:   rawJSON(`{"X-Total-Count":"42","Cache-Control":"no-cache"}`),
+	})
+
+	resp, err := app.Test(httptest.NewRequest("GET", "/mocktail/hdr", nil), -1)
+	if err != nil {
+		t.Fatalf("req: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if got := resp.Header.Get("X-Total-Count"); got != "42" {
+		t.Errorf("X-Total-Count = %q, want 42", got)
+	}
+	if got := resp.Header.Get("Cache-Control"); got != "no-cache" {
+		t.Errorf("Cache-Control = %q, want no-cache", got)
+	}
+	// Content-Type still defaults to JSON when not overridden.
+	if ct := resp.Header.Get("Content-Type"); !strings.Contains(ct, "application/json") {
+		t.Errorf("Content-Type = %q, want application/json", ct)
+	}
+}
+
+func TestServeContentTypeOverride(t *testing.T) {
+	setupDB(t)
+	app := testApp()
+	insert(t, &Api{
+		Endpoint:  "ct",
+		Method:    "GET",
+		StatusCode: 200,
+		Response:  rawJSON(`{"error":"bad"}`),
+		Headers:   rawJSON(`{"Content-Type":"application/problem+json"}`),
+	})
+
+	resp, err := app.Test(httptest.NewRequest("GET", "/mocktail/ct", nil), -1)
+	if err != nil {
+		t.Fatalf("req: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if ct := resp.Header.Get("Content-Type"); !strings.Contains(ct, "application/problem+json") {
+		t.Errorf("Content-Type = %q, want application/problem+json (user override must win)", ct)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	var out map[string]any
+	if err := json.Unmarshal(body, &out); err != nil {
+		t.Fatalf("body not JSON: %v (%s)", err, body)
+	}
+	if out["error"] != "bad" {
+		t.Errorf("body = %s, want {\"error\":\"bad\"}", body)
 	}
 }
 

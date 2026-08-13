@@ -20,6 +20,7 @@ type Api struct {
 	Delay      int             `gorm:"default:0" json:"Delay"`
 	Response   datatypes.JSON  `validate:"required"`
 	Randomize  datatypes.JSON  `json:"Randomize"` // optional per-field faker config; nil = serve Response as-is
+	Headers    datatypes.JSON  `json:"Headers"`   // optional response headers {"Header-Name":"value"}; nil = none
 }
 
 type Apis struct {
@@ -112,6 +113,7 @@ func UpdateApi(c *fiber.Ctx) error {
 	existingApi.Delay = updatedApi.Delay
 	existingApi.Response = updatedApi.Response
 	existingApi.Randomize = updatedApi.Randomize
+	existingApi.Headers = updatedApi.Headers
 	existingApi.Key = updatedApi.Method + existingApi.Endpoint
 
 	// Set defaults if not provided
@@ -197,6 +199,7 @@ func ImportApis(c *fiber.Ctx) error {
 			Delay:      delay,
 			Response:   importedApi.Response,
 			Randomize:  importedApi.Randomize,
+			Headers:    importedApi.Headers,
 		}
 
 		// Try to insert

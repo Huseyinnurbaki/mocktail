@@ -20,6 +20,7 @@ type Api struct {
 	Delay      int            `gorm:"default:0" json:"Delay"`
 	Response   datatypes.JSON `validate:"required"`
 	Randomize  datatypes.JSON `json:"Randomize"` // optional per-field faker config; nil = serve Response as-is
+	Headers    datatypes.JSON `json:"Headers"`   // optional response headers {"Header-Name":"value"}; nil = none
 }
 
 type ErrorResponse struct {
@@ -47,6 +48,21 @@ func MockApiHandler(c *fiber.Ctx) error {
 		statusCode = 200
 	}
 
+	// Apply custom response headers, if any. A user-supplied Content-Type must win over the
+	// default application/json, so remember it and bypass c.JSON() below (which would overwrite it).
+	customContentType := ""
+	if len(api.Headers) > 0 {
+		var headers map[string]string
+		if err := json.Unmarshal(api.Headers, &headers); err == nil {
+			for k, v := range headers {
+				c.Set(k, v)
+				if strings.EqualFold(k, "Content-Type") {
+					customContentType = v
+				}
+			}
+		}
+	}
+
 	// Handle special status codes that should return no content
 	if statusCode == 204 || statusCode == 304 {
 		return c.SendStatus(statusCode)
@@ -64,6 +80,16 @@ func MockApiHandler(c *fiber.Ctx) error {
 		if err := json.Unmarshal(api.Randomize, &cfg); err == nil && len(cfg) > 0 {
 			response = randomize.Apply(response, cfg)
 		}
+	}
+
+	// If the user set a custom Content-Type, marshal ourselves and Send so Fiber's .JSON()
+	// doesn't force application/json.
+	if customContentType != "" {
+		body, err := json.Marshal(response)
+		if err != nil {
+			return c.Status(500).JSON(ErrorResponse{Message: "Invalid response data"})
+		}
+		return c.Status(statusCode).Send(body)
 	}
 
 	return c.Status(statusCode).JSON(response)

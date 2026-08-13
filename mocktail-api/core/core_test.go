@@ -273,6 +273,66 @@ func TestImportSkipsExistingAndKeepsRandomize(t *testing.T) {
 	}
 }
 
+func TestImportKeepsHeaders(t *testing.T) {
+	setupDB(t)
+	app := testApp()
+
+	payload := map[string]any{
+		"Apis": []map[string]any{
+			{
+				"Endpoint": "/h",
+				"Method":   "GET",
+				"Response": map[string]any{"ok": true},
+				"Headers":  map[string]any{"X-Total-Count": "7"},
+			},
+		},
+	}
+	do(t, app, "POST", "/import", payload)
+
+	_, body := do(t, app, "GET", "/apis", nil)
+	var list []Api
+	if err := json.Unmarshal(body, &list); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	found := false
+	for _, a := range list {
+		if a.Key == "GETh" {
+			found = true
+			if !strings.Contains(string(a.Headers), "X-Total-Count") {
+				t.Errorf("Headers not persisted on import: %q", string(a.Headers))
+			}
+		}
+	}
+	if !found {
+		t.Error("imported /h not found")
+	}
+}
+
+func TestUpdateSetsHeaders(t *testing.T) {
+	setupDB(t)
+	app := testApp()
+
+	_, body := do(t, app, "POST", "/api", map[string]any{
+		"Endpoint": "/uh", "Method": "GET", "Response": map[string]any{"a": 1},
+	})
+	var created Api
+	if err := json.Unmarshal(body, &created); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	_, body = do(t, app, "PUT", fmt.Sprintf("/api/%d", created.ID), map[string]any{
+		"Endpoint": "/uh", "Method": "GET", "Response": map[string]any{"a": 1},
+		"Headers": map[string]any{"Cache-Control": "no-store"},
+	})
+	var updated Api
+	if err := json.Unmarshal(body, &updated); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if !strings.Contains(string(updated.Headers), "no-store") {
+		t.Errorf("Headers not updated: %q", string(updated.Headers))
+	}
+}
+
 func TestPreviewAppliesFixed(t *testing.T) {
 	setupDB(t)
 	app := testApp()
