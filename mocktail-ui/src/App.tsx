@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { matchesGroup, mockToDraft, newDraft, type Draft, type Mock } from './lib/mocks'
+import { mockToDraft, newDraft, type Draft, type Mock } from './lib/mocks'
 import { useMocks } from './lib/useMocks'
 import { useTheme } from './lib/theme'
 import { deleteMock, fetchHealth, saveMock } from './lib/api'
@@ -12,7 +12,6 @@ import { SettingsModal, type SettingsTab } from './components/SettingsModal'
 import { LiveView } from './components/LiveView'
 import { ContextMenu } from './components/ContextMenu'
 import { TopBar } from './components/catalog/TopBar'
-import { LeftTree } from './components/catalog/LeftTree'
 import { CatalogRow } from './components/catalog/CatalogRow'
 import { RightPanel, type RightTab } from './components/catalog/RightPanel'
 
@@ -23,8 +22,6 @@ export default function App() {
   const { theme, setTheme, accent, setAccent } = useTheme()
   const { mocks, loading, error, reload } = useMocks()
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [editing, setEditing] = useState<Draft | null>(null)
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null)
   const [liveOpen, setLiveOpen] = useState(false)
@@ -32,7 +29,6 @@ export default function App() {
   const [rightTab, setRightTab] = useState<RightTab>('preview')
   const [query, setQuery] = useState('')
   const [port, setPort] = useState<number | null>(null)
-  const [treeOpen, setTreeOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   // Read the backend's actual listen port for the status pill (once, when reachable).
@@ -45,19 +41,9 @@ export default function App() {
   const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 340, 260, 720)
   const { result: sendResult, busy: sendBusy, err: sendErr, run } = useSend(selectedId)
 
-  const toggleGroup = (k: string) =>
-    setCollapsed((s) => {
-      const n = new Set(s)
-      if (n.has(k)) n.delete(k)
-      else n.add(k)
-      return n
-    })
-
-
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
     return mocks
-      .filter((m) => matchesGroup(m, selectedGroup))
       .filter(
         (m) =>
           !q ||
@@ -66,8 +52,39 @@ export default function App() {
           m.body.toLowerCase().includes(q),
       )
       .sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method))
-  }, [mocks, selectedGroup, query])
+  }, [mocks, query])
   const selectedMock = mocks.find((m) => m.id === selectedId) ?? null
+
+  // Every cumulative base-path prefix across all mocks (both "/api/v1" and "api/v1" forms), for
+  // inline search completion. e.g. /api/v1/users → /api, /api/v1, /api/v1/users.
+  const pathPrefixes = useMemo(() => {
+    const set = new Set<string>()
+    for (const m of mocks) {
+      const clean = m.path.replace(/^\/+/, '')
+      if (!clean) continue
+      let acc = ''
+      for (const seg of clean.split('/')) {
+        acc = acc ? acc + '/' + seg : seg
+        set.add('/' + acc)
+        set.add(acc)
+      }
+    }
+    return Array.from(set)
+  }, [mocks])
+
+  // The dimmed tail shown after what the user typed — the shortest matching prefix one segment
+  // deeper, so pressing Tab drills the path one level at a time. Empty when nothing to complete.
+  const ghost = useMemo(() => {
+    if (!query.trim()) return ''
+    const lower = query.toLowerCase()
+    let best = ''
+    for (const p of pathPrefixes) {
+      if (p.length > query.length && p.toLowerCase().startsWith(lower) && (!best || p.length < best.length)) {
+        best = p
+      }
+    }
+    return best ? best.slice(query.length) : ''
+  }, [query, pathPrefixes])
 
   // Keep the selection within the visible rows — e.g. after switching base-path groups or on
   // first load — so actions (run, ⌘D duplicate) always target a mock in the current view.
@@ -120,6 +137,8 @@ export default function App() {
     enabled: !editing && !settingsTab && !liveOpen,
     selectedMock,
     onFocusSearch: () => searchRef.current?.focus(),
+    onOpenSettings: () => setSettingsTab('theme'),
+    onOpenLive: () => setLiveOpen(true),
     onNew: () => setEditing(newDraft()),
     onOpen: (m) => setEditing(mockToDraft(m)),
     onRun: (m) => void run(m),
@@ -133,29 +152,10 @@ export default function App() {
         connected={!error}
         port={port ?? undefined}
         onOpenLive={() => setLiveOpen(true)}
+        onOpenSettings={() => setSettingsTab('theme')}
         onNew={() => setEditing(newDraft())}
-        onToggleTree={() => setTreeOpen((v) => !v)}
       />
       <div className="relative flex min-h-0 flex-1">
-        {treeOpen && (
-          <div
-            onClick={() => setTreeOpen(false)}
-            className="absolute inset-0 z-10 bg-black/30 lg:hidden"
-          />
-        )}
-        <LeftTree
-          mocks={mocks}
-          selectedKey={selectedGroup}
-          onSelect={(k) => {
-            setSelectedGroup(k)
-            setTreeOpen(false)
-          }}
-          collapsed={collapsed}
-          onToggle={toggleGroup}
-          onOpenSettings={setSettingsTab}
-          open={treeOpen}
-        />
-
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-3 border-b border-border px-[18px] py-3">
             <svg
@@ -171,27 +171,34 @@ export default function App() {
               <circle cx="11" cy="11" r="7" />
               <line x1="21" y1="21" x2="16.5" y2="16.5" />
             </svg>
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setQuery('')
-                  e.currentTarget.blur()
-                }
-              }}
-              placeholder={`Search ${selectedGroup ?? 'all mocks'}…`}
-              className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted"
-            />
-            {selectedGroup && query.trim() && (
-              <button
-                onClick={() => setSelectedGroup(null)}
-                className="whitespace-nowrap text-[11.5px] text-accent-text hover:underline"
+            {/* Search with inline path completion: a dimmed ghost tail suggests the next base-path
+                segment; Tab accepts it. An invisible copy of the typed text reserves width so the
+                ghost lines up right after the caret. */}
+            <div className="relative flex-1">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre text-[13px]"
               >
-                Search all mocks
-              </button>
-            )}
+                <span className="invisible">{query}</span>
+                <span className="text-muted/50">{ghost}</span>
+              </div>
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Tab' && ghost) {
+                    e.preventDefault()
+                    setQuery(query + ghost)
+                  } else if (e.key === 'Escape') {
+                    setQuery('')
+                    e.currentTarget.blur()
+                  }
+                }}
+                placeholder="Search endpoints — type a path, ⇥ to complete"
+                className="relative w-full bg-transparent text-[13px] outline-none placeholder:text-muted"
+              />
+            </div>
             <span className="whitespace-nowrap text-[12px] text-muted">{rows.length} endpoints</span>
             <kbd className="shrink-0 rounded-[4px] border border-border px-[4px] py-[1px] font-mono text-[10px] text-muted">
               {MOD}F
@@ -258,7 +265,7 @@ export default function App() {
           </div>
 
           <div className="shrink-0 border-t border-border px-[18px] py-2 font-mono text-[11.5px] text-muted">
-            ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate · {MOD}E new
+            ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate · {MOD}E new · {MOD}L live · {MOD}O settings
           </div>
         </main>
 
@@ -278,6 +285,7 @@ export default function App() {
           tab={rightTab}
           setTab={setRightTab}
           onOpenSettings={setSettingsTab}
+          onMocksChanged={reload}
         />
       </div>
 

@@ -315,12 +315,56 @@ curl http://localhost:6625/mocktail/users?api_key=your-secret-key-here
 
 **What's Protected:**
 
-- 🔒 Mock endpoints (`/mocktail/*`) - Requires API key
-- ✅ Dashboard (`/`) - No auth needed
-- ✅ Core API (`/core/v1/*`) - No auth needed (dashboard uses this)
-- ✅ Health check (`/health`) - No auth needed
+- 🔒 Mock endpoints (`/mocktail/*`) - Requires `MOCKTAIL_API_KEY` (when set)
+- 🔒 Core API (`/core/v1/*`) - Requires `MOCKTAIL_ADMIN_KEY` (when set; open by default)
+- ✅ Dashboard (`/`) - Always open (so the app loads)
+- ✅ Health check (`/health`) - Always open (so the status pill can poll)
 
 **Security Note:** If not set, mock endpoints are open (no authentication). This is fine for local development or private networks.
+
+**`MOCKTAIL_ADMIN_KEY`** (optional)
+
+Protect the **management/dashboard API** (`/core/v1/*`) — this is separate from `MOCKTAIL_API_KEY` (which guards *served mocks*). It also gates the AI endpoints, since they cost real provider credits. Tri-state, like `MOCKTAIL_PORT`:
+
+```bash
+# unset  → auth OFF (core API open; default, backward-compatible)
+MOCKTAIL_ADMIN_KEY=your-admin-key   # → auth ON with that key (dashboard/MCP send X-Admin-Key)
+MOCKTAIL_ADMIN_KEY=auto             # → auth ON with a random key generated each launch
+```
+
+With `auto`, the backend prints a ready-to-use URL at startup — `http://localhost:6625/#admin_key=<token>` — where the token rides the URL fragment (`#`, never sent to the server or logged). `/` (static app) and `/health` always stay open so the app loads and the status pill can poll.
+
+### AI Assistant
+
+The dashboard has a built-in **✨ Assistant** (right panel) that can chat about your mocks once you add a provider API key. **The key is a backend secret — it never lives in or passes through the browser, and all provider calls are made server-side.** Currently supports **Anthropic (Claude)**; more providers are drop-in later.
+
+**Adding a key**
+
+- **Desktop / local (recommended):** open **Settings → API keys**, pick the provider, paste your key, and choose a model. The key is validated (a bad key is rejected) and stored securely. Key entry is allowed **only from a local (loopback) session** — a key never crosses a network from a browser.
+- **Containers / headless:** set `MOCKTAIL_AI_API_KEY` (env). When set, it **wins** and the Settings field becomes read-only. Optionally pin a model with `MOCKTAIL_AI_MODEL`.
+
+> There is intentionally **no** env var to *select* the provider — that's a Settings dropdown (data-driven from the backend). Env is only for injecting the secret key + an optional model pin.
+
+**Where your key is stored at rest**
+
+| Surface | Location | Protection |
+| ------- | -------- | ---------- |
+| **Desktop / CLI** | OS keychain — macOS **Keychain**, Windows **Credential Manager**, Linux **Secret Service** (service `mocktail-ai`, account `apikey`) | OS-encrypted, session-gated |
+| **Headless Linux** (no Secret Service) | `~/.config/mocktail/ai_key` | `0600` file (owner-only) |
+| **Containers** | not stored — read from `MOCKTAIL_AI_API_KEY` at runtime | managed by your orchestrator / secrets manager |
+
+Your **non-secret** choices (selected provider + model) persist to `ai_config.json` in the same app-data dir (e.g. macOS `~/Library/Application Support/mocktail/ai_config.json`). The dashboard only ever receives a **masked hint** (`sk-…1234`), never the raw key.
+
+Inspect or remove the stored key any time:
+
+```bash
+# macOS — view the keychain item (Keychain Access → search "mocktail-ai" also works)
+security find-generic-password -s mocktail-ai -a apikey
+
+# Or just use Settings → API keys → Remove
+```
+
+> First save on macOS may prompt **"mocktail wants to use the Keychain"** — click Allow.
 
 ## Recent Changes
 

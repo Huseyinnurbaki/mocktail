@@ -19,6 +19,7 @@ export function RightPanel({
   tab,
   setTab,
   onOpenSettings,
+  onMocksChanged,
 }: {
   mock: Mock | null
   onEdit: (m: Mock) => void
@@ -30,6 +31,7 @@ export function RightPanel({
   tab: RightTab
   setTab: (t: RightTab) => void
   onOpenSettings: (t: SettingsTab) => void
+  onMocksChanged: () => void
 }) {
   const tabBtn = (id: RightTab, label: React.ReactNode) => (
     <button
@@ -61,7 +63,7 @@ export function RightPanel({
       {tab === 'preview' ? (
         <PreviewContent mock={mock} onEdit={onEdit} onSend={onSend} result={result} busy={busy} err={err} />
       ) : (
-        <AssistantPanel onOpenSettings={onOpenSettings} />
+        <AssistantPanel onOpenSettings={onOpenSettings} onMocksChanged={onMocksChanged} />
       )}
     </aside>
   )

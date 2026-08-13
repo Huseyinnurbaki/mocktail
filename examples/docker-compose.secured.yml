@@ -20,15 +20,15 @@ services:
       MOCKTAIL_CORS_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
       MOCKTAIL_CORS_CREDENTIALS: "true"   # note: origins can't be "*" when credentials=true
 
-      # ── Planned (designed, NOT yet wired — see ../roadmap.md) ──────
       # Auth on the management/core API (/core/v1/*). Separate from MOCKTAIL_API_KEY above.
-      #   unset = open · "<value>" = that key · "auto" = random per launch
+      # Also gates the AI endpoints.  unset = open · "<value>" = that key · "auto" = random per launch
       # MOCKTAIL_ADMIN_KEY: "change-me-admin-key"
 
-      # Server-side AI provider (key never touches the frontend).
-      # MOCKTAIL_AI_PROVIDER: "anthropic"
+      # AI assistant — server-side only, key never touches the frontend. Provider is a Settings
+      # dropdown (no env var for it); env just injects the secret key + an optional model pin.
       # MOCKTAIL_AI_API_KEY: "sk-ant-..."
-      # MOCKTAIL_AI_MODEL: "claude-..."   # else the recommended model from the live list
+      # MOCKTAIL_AI_MODEL: "claude-..."   # else the Settings choice / recommended model from the live list
 
+      # ── Planned (designed, NOT yet wired — see ../roadmap.md) ──────
       # Postgres instead of SQLite.
       # MOCKTAIL_DATABASE_URL: "postgres://user:pass@postgres:5432/mocktail?sslmode=disable"

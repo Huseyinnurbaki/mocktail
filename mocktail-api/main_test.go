@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -274,6 +275,79 @@ func TestFullBootSmoke(t *testing.T) {
 		}
 		if payload["hello"] != "world" {
 			t.Fatalf("mock body = %q, want hello=world", got)
+		}
+	})
+}
+
+func TestResolveAdminKey(t *testing.T) {
+	t.Run("unset means auth off", func(t *testing.T) {
+		t.Setenv("MOCKTAIL_ADMIN_KEY", "")
+		if key, gen := resolveAdminKey(); key != "" || gen {
+			t.Fatalf("resolveAdminKey() = (%q,%v), want (\"\",false)", key, gen)
+		}
+	})
+	t.Run("explicit value is used verbatim", func(t *testing.T) {
+		t.Setenv("MOCKTAIL_ADMIN_KEY", "s3cret")
+		if key, gen := resolveAdminKey(); key != "s3cret" || gen {
+			t.Fatalf("resolveAdminKey() = (%q,%v), want (\"s3cret\",false)", key, gen)
+		}
+	})
+	t.Run("auto generates a random key each launch", func(t *testing.T) {
+		t.Setenv("MOCKTAIL_ADMIN_KEY", "auto")
+		k1, gen := resolveAdminKey()
+		if !gen || len(k1) < 32 {
+			t.Fatalf("auto key = (%q,%v), want generated non-trivial key", k1, gen)
+		}
+		k2, _ := resolveAdminKey()
+		if k1 == k2 {
+			t.Fatal("auto keys should differ between launches")
+		}
+	})
+}
+
+func TestAdminAuthMiddlewareGating(t *testing.T) {
+	t.Setenv("MOCKTAIL_DB_PATH", filepath.Join(t.TempDir(), "apis.db"))
+	initDatabase()
+
+	t.Run("open when adminKey empty", func(t *testing.T) {
+		adminKey = ""
+		app := fiber.New()
+		setupRoutes(app)
+		resp, _ := app.Test(httptest.NewRequest("GET", "/core/v1/apis", nil), -1)
+		if resp.StatusCode != fiber.StatusOK {
+			t.Fatalf("open core status = %d, want 200", resp.StatusCode)
+		}
+	})
+
+	t.Run("gated when adminKey set", func(t *testing.T) {
+		adminKey = "s3cret"
+		defer func() { adminKey = "" }()
+		app := fiber.New()
+		setupRoutes(app)
+
+		// no key → 401
+		resp, _ := app.Test(httptest.NewRequest("GET", "/core/v1/apis", nil), -1)
+		if resp.StatusCode != fiber.StatusUnauthorized {
+			t.Fatalf("no key status = %d, want 401", resp.StatusCode)
+		}
+		// wrong key → 401
+		req := httptest.NewRequest("GET", "/core/v1/apis", nil)
+		req.Header.Set("X-Admin-Key", "nope")
+		resp, _ = app.Test(req, -1)
+		if resp.StatusCode != fiber.StatusUnauthorized {
+			t.Fatalf("wrong key status = %d, want 401", resp.StatusCode)
+		}
+		// correct key → 200
+		req = httptest.NewRequest("GET", "/core/v1/apis", nil)
+		req.Header.Set("X-Admin-Key", "s3cret")
+		resp, _ = app.Test(req, -1)
+		if resp.StatusCode != fiber.StatusOK {
+			t.Fatalf("correct key status = %d, want 200", resp.StatusCode)
+		}
+		// /health stays open regardless
+		resp, _ = app.Test(httptest.NewRequest("GET", "/health", nil), -1)
+		if resp.StatusCode != fiber.StatusOK {
+			t.Fatalf("health status = %d, want 200 (must stay open)", resp.StatusCode)
 		}
 	})
 }

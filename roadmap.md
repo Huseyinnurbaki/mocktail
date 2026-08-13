@@ -300,12 +300,12 @@ enough; revisit a one-click whole-body auto-detect only if users ask.
 
 **AI field generation — deferred, UI present but disabled.** The `✨ AI prompt` option shows in
 the generator dropdown (so the capability is discoverable) but is **disabled** until wired.
-Design when we build it:
-- **Config via env** (self-hosted pattern, like `MOCKTAIL_API_KEY`/CORS): `MOCKTAIL_AI_API_KEY`,
-  `MOCKTAIL_AI_PROVIDER` (default `anthropic`), `MOCKTAIL_AI_MODEL` (provider-specific default, e.g.
-  a cheap/fast Claude Haiku). No key → feature stays off. A settings-UI field can come later.
-- **Pluggable providers.** Generation sits behind a small provider interface so backends swap via
-  config, never code changes:
+Design when we build it — **reuse the shipped AI layer** (`mocktail-api/ai/`): same `Provider`
+interface, same key storage (keychain/file/env), same **provider/model dropdowns** in Settings.
+- **Provider + model = Settings dropdowns** (data-driven from the registry), not env vars. The key is
+  a backend secret (keychain on desktop, `MOCKTAIL_AI_API_KEY` in containers). No key → feature off.
+- **Pluggable providers.** Generation sits behind the same small provider interface so backends swap
+  via the dropdown, never code changes:
 
   ```go
   type Provider interface {
@@ -313,7 +313,7 @@ Design when we build it:
   }
   ```
 
-  A registry maps `MOCKTAIL_AI_PROVIDER` → constructor; model comes from `MOCKTAIL_AI_MODEL`.
+  A registry maps a provider id → constructor; the id comes from the Settings choice.
   Planned rollout order:
   1. **Anthropic** (Claude) — default, ships first.
   2. **OpenAI** (GPT).
@@ -545,10 +545,15 @@ surfaced as a **tab in the catalog's right panel** (Preview | ✨ Assistant) and
   input is disabled with "Add an API key to chat" → Settings → API keys. **No DB** — chat is
   ephemeral (React state, optionally localStorage per session), never the mock DB.
 
-**Agentic side (later):** reuse the **MCP tool schemas** (`create/update/delete/import/list`) as the
-assistant's toolset so it can create/edit mocks from natural language — the in-app, no-external-Claude
-version of MCP, with the catalog updating live as it works. Needs the provider's tool-use support
-(varies per provider) + confirm-before-destructive.
+**Agentic side — ✅ built.** The assistant mirrors the **MCP toolset** (`list_mocks`/`create_mock`/
+`update_mock`/`delete_mock`) and runs it **in-process** against the same DB (no HTTP hop). Backend:
+`ai/agent.go` streams an Anthropic tool-use loop (parses `tool_use` / `input_json_delta`, executes via
+`ai/tools.go`, feeds `tool_result` back, caps iterations), plus a read-only catalog snapshot injected
+each turn (`ai/catalog.go`) so it always knows current state. Frontend: tool activity streams as `⚙`
+chips and the catalog **refreshes live** (`onMocksChanged` → `reload`); assistant replies render with
+method/JSON coloring (`AssistantMessage.tsx`). **Still to add:** `import_mocks`, a real
+**confirm-before-destructive** gate for delete/overwrite (prompt currently just instructs it to ask),
+and OpenAI/Gemini tool-use (loop is Anthropic-specific for now).
 
 **Staging:** provider (text) → Q&A/chat → tools. See the pluggable-provider design under the
 Randomization section. Not a weekend feature once tools/streaming are in scope; the FAQ + chat-shell
@@ -565,11 +570,36 @@ state. Already helping: CodeMirror is line-virtualized (big responses cheap); Li
 
 ---
 
-## AI providers, key storage & API auth (v4 design — no implementation until approved)
+## AI providers, key storage & API auth (v4 — ✅ built, backend + UI)
 
 The concrete, agreed design for wiring real AI (chat + generation). **Absolute rule: the API key is a
 backend secret; it never lives in or passes through the frontend as storage. All provider calls are
 server-side.** (Direct browser→provider calls are explicitly rejected — insecure.)
+
+**Backend slice — ✅ built** (`mocktail-api/ai/` + `main.go`): the `Provider` interface + registry
+(Anthropic only, hand-rolled `net/http`, extensible), live `GET /core/v1/ai/models` (curated,
+recommended default, hardcoded fallback on failure), streaming `POST /core/v1/ai/chat` (SSE), and
+`GET/POST/DELETE /core/v1/ai/config` (never returns the raw key — masked `keyHint` only). Key storage:
+env → **OS keychain** (`zalando/go-keyring`) → `0600` file fallback; **loopback-only** key entry;
+**env wins + read-only**. `MOCKTAIL_ADMIN_KEY` tri-state gate (unset/off · value · `auto`→`crypto/rand`
++ printed `#admin_key=` URL) guards the whole `coreApi` group; `/` + `/health` stay open. `/core/v1/ai`
+excluded from the request-log buffer. Tests: `ai/ai_test.go` (config sources, keyHint masking, live
+vs fallback models, SSE assembly, env-managed 409, loopback, providers/selection) + `main_test.go`
+(admin tri-state + gating).
+
+**Frontend slice — ✅ built:** `SettingsModal.tsx` API-keys tab wired to the live endpoints —
+data-driven **provider dropdown** (`GET /ai/providers`), key entry with server-side validation +
+masked hint + Remove (env-managed → read-only), and a **model dropdown** (`GET /ai/models`). The
+`AssistantPanel.tsx` FAQ now also does **free-form streaming chat** (`streamChat` over SSE) once a key
+is set, with `/clear` + a Clear button and an "add a key" prompt when unconfigured. `api.ts` gained the
+AI client (`fetchAIConfig/Providers/Models`, `saveAIConfig`, `deleteAIKey`, `streamChat`).
+
+**Provider selection is a dropdown, not an env var** — there is intentionally no `MOCKTAIL_AI_PROVIDER`.
+Env is only for headless secret injection (`MOCKTAIL_AI_API_KEY`) + an optional model pin.
+
+**Deferred (perf, when transcripts grow):** virtualize the chat list + collapse large blocks (the
+list is currently un-virtualized; fine at the 100-msg cap). **Later:** agentic tools (reuse MCP schemas),
+OpenAI/Gemini providers (drop-in — implement the interface).
 
 ### Provider abstraction (backend, pluggable)
 ```go
@@ -629,11 +659,12 @@ pill polls. How the dashboard obtains the key:
 - **Never log the key**; exclude `/core/v1/ai/*` from the request-log buffer (like other core paths).
 
 ### Scope / sequencing
-- Provider layer + Anthropic (`ListModels` + streaming `Chat`), `POST /core/v1/ai/chat` (SSE) +
-  `GET /core/v1/ai/models`; Settings API-keys tab (provider/key/model + live fetch + validation); wire the
-  AssistantPanel chat input.
-- **Admin auth via env works in v4 now**; the **desktop auto-key inject** lands with the Tauri shell
-  (until then, `auto` surfaces via the CLI URL-fragment print).
+- ✅ Provider layer + Anthropic (`ListModels` + streaming `Chat`), `POST /core/v1/ai/chat` (SSE) +
+  `GET /core/v1/ai/models` + `GET/POST/DELETE /core/v1/ai/config` (keychain/file/env storage) — **built + tested**.
+- ⬜ Settings API-keys tab (provider/key/model + live fetch + validation); wire the AssistantPanel chat
+  input (with a `/clear` command to reset the ephemeral transcript). — **next (frontend slice)**.
+- ✅ **Admin auth via env works now** (`MOCKTAIL_ADMIN_KEY` tri-state); the **desktop auto-key inject**
+  lands with the Tauri shell (until then, `auto` surfaces via the CLI URL-fragment print).
 - Example env/compose per scenario → see `examples/`.
 
 The redesign was built desktop-first; before shipping v4, do a responsive pass against the 1a
@@ -740,14 +771,19 @@ screenshots → reproducible marketing.
   + SSL + hosting in one dashboard; adding the domain to Pages auto-configures DNS.
 - GitHub Pages remains a fine fallback (also static, at root).
 
-### Analytics — **Cloudflare Web Analytics first**, PostHog later, key-safe
-- **Launch with Cloudflare Web Analytics** — free, **cookieless, no PII, no cookie banner**, not a
-  third-party script beyond Cloudflare. Covers visits/referrers/top-pages, and directly answers the
-  "analytics but not too exposed" concern. Likely enough for launch.
-- **PostHog later, only if you want event-level funnels** (hero CTA clicks, **which install tab** is
-  copied, GitHub outbound). Its **project key is public/write-only** (fine in the browser — like a GA
-  id); never ship the personal/admin key. **Reverse-proxy** it through a **Cloudflare Worker**
-  (`getmocktail.com/<path>/*`) to dodge ad-blockers and hide the third-party host.
+### Analytics — **Cloudflare Web Analytics only for launch** (PostHog explicitly deferred, not a blocker)
+- **Launch = Cloudflare Web Analytics, full stop.** Free, **cookieless, no PII, no cookie banner**,
+  not a third-party script beyond Cloudflare. Covers visits / referrers / top-pages / geography /
+  device + Core Web Vitals — which fully answers the launch questions ("did people come, from where").
+  A **dashboard toggle** once the site is live on Pages with the domain attached — **no code change to
+  `index.html`** (CF injects the beacon; can also add the snippet manually). ✅ **Decided: this is
+  enough — ship the page clean, with nothing else.**
+- **PostHog — skip for launch; revisit only if a funnel question actually arises** (e.g. "which
+  install tab — Docker vs brew vs CLI — gets copied", hero CTA clicks, GitHub outbound). CF Web
+  Analytics is page-level, not click-level; PostHog is the answer *if and when* you want per-button
+  events, and it's a purely **additive** change (nothing decided now blocks it). When added: ship only
+  the **public/write-only project key** (never the personal/admin key), and **reverse-proxy** it via a
+  **Cloudflare Worker** (`getmocktail.com/<path>/*`) to dodge ad-blockers + hide the third-party host.
 - **⛔ Never bundle analytics into the self-hosted app.** People self-host partly *for* privacy. If
   ever wanted in-product: strictly **opt-in, off by default, disclosed**. **Landing = analytics;
   product = clean.**
@@ -761,7 +797,8 @@ screenshots → reproducible marketing.
 ### Suggested build order (separate from v4 core)
 1. Register `getmocktail.com`; scaffold Astro repo/folder → Pages + custom domain.
 2. Seed the demo instance (`demo.json`) + capture the screenshot set (light/dark).
-3. Hero + `#install` + feature showcase; wire PostHog (public key, reverse-proxied).
+3. Hero + `#install` + feature showcase (✅ built). Analytics = **flip on CF Web Analytics** post-deploy
+   (toggle, no code). PostHog only later, if funnel questions arise.
 4. The in-app update badge already points at `getmocktail.com/#install`.
 
 ---

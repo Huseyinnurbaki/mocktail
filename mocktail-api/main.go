@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
+	"mocktail-api/ai"
 	"mocktail-api/core"
 	"mocktail-api/database"
 	"mocktail-api/logger"
@@ -46,6 +49,47 @@ func apiKeyMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
+// adminKey guards the management API (/core/v1/*). Empty = auth disabled (default).
+var adminKey string
+
+// resolveAdminKey mirrors MOCKTAIL_PORT's tri-state:
+//   - unset       → auth off (open; default, backward-compatible)
+//   - "<value>"   → auth on with that key (containers)
+//   - "auto"/"0"  → auth on with a random per-launch key (crypto/rand; desktop/CLI, no storage)
+// The generated flag is true only for the auto case, so main() knows to print the ready URL.
+func resolveAdminKey() (key string, generated bool) {
+	v := os.Getenv("MOCKTAIL_ADMIN_KEY")
+	switch {
+	case v == "":
+		return "", false
+	case strings.EqualFold(v, "auto") || v == "0":
+		b := make([]byte, 24)
+		if _, err := rand.Read(b); err != nil {
+			log.Fatalf("failed to generate admin key: %v", err)
+		}
+		return hex.EncodeToString(b), true
+	default:
+		return v, false
+	}
+}
+
+// adminAuthMiddleware gates the core/management API when adminKey is set. Static assets and
+// /health stay open (they're registered outside this group) so the app loads and the status
+// pill can poll. The dashboard sends the key as X-Admin-Key (or ?admin_key= as a fallback).
+func adminAuthMiddleware(c *fiber.Ctx) error {
+	if adminKey == "" {
+		return c.Next()
+	}
+	provided := c.Get("X-Admin-Key")
+	if provided == "" {
+		provided = c.Query("admin_key")
+	}
+	if provided != adminKey {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or missing admin key"})
+	}
+	return c.Next()
+}
+
 func setupRoutes(app *fiber.App) {
 	app.Static("/", "./build")
 
@@ -58,8 +102,8 @@ func setupRoutes(app *fiber.App) {
 		})
 	})
 
-	// Core API - No auth required (dashboard uses this)
-	coreApi := app.Group("/core/v1")
+	// Core API - management/dashboard. Gated by MOCKTAIL_ADMIN_KEY when set (off by default).
+	coreApi := app.Group("/core/v1", adminAuthMiddleware)
 	coreApi.Get("/apis", core.GetApis)
 	coreApi.Post("/api", core.CreateApi)
 	coreApi.Put("/api/:id", core.UpdateApi)
@@ -68,6 +112,15 @@ func setupRoutes(app *fiber.App) {
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
 	coreApi.Get("/logs", core.GetLogs)
 	coreApi.Delete("/logs", core.ClearLogs)
+
+	// AI assistant — provider-backed chat + model listing + key config. Behind the admin gate
+	// (real cost); the key is a backend secret and never returned to the frontend.
+	coreApi.Get("/ai/config", ai.GetConfig)
+	coreApi.Post("/ai/config", ai.PostConfig)
+	coreApi.Delete("/ai/config", ai.DeleteConfig)
+	coreApi.Get("/ai/providers", ai.GetProviders)
+	coreApi.Get("/ai/models", ai.GetModels)
+	coreApi.Post("/ai/chat", ai.PostChat)
 
 	// Mock API - Protected with API key
 	mocktailApi := app.Group("/mocktail", apiKeyMiddleware)
@@ -182,7 +235,8 @@ func main() {
 		// Skip logging for static files, health check, logs endpoint, and catalog polling
 		path := c.Path()
 		if path == "/health" || path == "/" || strings.HasPrefix(path, "/static") ||
-		   strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" {
+		   strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" ||
+		   strings.HasPrefix(path, "/core/v1/ai") {
 			return c.Next()
 		}
 
@@ -235,6 +289,18 @@ func main() {
 	} else {
 		logger.Log("API Key: (not set - mock endpoints are open)")
 	}
+
+	// Resolve the management API (admin) key. Off by default; on when MOCKTAIL_ADMIN_KEY is set.
+	var adminGenerated bool
+	adminKey, adminGenerated = resolveAdminKey()
+	switch {
+	case adminKey == "":
+		logger.Log("Admin Key: (not set - core API is open)")
+	case adminGenerated:
+		logger.Log("Admin Key: *** (auto-generated this launch)")
+	default:
+		logger.Log("Admin Key: *** (set via MOCKTAIL_ADMIN_KEY)")
+	}
 	logger.Log("==============================")
 
 	initDatabase()
@@ -247,5 +313,10 @@ func main() {
 	}
 	boundPort = ln.Addr().(*net.TCPAddr).Port
 	logger.Log("Mocktail listening on http://localhost:%d", boundPort)
+	// For the auto-generated key there's no terminal handshake, so print a ready-to-use URL.
+	// The token rides the URL fragment (#) — never sent to the server or written to logs by browsers.
+	if adminGenerated {
+		logger.Log("Open the dashboard: http://localhost:%d/#admin_key=%s", boundPort, adminKey)
+	}
 	log.Fatal(app.Listener(ln))
 }

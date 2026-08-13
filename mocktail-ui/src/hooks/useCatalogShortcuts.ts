@@ -5,6 +5,8 @@ interface Args {
   enabled: boolean // false while an overlay is open
   selectedMock: Mock | null
   onFocusSearch: () => void
+  onOpenSettings: () => void
+  onOpenLive: () => void
   onNew: () => void
   onOpen: (m: Mock) => void
   onRun: (m: Mock) => void
@@ -14,12 +16,14 @@ interface Args {
 
 /**
  * Catalog keyboard shortcuts — off while an overlay is open or while typing in a field.
- * ⌘F search · ⌘C copy path · ⌘E new · ⌘D duplicate · ⌘↵ run · ↵ open · ↑↓ navigate.
+ * ⌘F search · ⌘O settings · ⌘L live · ⌘C copy path · ⌘E new · ⌘D duplicate · ⌘↵ run · ↵ open · ↑↓ navigate.
  */
 export function useCatalogShortcuts({
   enabled,
   selectedMock,
   onFocusSearch,
+  onOpenSettings,
+  onOpenLive,
   onNew,
   onOpen,
   onRun,
@@ -33,6 +37,16 @@ export function useCatalogShortcuts({
       if (mod && e.key.toLowerCase() === 'f') {
         e.preventDefault()
         onFocusSearch()
+        return
+      }
+      if (mod && e.key.toLowerCase() === 'o') {
+        e.preventDefault()
+        onOpenSettings()
+        return
+      }
+      if (mod && e.key.toLowerCase() === 'l') {
+        e.preventDefault()
+        onOpenLive()
         return
       }
       const el = document.activeElement

@@ -27,15 +27,17 @@ docker compose -f docker-compose.basic.yml up -d
 | `MOCKTAIL_CORS_HEADERS` | `*` | Allowed headers. |
 | `MOCKTAIL_CORS_CREDENTIALS` | `false` | Allow credentials (can't be `*` origins when `true`). |
 | `MOCKTAIL_BASE_URL` | derived | URL shown in the dashboard (reverse proxy / custom domain). |
+| `MOCKTAIL_ADMIN_KEY` | (unset = open) | Auth on the **management API** (`/core/v1/*`). `unset`=off, `<value>`=that key, `auto`=random per launch (printed as a ready URL). Gates the AI endpoints too. |
+| `MOCKTAIL_AI_API_KEY` | (unset) | AI provider key, server-side only. In containers set it here; on desktop enter it in Settings (OS keychain). When set, it wins and the Settings field is read-only. |
+| `MOCKTAIL_AI_MODEL` | provider default | Optional: pin a model id (else the Settings choice, else the recommended default). |
+
+> **Provider selection is a Settings dropdown, not an env var** — there is intentionally no
+> `MOCKTAIL_AI_PROVIDER`. Env only injects the secret key (headless/container) + an optional model pin.
 
 **🔜 Planned (designed, not yet wired — see `../roadmap.md`):**
 
 | Var | Purpose |
 |---|---|
-| `MOCKTAIL_ADMIN_KEY` | Auth on the **management API** (`/core/v1/*`). `unset`=off, `<value>`=that key, `auto`=random per launch. |
-| `MOCKTAIL_AI_PROVIDER` | Active AI provider (`anthropic` first). |
-| `MOCKTAIL_AI_API_KEY` | Provider key (server-side). |
-| `MOCKTAIL_AI_MODEL` | Provider model id (else the dynamic list's recommended default). |
 | `MOCKTAIL_DATABASE_URL` | Postgres DSN → use Postgres instead of SQLite. |
 
 > ⚠️ The 🔜 vars are documented here so the intended config surface is visible; they do **nothing yet**.
