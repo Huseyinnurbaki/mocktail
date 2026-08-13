@@ -4,7 +4,8 @@ WORKDIR /src
 COPY ./mocktail-api .
 RUN go mod download
 # Pure Go (ncruces/go-sqlite3 via WASM) — no C toolchain, no static-link dance.
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app .
+# -s -w strips debug symbols/DWARF (~12 MB smaller binary; no downside for a server).
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app .
 
 FROM node:20-alpine AS builder-ui
 

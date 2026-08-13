@@ -21,11 +21,21 @@ data), v4.0 as scoped **breaks nothing** — additive `AutoMigrate` columns, sam
 the CLI formula / desktop app into the same story (as 4.0 or a 4.1 fast-follow) — *"Mocktail v4:
 redesigned, and now native."*
 
-**Verify before committing to "non-breaking v4"** (any of these breaking would *force* the major,
-and require an MCP bump):
-- [ ] `/core/v1/*` response shapes unchanged — the **MCP server** (`mocktail-mcp`) depends on them.
-- [ ] Import/export JSON format unchanged — old exports must still import.
-- [ ] Routes stable — `/`, `/mocktail/*`, `/core/v1/*`, `/health`.
+**Verify before committing to "non-breaking v4" — ✅ VERIFIED** (API is non-breaking; note the port
+default *did* change — a separate, deliberate user-facing break, see release notes):
+- [x] `/core/v1/*` response shapes **additive only** — `/apis` record now has
+      `{ID, Endpoint, Method, Key, StatusCode, Delay, Response, Randomize, Headers}` (v3 + the two
+      new nullable fields). MCP is safe: it stringifies `/apis` (extra fields harmless) and sends a
+      *subset* on create/update/import (our additions are optional/nullable).
+- [x] Import/export format unchanged — an **old v3 payload** (no `Randomize`/`Headers`) imports
+      cleanly (verified live: `imported: 1`). New exports add those fields, optional.
+- [x] Routes stable — `/`, `/health`, `/core/v1/*` (apis/api/import/preview/logs), `/mocktail/*`.
+      `/health` only *added* a `port` field.
+- [x] **`docker build` + run smoke test** — image builds (Vite in node:20-alpine ✓), container serves
+      `/health`, create+serve a mock, and the UI at `/` on `:6625`. ⚠️ Build needs **≥ 4 GB** Docker
+      memory (pure-Go SQLite/WASM compile OOMs at the 2 GB default with `signal: killed`); binary
+      built with `-ldflags="-s -w"` → **image ~25 MB** (was ~13 MB; the CGO-free tradeoff). Documented
+      in `readme.md`.
 
 **Versioned artifacts:** bump dashboard `package.json` (3.1.6 → 4.0.0) and the Docker image
 together. The **MCP server** (`mocktail-mcp`, npm) versions independently — bump only if its API

@@ -392,6 +392,11 @@ make build
 make build-docker
 ```
 
+> **Docker build memory:** building the image compiles the pure-Go SQLite (WASM) driver, which is
+> memory-heavy — give Docker **≥ 4 GB** (Docker Desktop's 2 GB default can OOM the Go compiler with
+> `signal: killed`). This only affects *building* the image; running it needs little. The resulting
+> image is ~25 MB (larger than the old CGO build — the tradeoff for CGO-free cross-compilation).
+
 ### Manual Setup
 
 **Backend:**
