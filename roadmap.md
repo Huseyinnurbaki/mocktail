@@ -66,6 +66,12 @@ mocktail            # starts the server; open http://localhost:6625
 A thin **Tauri** (recommended) or **Wails** shell that spawns the *same* Go binary as a
 sidecar and points a native webview at it.
 
+- **App icon:** master source at **`assets/app-icon.svg`** (the Mocktail mark, white on the
+  brand-green squircle). Rasterize to a 1024×1024 PNG (`rsvg-convert`/Figma/etc.), then
+  `tauri icon assets/app-icon-1024.png` generates the per-platform set (`.icns`/`.ico`/PNGs) and
+  wires `tauri.conf.json → bundle.icon`. (The favicon's bare transparent starburst is *not* the app
+  icon — a dock icon needs the filled squircle.)
+
 - **What it uniquely adds over CLI/Docker:** a dedicated app window, dock icon, no browser
   chrome — a "real app" feel. Functionally the same UI.
 - **Recommended:** Tauri with the Go binary as a sidecar (smallest bundle ~5–15 MB, reuses
@@ -682,19 +688,81 @@ firing in this setup *and* — the real kicker — even when selection was set c
 
 ## Landing page
 
-A marketing / docs landing page for Mocktail, served via **GitHub Pages** from this same repo.
+A marketing / showcase site for Mocktail — separate deploy, its own top-level `landing/` folder,
+served via **Cloudflare Pages** at **`getmocktail.com`**. **v1 is built** (`landing/index.html`,
+self-contained static): the warm **"pour"** direction — an animated cocktail-glass hero with floating
+generator "ingredients", a real app-window showcase, a bento features grid, and desktop-first install.
+(Four other directions — dev-terminal, editorial menu, neo-brutalist — were explored; this hybrid won.)
+"Shiny but not startup-cringe"; the **hero is the product** (+ a bit of delight).
 
-- Excluded from the Docker image for free — the Dockerfile uses explicit `COPY ./mocktail-api`
-  / `COPY ./mocktail-ui`, so a new top-level folder is never bundled.
-- **Option A:** static site in a `docs/` folder → Pages "deploy from branch."
-- **Option B:** `landing/` source + a Pages build workflow (fits the existing `.github/workflows/`).
-- **Domain:** **`getmocktail.com`** (chosen; register on Cloudflare/Porkbun ~$10–13/yr flat). Using a
-  custom domain serves at **root**, so the `/mocktail/` project-page base-path caveat goes away.
-  Tagline: **"Mock with Mocktail."** For a future hosted tier, tenant endpoints would live on
-  subdomains (`acme.getmocktail.com`) or a dedicated API domain (`mocktail.rest`) — Phase 2.
-- **⚠️ `#install` anchor is a contract:** the in-app Settings "update available" badge deep-links to
-  `getmocktail.com/#install` (`SITE_URL` in `SettingsModal.tsx`). The landing page **must** have an
-  `#install` section covering upgrade steps per install method (brew / Docker / desktop).
+### Vibe & brand
+Reuse the **app's own design language** — OKLCH emerald accent, Instrument Sans + Geist Mono, the
+same tokens — so site and product feel like one thing. Subtle glow/gradient + animated grid,
+`prefers-reduced-motion` respected, view transitions. Tagline: **"Mock with Mocktail."**
+
+### Sections (top → bottom)
+1. **Hero** — tagline + one-liner ("A self-hosted mock API server in a single binary — dashboard
+   included. Your data, your machine."). CTAs: **Get started** (→ `#install`) + **GitHub** (stars).
+   Right: a crisp screenshot or short autoplay loop (catalog → open editor → randomize a field → hit it).
+2. **Pitch strip** — *Single binary. No cloud. No sign-up.* · *Realistic fake data per request.* ·
+   *Live traffic, replayed.* · *Runs anywhere — brew, Docker, desktop.*
+3. **Feature showcase** (alternating screenshot ↔ copy): Workbench editor (click-to-configure fields,
+   inline randomize decorations) · smart randomization (gofakeit per request, anonymize) · response
+   headers + delays + any status (incl. `application/problem+json`) · Live traffic (filterable, with
+   served response + headers) · themes (light/dark + accent dots) · **MCP** ("let Claude create your
+   mocks" — differentiator).
+4. **Install** (`#install` — the anchor the in-app update badge links to; **contract** with
+   `SITE_URL` in `SettingsModal.tsx`): tabbed **Docker / Homebrew / Desktop**, copy-paste commands
+   with a copy button (each copy fires a PostHog event). Must cover upgrade steps per method.
+5. **How it works** — 3 steps: define endpoint → configure response/randomize → call it.
+6. **Footer** — GitHub, changelog, license, `.rest` easter egg if grabbed.
+
+### Screenshots — "smart data" (do not ship foo/bar)
+Curate a **believable demo instance** (e-commerce/SaaS API): `GET /api/v1/users` (realistic
+names/emails/avatars/ISO dates), `GET /api/v1/orders` (amounts/currencies/statuses/line items),
+`POST /api/v1/auth/login` (200 + token, and a `401 application/problem+json`). Capture the
+**randomize panel mid-configure** and **Live view** streaming those, in **both themes** + one accent,
+with soft browser-chrome frames + glow. **Seed a `demo.json`** (importable) that reproduces the exact
+screenshots → reproducible marketing.
+
+### Tech stack — plain static now → **Astro + Tailwind** later
+- **v1 (built): plain self-contained HTML** (`landing/index.html`) — no build step, no external
+  requests, OKLCH tokens shared with the app, light+dark, reduced-motion. Ship-now pragmatic.
+- **Migrate to Astro** when it grows past one page (docs/changelog/MDX): static-first, React islands
+  reusing app tokens, native View Transitions. Cloudflare Pages builds Astro natively (`npm run build`
+  → `dist`). (Skip Next.js — overkill; Docusaurus — too docs-y.)
+
+### Hosting — **Cloudflare Pages** (chosen)
+- Connect the repo → **build command: empty**, **output dir: `landing`** (static; serves
+  `index.html` + `robots.txt` + favicon as-is). Custom domain serves at **root** → no `/mocktail/`
+  base-path caveat. PR preview deployments for free.
+- **Unified with the domain:** register `getmocktail.com` on **Cloudflare Registrar** (at-cost) → DNS
+  + SSL + hosting in one dashboard; adding the domain to Pages auto-configures DNS.
+- GitHub Pages remains a fine fallback (also static, at root).
+
+### Analytics — **Cloudflare Web Analytics first**, PostHog later, key-safe
+- **Launch with Cloudflare Web Analytics** — free, **cookieless, no PII, no cookie banner**, not a
+  third-party script beyond Cloudflare. Covers visits/referrers/top-pages, and directly answers the
+  "analytics but not too exposed" concern. Likely enough for launch.
+- **PostHog later, only if you want event-level funnels** (hero CTA clicks, **which install tab** is
+  copied, GitHub outbound). Its **project key is public/write-only** (fine in the browser — like a GA
+  id); never ship the personal/admin key. **Reverse-proxy** it through a **Cloudflare Worker**
+  (`getmocktail.com/<path>/*`) to dodge ad-blockers and hide the third-party host.
+- **⛔ Never bundle analytics into the self-hosted app.** People self-host partly *for* privacy. If
+  ever wanted in-product: strictly **opt-in, off by default, disclosed**. **Landing = analytics;
+  product = clean.**
+
+### Ops
+- Excluded from the Docker image for free (explicit `COPY ./mocktail-api` / `COPY ./mocktail-ui`).
+- `landing/robots.txt` → **allow** indexing (opposite of the app's `mocktail-ui/public/robots.txt`).
+- Future hosted tier: tenant endpoints on subdomains (`acme.getmocktail.com`) or a dedicated API
+  domain (`mocktail.rest`) — Phase 2.
+
+### Suggested build order (separate from v4 core)
+1. Register `getmocktail.com`; scaffold Astro repo/folder → Pages + custom domain.
+2. Seed the demo instance (`demo.json`) + capture the screenshot set (light/dark).
+3. Hero + `#install` + feature showcase; wire PostHog (public key, reverse-proxied).
+4. The in-app update badge already points at `getmocktail.com/#install`.
 
 ---
 

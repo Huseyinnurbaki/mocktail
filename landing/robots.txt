@@ -1,0 +1,4 @@
+# Mocktail landing page — this is the public marketing site, index away.
+# (The self-hosted app ships its own robots.txt that disallows all.)
+User-agent: *
+Allow: /

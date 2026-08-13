@@ -1,0 +1,23 @@
+<!-- Mocktail desktop app-icon master. Rasterize to a 1024x1024 PNG, then `tauri icon`
+     generates the per-platform .icns / .ico / PNG set. White mark on the brand-green squircle. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#48d18e" />
+      <stop offset="1" stop-color="#1fa566" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="114" fill="url(#bg)" />
+  <g fill="#ffffff" transform="translate(64 64) scale(8)">
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)" />
+  </g>
+</svg>
