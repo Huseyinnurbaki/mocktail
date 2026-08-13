@@ -22,7 +22,7 @@ build: build-dashboard build-api ## Build both dashboard and API
 
 run: ## Run the API locally (requires built dashboard in mocktail-api/build)
 	@echo "Starting API server on :4000..."
-	cd mocktail-api && ./mocktail-api
+	cd mocktail-api && MOCKTAIL_DB_PATH=db/apis.db ./mocktail-api
 
 dev-dashboard: ## Run dashboard in development mode
 	@echo "Starting dashboard dev server on :3001..."
@@ -30,7 +30,7 @@ dev-dashboard: ## Run dashboard in development mode
 
 dev-api: ## Run API in development mode (debug with VSCode or go run)
 	@echo "Starting API dev server on :4000..."
-	cd mocktail-api && go run main.go
+	cd mocktail-api && MOCKTAIL_DB_PATH=db/apis.db go run main.go
 
 docker-up: ## Start with docker-compose
 	docker-compose up -d

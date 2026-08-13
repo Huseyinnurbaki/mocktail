@@ -8,6 +8,7 @@ import (
 	"mocktail-api/mocktail"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -77,19 +78,35 @@ func setupRoutes(app *fiber.App) {
 
 }
 
+// resolveDBPath decides where apis.db lives:
+//  1. MOCKTAIL_DB_PATH (explicit file path) — used by Docker to point at a mounted volume.
+//  2. else the OS per-user app-data dir (e.g. ~/Library/Application Support/mocktail/apis.db) —
+//     so the desktop app + brew-installed CLI keep one DB that survives updates and isn't tied
+//     to the working directory.
+//  3. else the legacy relative ./db/apis.db (fallback when no HOME, e.g. a bare scratch container).
+func resolveDBPath() string {
+	if p := os.Getenv("MOCKTAIL_DB_PATH"); p != "" {
+		return p
+	}
+	if dir, err := os.UserConfigDir(); err == nil {
+		return filepath.Join(dir, "mocktail", "apis.db")
+	}
+	return filepath.Join("db", "apis.db")
+}
+
 func initDatabase() {
 	var err error
 
-	// Create db directory if it doesn't exist
-	if err := os.MkdirAll("db", 0755); err != nil {
-		panic("failed to create db directory")
+	dbPath := resolveDBPath()
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		panic("failed to create db directory: " + err.Error())
 	}
 
-	database.DBConn, err = gorm.Open(gormlite.Open("db/apis.db"), &gorm.Config{})
+	database.DBConn, err = gorm.Open(gormlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
-	logger.Log("Connection Opened to Database")
+	logger.Log("Connection Opened to Database (%s)", dbPath)
 	database.DBConn.AutoMigrate(&core.Api{})
 	logger.Log("Database Migrated")
 }

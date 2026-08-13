@@ -182,6 +182,30 @@ claude mcp add mocktail \
 
 ### Environment Variables
 
+**`MOCKTAIL_PORT`** (optional)
+
+Port the server listens on. Defaults to `4000`. Set it to `auto` (or `0`) to bind a **free port** chosen by the OS — useful for the desktop app so it doesn't clash with a Docker instance already on `4000`. The platform-standard `PORT` variable is also honored.
+
+```bash
+MOCKTAIL_PORT=8080     # fixed port
+MOCKTAIL_PORT=auto     # OS-assigned free port
+```
+
+**`MOCKTAIL_DB_PATH`** (optional)
+
+Path to the SQLite database file.
+
+- **Default (desktop / CLI):** a per-user app-data location, so the DB survives app updates and isn't tied to the directory you launch from:
+  - macOS: `~/Library/Application Support/mocktail/apis.db`
+  - Linux: `~/.config/mocktail/apis.db` (respects `$XDG_CONFIG_HOME`)
+  - Windows: `%AppData%\mocktail\apis.db`
+- **Docker:** the image pins `MOCKTAIL_DB_PATH=/db/apis.db` and `docker-compose.yml` mounts `./mocktail-api/db:/db`, so your data still persists in `./mocktail-api/db/` on the host (unchanged).
+
+```bash
+# Override the location explicitly
+MOCKTAIL_DB_PATH=/var/lib/mocktail/apis.db
+```
+
 **`MOCKTAIL_BASE_URL`** (optional)
 
 Override the Mocktail URL displayed in the dashboard. Useful when deploying behind a reverse proxy or custom domain.

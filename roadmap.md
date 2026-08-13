@@ -119,7 +119,10 @@ brew install --cask mocktail-desktop  # cask → native window
 **Shared prep work (benefits both):**
 - ✅ Free-port selection done — `MOCKTAIL_PORT=auto`/`0` picks a free port (avoids clashing with the
   Docker version); `MOCKTAIL_PORT`/`PORT` set a fixed one. Desktop shell just sets `MOCKTAIL_PORT=auto`.
-- Move the SQLite DB to the OS app-data dir (survives app updates).
+- ✅ SQLite DB path resolved via `resolveDBPath()`: **`MOCKTAIL_DB_PATH`** override → OS **app-data
+  dir** (`os.UserConfigDir()/mocktail/apis.db`, survives app updates, not CWD-tied) → legacy
+  `db/apis.db` fallback (no-HOME/scratch). Docker pins `MOCKTAIL_DB_PATH=/db/apis.db` (compose volume
+  unchanged); Makefile `dev-api`/`run` pin `db/apis.db` for local dev. README + compose documented.
 - Auto-open behavior (CLI → browser, desktop → its own window).
 
 **Suggested sequencing:**
