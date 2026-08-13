@@ -3,11 +3,50 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="Mocktail — a self-hosted mock API server and dashboard in a single binary. Define endpoints, generate realistic data per request, and watch the traffic. Mock with Mocktail." />
-<meta property="og:title" content="Mocktail — Mock with Mocktail" />
-<meta property="og:description" content="A complete mock server and dashboard in one binary. No cloud, no sign-up." />
+<title>Mocktail — Self-hosted mock API server &amp; dashboard</title>
+<meta name="description" content="Mocktail is a self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set headers, delays and status codes, and watch live traffic. No cloud, no sign-up. Free and open source." />
+<link rel="canonical" href="https://getmocktail.com/" />
+<meta name="theme-color" content="#2bb673" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-<title>Mocktail — Pour yourself a mock API</title>
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mocktail" />
+<meta property="og:url" content="https://getmocktail.com/" />
+<meta property="og:title" content="Mocktail — Self-hosted mock API server & dashboard" />
+<meta property="og:description" content="A complete mock server and dashboard in one binary. Realistic data per request, live traffic, headers &amp; delays. No cloud, no sign-up." />
+<meta property="og:image" content="https://getmocktail.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Mocktail — Self-hosted mock API server & dashboard" />
+<meta name="twitter:description" content="A complete mock server and dashboard in one binary. No cloud, no sign-up." />
+<meta name="twitter:image" content="https://getmocktail.com/og.png" />
+<!-- Structured data: helps Google rich results AND AI/answer engines understand the tool -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Mocktail",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Windows, Linux, Docker",
+  "description": "A self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set custom headers, delays and status codes, watch live traffic, and drive it from AI via MCP.",
+  "url": "https://getmocktail.com/",
+  "downloadUrl": "https://getmocktail.com/#install",
+  "softwareVersion": "4.0",
+  "license": "https://github.com/Huseyinnurbaki/mocktail/blob/master/LICENSE",
+  "codeRepository": "https://github.com/Huseyinnurbaki/mocktail",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Optional per-field fake data generators (uuid, email, price, name)",
+    "Custom response headers, latency, and any status code",
+    "Live request traffic view",
+    "JSON import and export",
+    "Built-in AI assistant (bring your own key)",
+    "MCP server for Claude Desktop and Code"
+  ]
+}
+</script>
 <style>
   :root {
     --bg: oklch(0.975 0.022 128); --bg-2: oklch(0.955 0.03 126); --card: oklch(1 0 0);
@@ -191,15 +230,37 @@
   footer .links { display: flex; gap: 22px; justify-content: center; font-size: 14px; color: var(--soft); margin-top: 14px; }
   footer .links a:hover { color: var(--leaf); }
 
+  .faq { max-width: 720px; margin: 0 auto; }
+  .qa { padding: 22px 0; border-top: 1px solid var(--line); }
+  .qa:first-child { border-top: none; padding-top: 0; }
+  .qa h3 { font-size: 18px; margin: 0 0 8px; }
+  .qa p { color: var(--soft); font-size: 15px; margin: 0; line-height: 1.65; }
+
   :focus-visible { outline: 2px solid var(--leaf); outline-offset: 3px; border-radius: 8px; }
   @media (prefers-reduced-motion: reduce) { .bub{display:none} .ing{animation:none;opacity:1} .titlebar .live::before{animation:none} }
   @media (max-width: 900px) {
-    .hero .wrap { grid-template-columns: 1fr; }
-    .stage { min-height: 380px; } .ing { display: none; }
+    .hero .wrap { grid-template-columns: 1fr; min-height: auto; gap: 20px; }
+    .stage { min-height: 340px; } .ing { display: none; }
     .panes { grid-template-columns: 1fr; } .list { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--line); } .list .lbl { display: none; }
-    .feature { grid-template-columns: 1fr; gap: 26px; padding: 34px 0; }
+    .feature { grid-template-columns: 1fr; gap: 24px; padding: 34px 0; }
     .feature.rev .demo { order: 0; }
     .feature .copy p { max-width: none; }
+    .section { padding: 56px 0; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 18px; }
+    nav { padding: 14px 0; }
+    nav .links { gap: 12px; }
+    nav .links a:not(.ghost) { display: none; } /* keep GitHub + theme toggle only */
+    .hero { padding-top: 6px; }
+    h1.big { font-size: 40px; } h1.big br { display: none; }
+    .sub { font-size: 16px; margin: 16px 0 24px; }
+    .stage { min-height: 300px; }
+    .showcase { padding: 14px 0; } .showcase .cap h2 { font-size: 24px; }
+    .section { padding: 42px 0; }
+    .feature { padding: 28px 0; } .feature h3 { font-size: 22px; }
+    .ways { flex-wrap: wrap; } .way { padding: 7px 13px; }
+    .first .shead h2, .shead h2 { font-size: 26px; }
   }
 </style>
 </head>
@@ -217,10 +278,10 @@
   </div>
 </nav>
 
+<main>
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <span class="eyebrow">🍹 Self-hosted mock API server</span>
       <h1 class="big">Pour yourself a<br><span class="grad">mock API</span>.</h1>
       <p class="sub">A complete mock server and dashboard in one little binary — mixed fresh on your machine. No cloud, no sign-up, no bitter aftertaste.</p>
       <div class="cta">
@@ -294,9 +355,9 @@
 
         <div class="feature">
           <div class="copy">
-            <span class="tagword">Randomize</span>
-            <h3>Fresh data, every pour</h3>
-            <p>Attach a generator to any field — <b>uuid, email, price, name</b> — and every call returns new, believable data. Point it at a real response and it becomes your anonymizer.</p>
+            <span class="tagword">Randomize · optional</span>
+            <h3>Fixed by default, fresh on demand</h3>
+            <p>Serve a plain static response as-is — or attach a generator to any field (<b>uuid, email, price, name</b>) so it re-rolls every call. Opt in per field; point one at a real response and it anonymizes it.</p>
           </div>
           <div class="demo"><div class="panel">
             <div class="pbar"><span class="verb v-get">GET</span><span class="lab">/api/v1/users · 200</span></div>
@@ -400,6 +461,55 @@
     </div>
   </div>
 </section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="shead"><h2>Questions, answered.</h2></div>
+    <div class="faq">
+      <div class="qa">
+        <h3>What is Mocktail?</h3>
+        <p>Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service.</p>
+      </div>
+      <div class="qa">
+        <h3>Is Mocktail free and open source?</h3>
+        <p>Yes. Mocktail is free and open source on <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">GitHub</a>. There's no sign-up and no paid tier to use it — it runs entirely on your own machine.</p>
+      </div>
+      <div class="qa">
+        <h3>How do I install Mocktail?</h3>
+        <p>Install the desktop app with Homebrew (<span class="mono">brew install --cask mocktail</span>), run it with Docker, or use the CLI. The dashboard opens at <span class="mono">localhost:6625</span>.</p>
+      </div>
+      <div class="qa">
+        <h3>Where does my data live?</h3>
+        <p>Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share.</p>
+      </div>
+      <div class="qa">
+        <h3>Can Mocktail generate realistic test data?</h3>
+        <p>Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it.</p>
+      </div>
+      <div class="qa">
+        <h3>Does Mocktail work with AI tools?</h3>
+        <p>Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key, key stays on your machine), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service." } },
+    { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up and no paid tier to use it — it runs entirely on your own machine." } },
+    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install the desktop app with Homebrew (brew install --cask mocktail), run it with Docker, or use the CLI. The dashboard opens at localhost:6625." } },
+    { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share." } },
+    { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it." } },
+    { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks." } }
+  ]
+}
+</script>
 
 <footer>
   <div class="wrap">

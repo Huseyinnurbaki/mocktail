@@ -1,0 +1,19 @@
+# Mocktail
+
+> A self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints,
+> optionally generate realistic data per request, set headers/delays/status codes, watch live
+> traffic, and drive it from AI via MCP. Free and open source. No cloud, no sign-up.
+
+## Key facts
+- Self-hosted; runs entirely on your machine (macOS, Windows, Linux, Docker). Dashboard at http://localhost:6625.
+- Free and open source: https://github.com/Huseyinnurbaki/mocktail
+- Install: `brew install --cask mocktail` (desktop), Docker, or the CLI.
+- Responses are static by default; optional per-field generators (uuid, email, price, name) return fresh data on each request, and can anonymize a real response.
+- Custom response headers (incl. application/problem+json), latency simulation, any status code.
+- Live traffic view; JSON import/export; no lock-in.
+- AI: a built-in assistant (bring your own key; key stays on your machine, chats aren't stored) drafts responses from a prompt. A built-in MCP server lets Claude Desktop and Claude Code create and edit mocks.
+
+## Links
+- Home: https://getmocktail.com/
+- Install: https://getmocktail.com/#install
+- Source & docs: https://github.com/Huseyinnurbaki/mocktail

@@ -1,4 +1,7 @@
-# Mocktail landing page — this is the public marketing site, index away.
+# Mocktail landing page — the public marketing site, index away.
 # (The self-hosted app ships its own robots.txt that disallows all.)
+# AI / answer-engine crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended…) are welcome too.
 User-agent: *
 Allow: /
+
+Sitemap: https://getmocktail.com/sitemap.xml
