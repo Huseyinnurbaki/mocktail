@@ -359,7 +359,8 @@ existing CORS/API-key config style.
 pane. Now also: **filter bar** (multi-select method chips + 2xx/3xx/4xx/5xx status-class chips +
 a **searchable path dropdown** — exact paths seen *plus* auto-derived `/prefix/*` wildcards that
 group ≥2 paths, matched by prefix; AND across / OR within), a **300-item display cap** (pill shows
-`300+`), and **memoized rows** so each 1.5s poll only re-renders changed rows. Polling stops on close (view
+`300+`), **memoized rows** so each 1.5s poll only re-renders changed rows, and **↑/↓ keyboard
+navigation** (scrolls the selection into view; ignores the filter input). Polling stops on close (view
 unmounts). **Remaining:** (1) true streaming (SSE/WS) to replace polling — *deferred; polling-while-
 open is acceptable*; (2) **request-side detail** — `LogEntry` captures nothing about the request
 (no headers / query / body); needs backend capture + UI; (3) **retention/redaction config** (PII) —

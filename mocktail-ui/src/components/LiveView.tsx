@@ -229,6 +229,7 @@ const LiveRow = memo(function LiveRow({
 }) {
   return (
     <button
+      data-live-row={index}
       onClick={() => onSelect(index)}
       style={selected ? { boxShadow: 'inset 2px 0 0 var(--accent)' } : undefined}
       className={`flex w-full items-center gap-3 border-b border-border-subtle px-[18px] py-[9px] text-left focus:outline-none ${
@@ -334,6 +335,38 @@ export function LiveView({ onClose }: { onClose: () => void }) {
   const hasFilters = methodFilter.size > 0 || statusFilter.size > 0 || pathFilter.size > 0
 
   const onSelect = useCallback((i: number) => setSelectedI(i), [])
+
+  // Refs so the key handler stays mounted-once but reads the latest list/selection.
+  const shownRef = useRef(shown)
+  shownRef.current = shown
+  const selectedIRef = useRef(selectedI)
+  selectedIRef.current = selectedI
+
+  // ↑/↓ move the selection through the visible list.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return // don't hijack the filter input
+      const list = shownRef.current
+      if (list.length === 0) return
+      e.preventDefault()
+      const cur = list.findIndex((l) => l.i === selectedIRef.current)
+      let next: number
+      if (cur < 0) next = e.key === 'ArrowDown' ? 0 : list.length - 1
+      else next = e.key === 'ArrowDown' ? cur + 1 : cur - 1
+      next = Math.max(0, Math.min(list.length - 1, next))
+      setSelectedI(list[next].i)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // Keep the selected row in view when navigating by keyboard.
+  useEffect(() => {
+    if (selectedI == null) return
+    document.querySelector(`[data-live-row="${selectedI}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [selectedI])
 
   function clearFilters() {
     setMethodFilter(new Set())
