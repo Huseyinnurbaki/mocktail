@@ -110,8 +110,25 @@ func mockTools() []ToolSpec {
 // out-of-range delay (rather than silently clamping) so the assistant can tell the user the limit.
 const maxDelayMs = 30000
 
-func checkDelay(d int) (string, bool) {
-	if d < 0 || d > maxDelayMs {
+func validMethod(m string) bool {
+	switch strings.ToUpper(m) {
+	case "GET", "POST", "PUT", "PATCH", "DELETE":
+		return true
+	}
+	return false
+}
+
+// validateMock guards every write the assistant can make (create + update) so a bad/hostile
+// tool call is rejected with a clear message rather than persisting a broken mock. update_mock
+// writes to the DB directly (not via core.InsertApi), so without this it would skip validation.
+func validateMock(method, endpoint string, delay int) (string, bool) {
+	if !validMethod(method) {
+		return "method must be one of GET, POST, PUT, PATCH, DELETE", true
+	}
+	if strings.TrimLeft(endpoint, "/") == "" {
+		return "endpoint is required (e.g. /api/users)", true
+	}
+	if delay < 0 || delay > maxDelayMs {
 		return fmt.Sprintf("delay must be between 0 and %d ms (max 30s)", maxDelayMs), true
 	}
 	return "", false
@@ -238,7 +255,7 @@ func createMock(input json.RawMessage) (string, bool) {
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
 	}
-	if msg, bad := checkDelay(args.Delay); bad {
+	if msg, bad := validateMock(args.Method, args.Endpoint, args.Delay); bad {
 		return msg, true
 	}
 	api := &core.Api{
@@ -268,7 +285,7 @@ func updateMock(input json.RawMessage) (string, bool) {
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
 	}
-	if msg, bad := checkDelay(args.Delay); bad {
+	if msg, bad := validateMock(args.Method, args.Endpoint, args.Delay); bad {
 		return msg, true
 	}
 	var existing core.Api
