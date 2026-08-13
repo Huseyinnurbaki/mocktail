@@ -1,12 +1,10 @@
 FROM golang:1.26-alpine AS builder-api
 
-# Install build dependencies for CGO
-RUN apk add --no-cache gcc musl-dev
-
 WORKDIR /src
 COPY ./mocktail-api .
 RUN go mod download
-RUN CGO_ENABLED=1 GOOS=linux go build -o /app -a -ldflags '-linkmode external -extldflags "-static"' .
+# Pure Go (ncruces/go-sqlite3 via WASM) — no C toolchain, no static-link dance.
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app .
 
 FROM node:20-alpine AS builder-dashboard
 

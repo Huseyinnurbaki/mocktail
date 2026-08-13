@@ -14,7 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/sqlite"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
 
@@ -85,7 +85,7 @@ func initDatabase() {
 		panic("failed to create db directory")
 	}
 
-	database.DBConn, err = gorm.Open(sqlite.Open("db/apis.db"), &gorm.Config{})
+	database.DBConn, err = gorm.Open(gormlite.Open("db/apis.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

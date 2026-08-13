@@ -17,6 +17,8 @@ jobs:
   backend:
     name: Backend (Go)
     runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0" # pure Go (ncruces/go-sqlite3) — no C toolchain, and guards against CGO creep
     defaults:
       run:
         working-directory: mocktail-api

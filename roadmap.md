@@ -359,9 +359,14 @@ no `Raw`/`Exec`), a single open site (`main.go`), and `datatypes.JSON` (→ `TEX
 (`core.go:99,149`) to `db.First(&api, id)` — works in PG via lowercasing but fragile. PK
 auto-increment + unique `Key` are portable.
 
-**Bonus — go CGO-free.** SQLite currently uses the **CGO** driver `mattn/go-sqlite3` (Dockerfile
-installs `gcc`/`musl-dev`, `CGO_ENABLED=1`, `-linkmode external` static-link dance). Swapping to a
-pure-Go SQLite driver makes **both** drivers pure Go → `CGO_ENABLED=0`.
+**Bonus — go CGO-free — ✅ DONE.** Swapped `gorm.io/driver/sqlite` (CGO `mattn/go-sqlite3`) →
+**`ncruces/go-sqlite3/gormlite`** (pure Go, WASM/wazero). One-line dialector change in `main.go`
+(`gormlite.Open("db/apis.db")`), `go mod tidy` dropped `mattn`/`driver-sqlite`. Dockerfile now
+`CGO_ENABLED=0` with **no `gcc`/`musl-dev` and no static-link flags**; CI pins `CGO_ENABLED=0`.
+Verified: pure-Go build, `go vet`/`go test` green, the new driver **reads the existing CGO-written
+`apis.db` unchanged** (no migration), and it **cross-compiles cleanly to darwin/{arm64,amd64},
+linux/{amd64,arm64}, windows/amd64** from one machine — the desktop-multiarch unlock. (Binary ~37 MB,
+a bit larger than CGO — the expected wasm tradeoff.) Original analysis kept below for context.
 
 - **Driver choice:** prefer **`ncruces/go-sqlite3` + its first-party `gormlite` driver** (SQLite
   compiled to WASM, run via the pure-Go `wazero` runtime; actively maintained, first-party GORM
