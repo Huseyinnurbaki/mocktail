@@ -6,6 +6,7 @@ import (
 	"mocktail-api/database"
 	"mocktail-api/logger"
 	"mocktail-api/mocktail"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -49,8 +50,9 @@ func setupRoutes(app *fiber.App) {
 	// Health check endpoint (no auth)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "healthy",
+			"status":  "healthy",
 			"service": "mocktail-api",
+			"port":    boundPort,
 		})
 	})
 
@@ -92,13 +94,31 @@ func initDatabase() {
 	logger.Log("Database Migrated")
 }
 
-// TODO: read addr from env
+// boundPort is the TCP port the server actually listens on (resolved at startup, reported by /health).
+var boundPort int
+
+// listenAddr resolves the bind address from the environment: MOCKTAIL_PORT wins, then the
+// platform-standard PORT, else 4000. A value of "0" or "auto" lets the OS pick a free port —
+// used by the desktop app to avoid clashing with a Docker instance already on :4000.
+func listenAddr() string {
+	p := os.Getenv("MOCKTAIL_PORT")
+	if p == "" {
+		p = os.Getenv("PORT")
+	}
+	if p == "" {
+		p = "4000"
+	}
+	if strings.EqualFold(p, "auto") {
+		p = "0"
+	}
+	return ":" + p
+}
+
 func main() {
 	// Load .env file if it exists (for local development)
 	// Silently ignore if file doesn't exist (production uses env vars directly)
 	_ = godotenv.Load()
 
-	// addr := `:` + os.Getenv("PORT")
 	app := fiber.New()
 
 	// Configure CORS from environment variables
@@ -181,5 +201,12 @@ func main() {
 
 	setupRoutes(app)
 
-	log.Fatal(app.Listen(":4000"))
+	addr := listenAddr()
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("Failed to bind %s: %v", addr, err)
+	}
+	boundPort = ln.Addr().(*net.TCPAddr).Port
+	logger.Log("Mocktail listening on http://localhost:%d", boundPort)
+	log.Fatal(app.Listener(ln))
 }

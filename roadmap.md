@@ -117,7 +117,8 @@ brew install --cask mocktail-desktop  # cask → native window
 ```
 
 **Shared prep work (benefits both):**
-- Free-port selection instead of hardcoded `:4000` (avoids clashing with the Docker version).
+- ✅ Free-port selection done — `MOCKTAIL_PORT=auto`/`0` picks a free port (avoids clashing with the
+  Docker version); `MOCKTAIL_PORT`/`PORT` set a fixed one. Desktop shell just sets `MOCKTAIL_PORT=auto`.
 - Move the SQLite DB to the OS app-data dir (survives app updates).
 - Auto-open behavior (CLI → browser, desktop → its own window).
 
@@ -406,20 +407,20 @@ SQLite (`file::memory:?cache=shared`) so each test gets a clean DB with no fixtu
 Aim for meaningful coverage of the request surface, not a % target. These also become the
 regression net for the v4 "non-breaking" guarantee (response shapes, import/export format).
 
-### CI on every push (the actual gap)
+### CI on every push — ✅ built
 
-Add a **`ci.yml`** GitHub Actions workflow triggered on `push` + `pull_request` (all branches):
-- **Backend job:** `setup-go` → `go vet ./...` → `go build ./...` → `go test ./...` (in
-  `mocktail-api`). Pairs naturally with **drop-CGO** — `CGO_ENABLED=0` makes the CI runner need no C
-  toolchain, so it's faster and simpler.
-- **Frontend job:** `setup-node` + yarn cache → `yarn install --frozen-lockfile` → typecheck →
-  `yarn build` (in `mocktail-ui`). (No UI unit tests yet; build + typecheck is the floor.)
-- Later: `golangci-lint` + `eslint`, and a UI test runner (**Vitest** — Vite-native) if/when
-  component tests are worth it.
+**`.github/workflows/ci.yml`** runs on `push` + `pull_request` (all branches), with
+`concurrency` cancel-in-progress:
+- **Backend job** (`mocktail-api`): `setup-go` (version from `go.mod`) → `go build ./...` →
+  `go vet ./...` → `go test ./...`. *(Still CGO — `ubuntu-latest` has gcc; **drop-CGO** will let the
+  runner skip the C toolchain and speed this up.)*
+- **Frontend job** (`mocktail-ui`): `setup-node@20` + yarn cache → `yarn install --frozen-lockfile`
+  → `yarn typecheck` (`tsc --noEmit`) → `yarn build`. (Build + typecheck is the floor; no UI unit
+  tests yet.)
 
-Sequencing: the CI job is cheap and high-leverage — it protects the whole v4 push. Worth adding
-**early** (even before all the tests exist) so build/typecheck regressions are caught immediately,
-then grow the test suite into it.
+Both command sets verified locally green. **Later:** `golangci-lint` + `eslint`, and a UI test
+runner (**Vitest** — Vite-native) once the backend API tests (above) and any component tests are
+worth wiring in.
 
 ---
 
@@ -450,9 +451,12 @@ to the `coreApi` group + have the dashboard send the key (prompt once → localS
 sends it, so this also makes the MCP key *real*. Either reuse `MOCKTAIL_API_KEY` or add a separate
 `MOCKTAIL_ADMIN_KEY` for management vs serving. Not needed for desktop or a firewalled container.
 
-**Cleanup:** `PORT` env var is **dead** — referenced only in a commented line (`main.go:101`); the
-listen addr is hardcoded `:4000` (`main.go:184`). Wire it up (or a free-port pick) — also a
-prerequisite for the desktop free-port plan.
+**Cleanup — ✅ done:** the `PORT` env is now wired. `main.go` resolves the bind address via
+`listenAddr()` — **`MOCKTAIL_PORT`** wins, then the platform-standard **`PORT`**, else `4000`; a
+value of **`0`/`auto`** binds `:0` so the OS picks a **free port** (the desktop plan). The server
+binds via `net.Listen` + `app.Listener`, logs the actual port, and **`/health` now returns
+`"port"`** so the status pill can show the real port (frontend still hardcodes `localhost:4000` —
+swap it to read `/health.port` when convenient).
 
 ---
 
