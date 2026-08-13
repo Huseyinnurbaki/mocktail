@@ -96,7 +96,7 @@ func UpdateApi(c *fiber.Ctx) error {
 	db := database.DBConn
 
 	var existingApi Api
-	if err := db.Where("ID = ?", id).First(&existingApi).Error; err != nil {
+	if err := db.Where("id = ?", id).First(&existingApi).Error; err != nil {
 		return c.Status(404).JSON(ErrorResponse{Message: "API not found"})
 	}
 
@@ -146,7 +146,7 @@ func DeleteApiByKey(c *fiber.Ctx) error {
 	id := c.Params("id")
 	db := database.DBConn
 
-	if err := db.Unscoped().Where("ID = ?", id).Delete(&Api{}).Error; err != nil {
+	if err := db.Unscoped().Where("id = ?", id).Delete(&Api{}).Error; err != nil {
 		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
 	}
 

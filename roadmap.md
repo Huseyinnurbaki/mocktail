@@ -355,9 +355,11 @@ no `Raw`/`Exec`), a single open site (`main.go`), and `datatypes.JSON` (→ `TEX
   **zero-config default**; Postgres is **opt-in**.
 - `AutoMigrate` handles schema on both — no migration scripts.
 
-**Gotchas (small):** normalize the two uppercase `db.Where("ID = ?", ...)` queries
-(`core.go:99,149`) to `db.First(&api, id)` — works in PG via lowercasing but fragile. PK
-auto-increment + unique `Key` are portable.
+**Gotchas (small):** ✅ **done** — the two uppercase `db.Where("ID = ?", ...)` queries
+(`core.go:99,149`) are now lowercased to `db.Where("id = ?", id)` (matches the existing
+`Where("key = ?")` style; unambiguous and PG-portable). PK auto-increment + unique `Key` are
+portable. Still **to do:** the driver-select itself, then run the backend test suite against a real
+Postgres (Docker service) to catch any remaining `jsonb`/auto-increment/constraint quirks.
 
 **Bonus — go CGO-free — ✅ DONE.** Swapped `gorm.io/driver/sqlite` (CGO `mattn/go-sqlite3`) →
 **`ncruces/go-sqlite3/gormlite`** (pure Go, WASM/wazero). One-line dialector change in `main.go`
@@ -395,22 +397,22 @@ existing workflows (`docker-onpublish.yml`, `dockerize.yml`, `npm-publish.yml`, 
 are all **publish-triggered** — **nothing runs on push/PR**, so a broken build or handler can land
 on `master` unnoticed.
 
-### Backend API tests
+### Backend API tests — ✅ built (SQLite)
 
-Table-driven handler tests using Fiber's `app.Test(httptest.NewRequest(...))` against an in-memory
-SQLite (`file::memory:?cache=shared`) so each test gets a clean DB with no fixtures on disk. Cover:
-- **`core` CRUD:** create → get → update → delete round-trips; `Key` uniqueness; endpoint
-  normalization (leading-slash strip); the two uppercase `db.Where("ID = ?")` queries.
-- **Import/export:** array vs `{ "Apis": [...] }` shapes; **existing paths skipped** (not
-  overwritten); `imported/skipped/failed` counts; `Randomize` (and, once added, `Headers`) survive
-  the round-trip.
-- **`MockApiHandler`:** status code default (200), `204/304` → no body, `404` for unknown key,
-  delay applied, per-request `Randomize` actually varies the output, and — once built — response
-  headers incl. the **custom `Content-Type` override**.
-- Keep `randomize` unit tests; add cases for array-index paths and the `once`/bake path.
+Handler tests via Fiber's `app.Test(httptest.NewRequest(...))` against a fresh **in-memory
+pure-Go SQLite** (`gormlite.Open(":memory:")`) per test. **14 tests**, all green under
+`CGO_ENABLED=0`:
+- **`core_test.go` (9):** create+get (ID, endpoint normalization, key, status default), delay-cap +
+  status default, invalid-method → 400, duplicate `Key` → 400, update, update-not-found → 404,
+  delete, import (imported/skipped counts, **skips existing**, **Randomize survives round-trip**),
+  preview applies a `fixed` value.
+- **`mocktail_test.go` (5):** serve mock, unknown → 404, custom status (503), `204` → no body,
+  per-request `Randomize` (`fixed`) applied to the served body.
+- Existing `randomize` unit tests kept.
 
-Aim for meaningful coverage of the request surface, not a % target. These also become the
-regression net for the v4 "non-breaking" guarantee (response shapes, import/export format).
+These are the regression net for the v4 "non-breaking" guarantee (response shapes, import/export
+format). **Remaining:** cases for `Headers` once that lands; running the *same* suite against
+**Postgres** (below) to surface dialect issues; later array-index/`once` randomize cases.
 
 ### CI on every push — ✅ built
 
