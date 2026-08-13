@@ -71,7 +71,7 @@ func mockTools() []ToolSpec {
 					"endpoint":   map[string]any{"type": "string", "description": "path starting with /, e.g. /api/users"},
 					"response":   map[string]any{"type": "string", "description": "response body as a JSON string, e.g. {\"id\":\"\",\"email\":\"\"}"},
 					"statusCode": map[string]any{"type": "integer", "description": "HTTP status, default 200"},
-					"delay":      map[string]any{"type": "integer", "description": "delay in ms, default 0"},
+					"delay":      map[string]any{"type": "integer", "description": "delay in ms, 0–30000 (max 30s), default 0"},
 					"randomize":  randomizeSchema(),
 				},
 				"required": []any{"method", "endpoint", "response"},
@@ -88,7 +88,7 @@ func mockTools() []ToolSpec {
 					"endpoint":   map[string]any{"type": "string", "description": "path starting with /"},
 					"response":   map[string]any{"type": "string", "description": "response body as a JSON string"},
 					"statusCode": map[string]any{"type": "integer"},
-					"delay":      map[string]any{"type": "integer"},
+					"delay":      map[string]any{"type": "integer", "description": "delay in ms, 0–30000 (max 30s)"},
 					"randomize":  randomizeSchema(),
 				},
 				"required": []any{"id", "method", "endpoint", "response"},
@@ -104,6 +104,17 @@ func mockTools() []ToolSpec {
 			},
 		},
 	}
+}
+
+// maxDelayMs mirrors the core cap on response delay (see core.InsertApi). The tools reject an
+// out-of-range delay (rather than silently clamping) so the assistant can tell the user the limit.
+const maxDelayMs = 30000
+
+func checkDelay(d int) (string, bool) {
+	if d < 0 || d > maxDelayMs {
+		return fmt.Sprintf("delay must be between 0 and %d ms (max 30s)", maxDelayMs), true
+	}
+	return "", false
 }
 
 // toolNote is a short human-readable summary of a tool call, shown in the chat as it runs.
@@ -227,6 +238,9 @@ func createMock(input json.RawMessage) (string, bool) {
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
 	}
+	if msg, bad := checkDelay(args.Delay); bad {
+		return msg, true
+	}
 	api := &core.Api{
 		Endpoint:   args.Endpoint,
 		Method:     strings.ToUpper(args.Method),
@@ -253,6 +267,9 @@ func updateMock(input json.RawMessage) (string, bool) {
 	}
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
+	}
+	if msg, bad := checkDelay(args.Delay); bad {
+		return msg, true
 	}
 	var existing core.Api
 	if err := database.DBConn.Where("id = ?", args.ID).First(&existing).Error; err != nil {

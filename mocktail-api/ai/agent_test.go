@@ -145,6 +145,24 @@ func TestExecuteMockToolCreateAndList(t *testing.T) {
 	}
 }
 
+func TestDelayOverLimitRejected(t *testing.T) {
+	useTempDB(t)
+	// create with an over-limit delay is rejected, not silently clamped.
+	out, isErr := executeMockTool("create_mock", json.RawMessage(`{"method":"GET","endpoint":"/slow","response":"{}","delay":32000}`))
+	if !isErr {
+		t.Fatalf("create_mock with delay 32000 should error, got: %s", out)
+	}
+	if !strings.Contains(out, "30000") {
+		t.Fatalf("error should mention the 30000 limit: %s", out)
+	}
+	// and nothing was stored.
+	var count int64
+	database.DBConn.Model(&core.Api{}).Where("key = ?", "GETslow").Count(&count)
+	if count != 0 {
+		t.Fatalf("over-limit create should not persist a mock (count=%d)", count)
+	}
+}
+
 func TestCreateMockStoresRandomize(t *testing.T) {
 	useTempDB(t)
 	in := json.RawMessage(`{"method":"GET","endpoint":"/api/v1/random","response":"{\"id\":\"\",\"value\":\"\"}","randomize":{"id":{"type":"uuid"},"value":{"type":"word"}}}`)

@@ -97,8 +97,8 @@ export function AssistantPanel({
 
   const configured = config?.configured ?? false
 
-  async function send() {
-    const text = input.trim()
+  async function send(raw?: string) {
+    const text = (raw ?? input).trim()
     if (!text || streaming) return
     if (text === '/clear') {
       setItems([])
@@ -145,8 +145,8 @@ export function AssistantPanel({
               {EXAMPLES.map((ex) => (
                 <button
                   key={ex}
-                  onClick={() => setInput(ex)}
-                  disabled={!configured}
+                  onClick={() => send(ex)}
+                  disabled={!configured || streaming}
                   className="rounded-[8px] border border-border px-3 py-2 text-left text-[12.5px] leading-[1.4] transition-colors hover:border-accent hover:bg-surface-sunken disabled:cursor-default disabled:opacity-55 disabled:hover:border-border disabled:hover:bg-transparent"
                 >
                   {ex}
@@ -209,7 +209,7 @@ export function AssistantPanel({
                 className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted"
               />
               <button
-                onClick={send}
+                onClick={() => send()}
                 disabled={streaming || !input.trim()}
                 className="text-[12px] font-semibold text-accent-text disabled:opacity-40"
               >
