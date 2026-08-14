@@ -110,7 +110,7 @@
   .tgl { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); cursor: pointer; color: var(--soft); }
   .tgl:hover { color: var(--ink); }
 
-  .hero .wrap { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 30px; align-items: center; padding: 26px 0 20px; min-height: 460px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 30px; align-items: center; padding-block: 26px 20px; min-height: 460px; }
   .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; color: var(--leaf); background: color-mix(in oklch, var(--leaf) 12%, transparent); padding: 5px 12px; border-radius: 999px; }
   h1.big { font-size: clamp(42px, 6.4vw, 66px); line-height: 1.0; margin: 20px 0 0; }
   .sub { font-size: 18px; color: var(--soft); max-width: 450px; margin: 20px 0 28px; font-weight: 500; }
@@ -214,6 +214,7 @@
   .way { border: none; background: transparent; font-family: var(--mono); font-size: 13px; font-weight: 650; padding: 8px 18px; border-radius: 999px; cursor: pointer; color: var(--soft); display: inline-flex; align-items: center; gap: 7px; }
   .way[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 3px 10px -4px oklch(0.4 0.1 140 / 0.4); }
   .way .rec { font-size: 9px; font-weight: 800; color: white; background: var(--leaf); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
+  .way .soon { font-size: 9px; font-weight: 800; color: var(--soft); background: color-mix(in oklch, var(--soft) 16%, transparent); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
   .glassterm { max-width: 640px; margin: 0 auto; background: var(--card); border-radius: 18px; box-shadow: var(--sh); border: 1px solid var(--line); overflow: hidden; text-align: left; }
   .glassterm .h { display: flex; align-items: center; gap: 8px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
   .glassterm .h .d { width: 10px; height: 10px; border-radius: 50%; }
@@ -282,13 +283,13 @@
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <h1 class="big">Pour yourself a<br><span class="grad">mock API</span>.</h1>
+      <h1 class="big">Whip up a<br><span class="grad">mock API</span>.</h1>
       <p class="sub">A complete mock server and dashboard in one little binary — mixed fresh on your machine. No cloud, no sign-up, no bitter aftertaste.</p>
       <div class="cta">
         <a class="btn primary" href="#install">Start mixing →</a>
         <a class="btn text" href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">Star on GitHub</a>
       </div>
-      <div class="run"><b>brew install --cask mocktail</b> — a native app, on your desktop</div>
+      <div class="run">Install with <b>Homebrew</b> or <b>Docker</b> — the dashboard opens at localhost:6625</div>
     </div>
     <div class="stage" aria-hidden="true">
       <div class="halo"></div>
@@ -308,7 +309,6 @@
 <section class="showcase">
   <div class="wrap">
     <div class="cap">
-      <span class="eyebrow">The whole thing</span>
       <h2>A dashboard that comes in the box.</h2>
     </div>
     <div class="window" aria-hidden="true">
@@ -450,14 +450,15 @@
       <p>The dashboard comes with it. Open <span class="mono">localhost:6625</span> and start mocking.</p>
     </div>
     <div class="ways" role="tablist">
-      <button class="way" role="tab" aria-selected="true" data-t="desktop">Desktop <span class="rec">EASIEST</span></button>
-      <button class="way" role="tab" aria-selected="false" data-t="brew">Homebrew</button>
+      <button class="way" role="tab" aria-selected="true" data-t="brew">Homebrew <span class="rec">EASIEST</span></button>
       <button class="way" role="tab" aria-selected="false" data-t="docker">Docker</button>
+      <button class="way" role="tab" aria-selected="false" data-t="desktop">Desktop <span class="soon">SOON</span></button>
     </div>
     <div class="glassterm">
       <div class="h"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><button class="cp" id="copy">Copy</button></div>
-      <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask mocktail
-<span class="cm"># a native app — auto-picks a free port</span></pre></div>
+      <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask Huseyinnurbaki/mocktail/mocktail
+mocktail
+<span class="cm"># → opens http://localhost:6625</span></pre></div>
     </div>
   </div>
 </section>
@@ -476,7 +477,7 @@
       </div>
       <div class="qa">
         <h3>How do I install Mocktail?</h3>
-        <p>Install the desktop app with Homebrew (<span class="mono">brew install --cask mocktail</span>), run it with Docker, or use the CLI. The dashboard opens at <span class="mono">localhost:6625</span>.</p>
+        <p>Install with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/mocktail/mocktail</span>) or run it with Docker; the dashboard opens at <span class="mono">localhost:6625</span>. A native desktop app is coming soon.</p>
       </div>
       <div class="qa">
         <h3>Where does my data live?</h3>
@@ -503,7 +504,7 @@
   "mainEntity": [
     { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service." } },
     { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up and no paid tier to use it — it runs entirely on your own machine." } },
-    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install the desktop app with Homebrew (brew install --cask mocktail), run it with Docker, or use the CLI. The dashboard opens at localhost:6625." } },
+    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install with Homebrew (brew install --cask Huseyinnurbaki/mocktail/mocktail) or run it with Docker; the dashboard opens at localhost:6625. A native desktop app is coming soon." } },
     { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share." } },
     { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it." } },
     { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks." } }
@@ -533,12 +534,12 @@
     root.setAttribute("data-theme", next); localStorage.setItem("mt-v5-theme", next);
   });
   const CMDS = {
-    desktop:{ html: 'brew install --cask mocktail\n<span class="cm"># a native app — auto-picks a free port</span>', copy: "brew install --cask mocktail" },
-    brew:   { html: 'brew install mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install mocktail && mocktail" },
+    brew:   { html: 'brew install --cask Huseyinnurbaki/mocktail/mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install --cask Huseyinnurbaki/mocktail/mocktail && mocktail" },
     docker: { html: 'docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest\n<span class="cm"># → open http://localhost:6625</span>', copy: "docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest" },
+    desktop:{ html: '<span class="cm"># A native desktop app is coming soon.</span>\n<span class="cm"># For now, install with Homebrew or Docker above.</span>', copy: "" },
   };
   const cmd = document.getElementById("cmd");
-  cmd.dataset.copy = CMDS.desktop.copy;
+  cmd.dataset.copy = CMDS.brew.copy;
   document.querySelectorAll(".way").forEach(w => w.addEventListener("click", () => {
     document.querySelectorAll(".way").forEach(x => x.setAttribute("aria-selected", "false"));
     w.setAttribute("aria-selected", "true");

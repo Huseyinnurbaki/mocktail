@@ -15,6 +15,13 @@ live traffic view, and a CGO-free build. **Note the breaking port change below.*
   keypad), clear of the busy `3000`/`4000`/`8080` range. Update bookmarks, `-p 6625:6625` Docker
   mappings, and the MCP `MOCKTAIL_URL`. Set `MOCKTAIL_PORT` to override; `auto` scans for a free port.
 
+### ⬆️ Upgrading from v3.x
+
+- **Docker:** just pull `4.0.0` and recreate — your mounted volume is unchanged, so mocks persist.
+- **Everything else:** the SQLite file moved to the OS app-data dir, so the simplest, guaranteed path
+  is **Export → Import**: in v3, **Settings → Export** your mocks to JSON; after upgrading, **Settings
+  → Import** them into v4. (Existing paths are skipped on import, so it's safe to re-run.)
+
 ### ✨ Added
 
 - **AI assistant (in-app, agentic)** — a dashboard assistant that answers questions about Mocktail

@@ -1,0 +1,51 @@
+name: Release
+
+# Cut a release by pushing a version tag:  git tag v4.0.0 && git push --tags
+# Builds cross-platform binaries, creates the GitHub Release, and updates the Homebrew tap.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # create the GitHub Release
+
+jobs:
+  release:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # GoReleaser needs full history + tags
+
+      # Build the dashboard first — go:embed bakes it into the binary, so it must exist in
+      # mocktail-api/build before GoReleaser compiles.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: mocktail-ui/yarn.lock
+      - name: Build UI
+        run: |
+          cd mocktail-ui
+          yarn install --frozen-lockfile
+          yarn build
+      - name: Stage UI into the Go build context
+        run: |
+          rm -rf mocktail-api/build
+          cp -r mocktail-ui/build mocktail-api/build
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: mocktail-api/go.mod
+          cache-dependency-path: mocktail-api/go.sum
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT with contents:write on the homebrew-mocktail tap repo (default token can't push cross-repo)
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

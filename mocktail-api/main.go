@@ -2,8 +2,10 @@ package main
 
 import (
 	"crypto/rand"
+	"embed"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"log"
 	"mocktail-api/ai"
 	"mocktail-api/core"
@@ -11,6 +13,7 @@ import (
 	"mocktail-api/logger"
 	"mocktail-api/mocktail"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,10 +21,20 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/joho/godotenv"
 	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
+
+// uiFS holds the built dashboard, baked into the binary so it's fully self-contained (works
+// wherever it's installed — brew, a .app bundle, anywhere — no ./build directory needed).
+// The build pipeline (Makefile build-ui / Dockerfile) stages the Vite output into ./build before
+// `go build`. A committed .gitkeep keeps this compiling when the UI hasn't been built (e.g. CI's
+// Go-only job); the served dashboard is empty in that case, which those jobs don't exercise.
+//
+//go:embed all:build
+var uiFS embed.FS
 
 // API Key middleware
 func apiKeyMiddleware(c *fiber.Ctx) error {
@@ -91,8 +104,6 @@ func adminAuthMiddleware(c *fiber.Ctx) error {
 }
 
 func setupRoutes(app *fiber.App) {
-	app.Static("/", "./build")
-
 	// Health check endpoint (no auth)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -130,6 +141,11 @@ func setupRoutes(app *fiber.App) {
 	mocktailApi.Patch("/:endpoint/*", mocktail.MockApiHandler)
 	mocktailApi.Delete("/:endpoint/*", mocktail.MockApiHandler)
 
+	// Serve the embedded dashboard — registered LAST so it only catches paths no API route
+	// claimed (the app's UI, /assets/*, favicon, etc.). The dashboard is baked into the binary,
+	// so this works wherever the binary is installed.
+	build, _ := fs.Sub(uiFS, "build")
+	app.Use("/", filesystem.New(filesystem.Config{Root: http.FS(build), Index: "index.html"}))
 }
 
 // resolveDBPath decides where apis.db lives:
@@ -200,7 +216,46 @@ func bindListener() (net.Listener, error) {
 	return net.Listen("tcp", ":0")
 }
 
+// version is set at build time by GoReleaser via -ldflags "-X main.version=...".
+var version = "dev"
+
+const usage = `Mocktail — self-hosted mock API server + dashboard, in a single binary.
+
+Usage:
+  mocktail            Start the server (dashboard + mock API); prints the URL.
+  mocktail --version  Print the version.
+  mocktail --help     Show this help.
+
+Common environment variables:
+  MOCKTAIL_PORT       Listen port (default 6625; "auto" picks a free one).
+  MOCKTAIL_DB_PATH    SQLite file location (default: OS app-data dir).
+  MOCKTAIL_API_KEY    Require X-API-Key on served mocks (/mocktail/*).
+  MOCKTAIL_ADMIN_KEY  Protect the management API (/core/v1/*).
+
+Docs: https://getmocktail.com
+`
+
+// handleCLIFlags handles --version/--help and reports whether the program should exit early.
+func handleCLIFlags() bool {
+	if len(os.Args) < 2 {
+		return false
+	}
+	switch os.Args[1] {
+	case "--version", "-v", "version":
+		fmt.Println("mocktail", version)
+		return true
+	case "--help", "-h", "help":
+		fmt.Print(usage)
+		return true
+	}
+	return false
+}
+
 func main() {
+	if handleCLIFlags() {
+		return
+	}
+
 	// Load .env file if it exists (for local development)
 	// Silently ignore if file doesn't exist (production uses env vars directly)
 	_ = godotenv.Load()

@@ -19,6 +19,6 @@
     <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)" />
   </g>
   <text x="392" y="272" font-family="Helvetica, Arial, sans-serif" font-size="96" font-weight="700" fill="#ffffff" letter-spacing="-3">Mocktail</text>
-  <text x="396" y="344" font-family="Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#eafff4">Pour yourself a mock API.</text>
+  <text x="396" y="344" font-family="Helvetica, Arial, sans-serif" font-size="42" font-weight="400" fill="#eafff4">Whip up a mock API.</text>
   <text x="396" y="410" font-family="Menlo, monospace" font-size="26" fill="#d3f7e5">self-hosted · single binary · getmocktail.com</text>
 </svg>

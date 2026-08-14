@@ -424,6 +424,27 @@ JSON** is the path. Add an optional `postgres` service to `docker-compose.yml`.
 
 ---
 
+## Settings — "Factory reset" (later)
+
+A user-initiated **"Reset to factory / start fresh"** action in Settings — wipes everything and
+returns Mocktail to a clean state. Distinct from the **desktop crash-recovery reset** (which repairs
+a *corrupt/locked* DB); this is the deliberate "I want a blank slate" version, and it works on **all
+channels** (Docker/CLI/desktop), not just desktop.
+
+- **Scope (decide):** at minimum, **delete all mocks** (clear the DB). Optionally also clear
+  **app settings** (theme/accent, right-panel tab in `localStorage`) and the **AI key** (`DELETE
+  /core/v1/ai/config` → keychain). Likely two buttons: *"Delete all mocks"* (data) and a broader
+  *"Reset everything"* (data + settings + key).
+- **Guardrails (destructive):** confirm-to-proceed, and an **"Export first?"** prompt (reuse the
+  existing Export) so a fresh start is never an accidental data loss. Type-to-confirm for the nuclear one.
+- **Implementation:** a `DELETE /core/v1/apis` (bulk clear) or drop+re-migrate; frontend clears
+  `localStorage`; AI key via the existing config DELETE. Depends on `MOCKTAIL_ADMIN_KEY` gating so a
+  remote instance can't be wiped unauthenticated.
+- **Relationship to desktop recovery:** the desktop "Reset data…" recovery panel can reuse the same
+  backend clear; factory reset is the same operation surfaced proactively in Settings for everyone.
+
+---
+
 ## Testing & CI
 
 **Current reality (verified):** the only Go test is `randomize/randomize_test.go`. There are **no

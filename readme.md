@@ -18,7 +18,9 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 [Changelog](changelog.md) 📋 •
 [What's new in v4](changelog.md#400---2026-08-13) 🔥
 
-> **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
+> **On v3?** The last v3 release lives on the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch — check it out to stay on v3, or see [Upgrading from v3.x](changelog.md#400---2026-08-13) to move to v4.
+>
+> **Looking for v2?** See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) — the last stable v2 release.
 
 </div>
 
@@ -385,6 +387,8 @@ See the full [Changelog](changelog.md) for all release notes.
 **v3.1.1** — Cross-reference detection, review modal, Randomize & Anonymize improvements
 
 ## v3.0 Changes
+
+> Historical — for the current release see [What's new in v4](changelog.md#400---2026-08-13). To run v3, check out the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch.
 
 ### 🎉 What's New
 

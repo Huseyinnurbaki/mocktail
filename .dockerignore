@@ -28,6 +28,7 @@ mocktail-ui/.env.local
 
 # Go
 mocktail-api/app
+mocktail-api/build
 mocktail-api/db
 mocktail-api/.env
 

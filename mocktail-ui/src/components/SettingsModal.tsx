@@ -88,10 +88,14 @@ export function SettingsModal({
             <span className="font-mono text-[11px] text-muted">v{__APP_VERSION__}</span>
             {release.status === 'outdated' ? (
               <a
-                href={SITE_URL}
+                href={release.url ?? SITE_URL}
                 target="_blank"
                 rel="noreferrer noopener"
-                title={`Update available — v${release.latest}. Click for install & upgrade docs.`}
+                title={`Update available — v${release.latest}${
+                  release.highlights?.length
+                    ? '\n\n' + release.highlights.map((h) => `• ${h}`).join('\n')
+                    : ''
+                }\n\nClick for install & upgrade docs.`}
                 aria-label={`Update available: version ${release.latest}`}
                 className="ml-auto text-accent-text transition-colors hover:text-accent"
               >
