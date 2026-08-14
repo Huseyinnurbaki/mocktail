@@ -36,6 +36,25 @@ checksum:
 changelog:
   disable: true # release notes are maintained by hand in changelog.md
 
+# The auto-generated commit changelog is disabled, so give the release body a useful footer.
+release:
+  footer: |
+    ## Install
+
+    **Homebrew** (macOS / Linux):
+    ```sh
+    brew install --cask Huseyinnurbaki/mocktail/mocktail
+    mocktail   # → dashboard at http://localhost:6625
+    ```
+
+    **Docker:**
+    ```sh
+    docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:{{ .Version }}
+    ```
+
+    ---
+    📋 Full notes: [changelog.md](https://github.com/Huseyinnurbaki/mocktail/blob/{{ .Tag }}/changelog.md) · 🌐 [getmocktail.com](https://getmocktail.com)
+
 # Publishes/updates a Homebrew cask in the tap on every release. (Homebrew now distributes
 # prebuilt binaries as casks, not formulae — GoReleaser deprecated `brews`.)
 homebrew_casks:

@@ -19,8 +19,6 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 [What's new in v4](changelog.md#400---2026-08-13) 🔥
 
 > **On v3?** The last v3 release lives on the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch — check it out to stay on v3, or see [Upgrading from v3.x](changelog.md#400---2026-08-13) to move to v4.
->
-> **Looking for v2?** See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) — the last stable v2 release.
 
 </div>
 
@@ -29,6 +27,22 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 </p>
 
 ## Quickstart
+
+<details open>
+  <summary>Homebrew — macOS / Linux 🍺</summary>
+
+## Install with Homebrew
+
+```console
+brew install --cask Huseyinnurbaki/mocktail/mocktail
+mocktail
+```
+
+`mocktail` starts the server and serves the dashboard from a single self-contained binary — no Docker required.
+
+### Go to **localhost:6625** 🏃
+
+</details>
 
 <details>
   <summary>Docker 🐳</summary>
