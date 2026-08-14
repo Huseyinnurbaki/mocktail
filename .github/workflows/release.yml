@@ -35,6 +35,8 @@ jobs:
         run: |
           rm -rf mocktail-api/build
           cp -r mocktail-ui/build mocktail-api/build
+          # Restore the tracked placeholder — otherwise git is dirty and GoReleaser refuses to release.
+          touch mocktail-api/build/.gitkeep
 
       - uses: actions/setup-go@v5
         with:

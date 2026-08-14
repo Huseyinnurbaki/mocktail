@@ -9,7 +9,7 @@ help: ## Show this help message
 build-ui: ## Build the UI (Vite) and stage it where the Go binary serves it (mocktail-api/build)
 	@echo "Building UI..."
 	cd mocktail-ui && yarn install --frozen-lockfile && yarn build
-	rm -rf mocktail-api/build && cp -r mocktail-ui/build mocktail-api/build
+	rm -rf mocktail-api/build && cp -r mocktail-ui/build mocktail-api/build && touch mocktail-api/build/.gitkeep
 
 build-api: ## Build Go API binary
 	@echo "Building API..."
