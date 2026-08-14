@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
-## [4.0.0] - 2026-08-13
+## [4.0.0] - 2026-08-14
 
 The biggest release yet — a full dashboard redesign, an in-app AI assistant, response headers, a
 live traffic view, and a CGO-free build. **Note the breaking port change below.**
