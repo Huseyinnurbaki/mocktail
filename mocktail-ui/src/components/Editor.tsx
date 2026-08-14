@@ -53,7 +53,7 @@ export default function Editor({
     for (const [path, spec] of Object.entries(randomize)) {
       const key = path.split('.').pop()
       if (!key || seen.has(key)) continue
-      const label = spec.type === 'ai' ? '✨ ai' : spec.type === 'fixed' ? '⟳ fixed' : '⟳ ' + spec.type
+      const label = spec.type === 'ai' ? '⟳ ai' : spec.type === 'fixed' ? '⟳ fixed' : '⟳ ' + spec.type
       seen.set(key, label)
     }
     return [...seen.entries()].map(([key, label]) => ({ key, label }))

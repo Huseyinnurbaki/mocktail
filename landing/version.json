@@ -1,9 +1,9 @@
 {
-  "version": "4.0.0",
+  "version": "4.0.2",
   "url": "https://getmocktail.com/#install",
   "highlights": [
-    "AI assistant that answers about — and creates & edits — your mocks",
-    "Custom response headers + a live traffic view",
-    "Redesigned dashboard, shipped as a single self-contained binary"
+    "Fixes AI key setup on Docker & remotely-accessed dashboards",
+    "Per-provider AI keys — groundwork for more providers",
+    "Plus everything in v4.0: AI assistant, response headers, live traffic"
   ]
 }

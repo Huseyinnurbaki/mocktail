@@ -386,56 +386,9 @@ security find-generic-password -s mocktail-ai -a apikey-anthropic
 
 > First save on macOS may prompt **"mocktail wants to use the Keychain"** — click Allow.
 
-## Recent Changes
+## Changelog
 
-See the full [Changelog](changelog.md) for all release notes.
-
-**v3.1.6** — Backend & MCP endpoint leading-slash normalization (fixes `/mocktail//posts/1`-style double-slash URLs)
-
-**v3.1.5** — MCP endpoint path normalization (fixes double slashes), catalog pagination
-
-**v3.1.4** — MCP Server AI integration (`npx mocktail-mcp`), Randomize & Anonymize UX overhaul (three-column layout, Custom & AI Generate types)
-
-**v3.1.3** — Backend Logs tab with real-time monitoring, enhanced code examples with API key support, critical Go string mutation bugfix
-
-**v3.1.2** — API key authentication, configurable CORS, `.env` file support
-
-**v3.1.1** — Cross-reference detection, review modal, Randomize & Anonymize improvements
-
-## v3.0 Changes
-
-> Historical — for the current release see [What's new in v4](changelog.md#400---2026-08-13). To run v3, check out the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch.
-
-### 🎉 What's New
-
-- **Custom Status Codes & Delays** - Configure HTTP status codes and response delays per endpoint
-- **CodeMirror JSON Editor** - Professional code editor with syntax highlighting and error detection
-- **Quick Actions** - Test, edit, copy, and delete directly from the catalog list with icon buttons
-- **Chakra UI v3** - Complete UI library upgrade with modern components
-- **Go 1.24 & GORM v2** - Latest backend stack with improved performance
-- **Fiber v2.52** - Updated web framework with security patches
-- **Cleaner Architecture** - Improved code organization and consistency
-- **Health Endpoint** - `/health` for Docker health checks and monitoring
-- **Auto-Setup** - Database directory auto-creates on first run
-- **Import/Export UI** - Moved to Catalog tab with better UX
-
-### 🔄 What Changed
-
-- **Import Tab Removed** - Import functionality now in Catalog tab
-- **Drag & Drop Removed** - Simplified to native file input
-- **react-dropzone Removed** - Reduced dependencies
-
-### ⚠️ Breaking Changes
-
-**v3.0 is not backwards compatible with v2.x databases.**
-
-However, you can migrate your data:
-
-1. In v2, export your mocks to JSON (Catalog → Export)
-2. Install v3.0
-3. Import the JSON file (Catalog → Import)
-
-Your mock endpoints will work unchanged - only the internal database structure changed.
+See [changelog.md](changelog.md) for all release notes and [what's new in v4](changelog.md#400---2026-08-14). Running v3? Use the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch.
 
 ## Development
 

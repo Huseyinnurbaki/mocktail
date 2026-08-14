@@ -59,8 +59,8 @@ export function GeneratorPicker({
     }
   }, [open])
 
-  const isSpecial = value === 'fixed' || value === 'ai'
-  const label = !value ? '— keep —' : value === 'fixed' ? 'Custom' : value === 'ai' ? '✨ AI prompt' : value
+  const isSpecial = value === 'fixed'
+  const label = !value ? '— keep —' : value === 'fixed' ? 'Custom' : value
   const item = 'block w-full rounded-[5px] px-2 py-1 text-left text-[12px] hover:bg-surface-sunken'
 
   function pick(v: string) {
@@ -121,13 +121,6 @@ export function GeneratorPicker({
                   </button>
                   <button onClick={() => pick('fixed')} className={`${item} font-medium text-param`}>
                     Custom (fixed value)
-                  </button>
-                  <button
-                    disabled
-                    title="AI generation isn't wired yet — see roadmap"
-                    className={`${item} cursor-not-allowed font-medium text-param opacity-50`}
-                  >
-                    ✨ AI prompt <span className="text-[9px] opacity-70">soon</span>
                   </button>
                   <div className="my-1 border-t border-border-subtle" />
                 </>

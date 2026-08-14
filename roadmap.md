@@ -298,9 +298,9 @@ replaced a real value with a safe fake. Rather than build a distinct whole-body 
 as the anonymization path ("paste a real response and swap names/emails/IDs for safe fakes"). Good
 enough; revisit a one-click whole-body auto-detect only if users ask.
 
-**AI field generation — deferred, UI present but disabled.** The `✨ AI prompt` option shows in
-the generator dropdown (so the capability is discoverable) but is **disabled** until wired.
-Design when we build it — **reuse the shipped AI layer** (`mocktail-api/ai/`): same `Provider`
+**AI field generation — deferred, option removed from the UI.** The `AI prompt` option was pulled
+from the generator dropdown (it was a disabled placeholder); reintroduce it — or surface the
+assistant there — when wired. Design when we build it — **reuse the shipped AI layer** (`mocktail-api/ai/`): same `Provider`
 interface, same key storage (keychain/file/env), same **provider/model dropdowns** in Settings.
 - **Provider + model = Settings dropdowns** (data-driven from the registry), not env vars. The key is
   a backend secret (keychain on desktop, `MOCKTAIL_AI_API_KEY_<PROVIDER>` in containers). No key → feature off.
@@ -329,9 +329,9 @@ interface, same key storage (keychain/file/env), same **provider/model dropdowns
 - Config already round-trips (`type: "ai"` + `prompt` stored on the mock); only backend generation
   is missing. Until then AI fields serve the literal body value.
 
-**AI-dependent UI already stubbed (disabled + beta, unlock when AI is wired):**
-- **Per-field `✨ AI prompt`** in the generator dropdown.
-- **`✨ AI JSON`** action next to Format in the editor — describe the response in natural language
+**AI-dependent UI (unlock when AI field-gen is wired):**
+- **Per-field `AI prompt`** in the generator dropdown (option removed for now; reintroduce when wired).
+- **`AI JSON`** action next to Format in the editor — describe the response in natural language
   and have AI build the whole body (bake-once). Same env-config + bake-once model as above.
 
 ---
@@ -556,8 +556,38 @@ users** (bookmarks / `-p 4000:4000` / MCP `MOCKTAIL_URL`) — call it out in the
 ## AI assistant (embedded)
 
 An in-app assistant that both **does things** (agentic) and **teaches** ("how does X work"),
-surfaced as a **tab in the catalog's right panel** (Preview | ✨ Assistant) and — later — as an
-**AI tab in the editor** (scoped to the open mock, replacing the stubbed `✨ AI JSON` button).
+surfaced as a **tab in the catalog's right panel** (Preview | Assistant) and — later — as an
+**Assistant tab in the editor** (scoped to the open mock).
+
+### Editor copilot tab — concrete plan (4.1)
+A 4th tab in the editor (**Data · Headers · Test · Assistant**) that edits the *current unsaved draft*
+from plain language and can pull shapes/values from other mocks. Distinct from the catalog chat:
+**contextual** (scoped to the open mock) and **draft-first** (you review, then Save) — not
+persist-via-tools.
+
+**Backend — a "propose a patch" mode (no persistence).**
+- New endpoint `POST /core/v1/ai/edit` (SSE), reusing the provider layer + agentic loop but with a
+  **scoped tool set**: read-only `list_mocks` / `get_mock` (so it can grab values from other mocks) +
+  a single terminal `propose_edit` tool the model calls with only the changed fields.
+- `propose_edit` args, all optional: `{ method?, path?, status?, delayMs?, body?, headers?, randomize? }`.
+  The backend **validates** them (method, delay cap, valid JSON body) and streams the patch back — it
+  **never writes to the DB.** Persisting stays the editor's Save button.
+- The request carries the current draft (method/path/status/delay/body/headers) as context + the user's
+  instruction, so the model edits *this* mock.
+
+**Frontend — the Assistant tab + apply-to-draft.**
+- Add `assistant` to the editor `Tab` union + `TABS`; new `AssistantEditTab` (prompt + short transcript).
+- On a `propose_edit` patch: apply to the editor's local state (`setBody` / `setHeaders` / `setStatus` /
+  `setDelayMs` / `setMethod` / `setRandomize`) → the draft updates live, the **Unsaved changes** flag
+  shows, the user reviews and hits **Save** (existing flow). Show a one-line summary of what changed.
+- Reuse `fetchAIConfig` gating (no key / not editable → same "add a key" prompt as the catalog
+  assistant) and the streaming client.
+- Optional: "revert to before AI" per turn (snapshot the draft before applying).
+
+**Reuses** the provider layer, key/config, agentic loop, and mock validation. **New:** the
+`propose_edit` (no-persist) mode + the editor tab + apply-to-draft wiring. Keeping the tool set
+read-only + `propose_edit` means the copilot can't silently mutate *other* mocks — it only proposes
+edits to the one you have open. **Scope: 4.1** (a real feature slice, not a patch).
 
 **Tiered by cost/complexity:**
 - **Pre-baked FAQ — built.** Curated question → canned answer, no LLM/key/backend/DB. Ships now,
@@ -657,6 +687,16 @@ cost control), but it's a patch, not the fix. Options to evaluate:
 Decide alongside the desktop app / multi-provider work; also make `MOCKTAIL_AI_MODEL` per-provider then
 (`MOCKTAIL_AI_MODEL_<PROVIDER>`), matching the key/base-URL convention. `MOCKTAIL_AI_MODEL` on a single
 desktop is redundant with the Settings dropdown — its value is purely the container/ops case above.
+
+### Secret-file injection (`*_FILE`) — for Docker / K8s secrets
+An env-var secret always lands in the container env, so it's readable via `docker inspect` /
+`/proc/<pid>/environ` by anyone with host access — no matter how it's injected (`--env-file`, compose,
+`secretKeyRef`). The fix is the `*_FILE` convention (as Postgres et al. use): if
+`MOCKTAIL_AI_API_KEY_<PROVIDER>_FILE` (and the generic `MOCKTAIL_AI_API_KEY_FILE`) points at a path,
+read + trim the key from that file. Then **Docker/Swarm/K8s secrets — which mount as files — work
+natively and the value never enters the container env.** Small change in `envKeyFor`: check `<VAR>_FILE`
+first, then `<VAR>`; apply the same to `MOCKTAIL_AI_BASE_URL` if useful. Document it in the secured
+compose example (a `secrets:` block).
 
 ### Provider abstraction (backend, pluggable)
 ```go

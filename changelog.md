@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.0.2] - 2026-08-14
+
+UI polish and clearer AI-key guidance.
+
+### ♻️ Changed
+
+- Clearer AI-key guidance in **Settings → API keys** for Docker/remote deployments: native (binary)
+  instances store the key in the OS keychain; containerized or remote ones take it as an env var.
+- Removed the disabled **"AI prompt"** placeholder from the field-generator dropdown (it returns when
+  AI field generation is wired).
+- Dropped the decorative sparkle icons from AI-related UI.
+
 ## [4.0.1] - 2026-08-14
 
 A small follow-up to 4.0.0 — fixes AI key setup for containers/remote dashboards and lays the

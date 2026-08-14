@@ -91,7 +91,7 @@ export function ApiKeysTab() {
     <div className="flex flex-col gap-3 text-[13px]">
       <div className="text-[12.5px] leading-[1.55] text-muted">
         Your key is stored on this machine (OS keychain) and used only server-side — it never leaves
-        your backend. Powers the ✨ Assistant chat.
+        your backend. Powers the Assistant chat.
       </div>
 
       {/* Provider */}
@@ -134,11 +134,10 @@ export function ApiKeysTab() {
           </div>
         ) : config && !config.editable ? (
           <div className="rounded-[8px] border border-border bg-surface-sunken px-3 py-2 text-[12.5px] leading-[1.5] text-muted">
-            For security, a key can only be set from a session on the machine running Mocktail — not
-            over the network. Running in a container or reaching the dashboard remotely? Pass the key as
-            an environment variable:
+            Native (binary) instances store the key in the OS keychain. Docker or remote deployments
+            accept it as an env var:
             <div className="mt-1.5 overflow-x-auto rounded-[6px] border border-border bg-surface px-2 py-1 font-mono text-[11.5px] text-fg">
-              docker run -e MOCKTAIL_AI_API_KEY_ANTHROPIC=sk-ant-… …
+              MOCKTAIL_AI_API_KEY_ANTHROPIC=sk-ant-…
             </div>
           </div>
         ) : (
