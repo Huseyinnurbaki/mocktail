@@ -1,0 +1,4 @@
+# Mocktail is a self-hosted mock-API dashboard, not a public website —
+# keep instances (dashboard + mock endpoints) out of search indexes.
+User-agent: *
+Disallow: /

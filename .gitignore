@@ -1,6 +1,15 @@
-build
+mocktail-ui/build
+# The Go binary embeds mocktail-api/build (go:embed). Ignore the generated assets but keep a
+# committed .gitkeep so `go build`/`go test` compile even before the UI is built.
+mocktail-api/build/*
+!mocktail-api/build/.gitkeep
 .DS_Store
 *.db
 node_modules
-mocktail-dashboard/.env
+.wrangler
 mocktail-api/.env
+design_handoff_mocktail_dashboard
+mocktail-api/mocktail-bin
+mocktail-api/go*.tar.gz
+# GoReleaser output
+dist/

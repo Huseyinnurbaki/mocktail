@@ -21,14 +21,16 @@ Dockerfile
 Makefile
 
 # Node
-mocktail-dashboard/node_modules
-mocktail-dashboard/.env
-mocktail-dashboard/.env.local
-mocktail-dashboard/.env.example
+mocktail-ui/node_modules
+mocktail-ui/build
+mocktail-ui/.env
+mocktail-ui/.env.local
 
 # Go
 mocktail-api/app
+mocktail-api/build
 mocktail-api/db
+mocktail-api/.env
 
 # OS
 .DS_Store

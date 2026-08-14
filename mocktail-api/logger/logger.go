@@ -17,8 +17,9 @@ type LogEntry struct {
 	Method       string `json:"method,omitempty"`
 	Path         string `json:"path,omitempty"`
 	Status       int    `json:"status,omitempty"`
-	Duration     string `json:"duration,omitempty"`
-	ResponseBody string `json:"responseBody,omitempty"`
+	Duration        string            `json:"duration,omitempty"`
+	ResponseBody    string            `json:"responseBody,omitempty"`
+	ResponseHeaders map[string]string `json:"responseHeaders,omitempty"`
 }
 
 // LogBuffer stores recent log entries in memory
@@ -82,14 +83,15 @@ func (lb *LogBuffer) GetLast(n int) []LogEntry {
 	result := make([]LogEntry, len(source))
 	for i, entry := range source {
 		result[i] = LogEntry{
-			Timestamp:    entry.Timestamp,
-			Message:      entry.Message,
-			Type:         entry.Type,
-			Method:       entry.Method,
-			Path:         entry.Path,
-			Status:       entry.Status,
-			Duration:     entry.Duration,
-			ResponseBody: entry.ResponseBody,
+			Timestamp:       entry.Timestamp,
+			Message:         entry.Message,
+			Type:            entry.Type,
+			Method:          entry.Method,
+			Path:            entry.Path,
+			Status:          entry.Status,
+			Duration:        entry.Duration,
+			ResponseBody:    entry.ResponseBody,
+			ResponseHeaders: entry.ResponseHeaders,
 		}
 	}
 
@@ -124,16 +126,17 @@ func Log(format string, args ...interface{}) {
 }
 
 // LogRequest logs a full request/response with structured data
-func LogRequest(method, path string, status int, duration, responseBody string) {
+func LogRequest(method, path string, status int, duration, responseBody string, headers map[string]string) {
 	// Use strings.Clone to force new string allocation (prevents buffer reuse)
 	entry := LogEntry{
-		Timestamp:    time.Now().Format("2006-01-02 15:04:05"),
-		Type:         "request",
-		Method:       strings.Clone(method),
-		Path:         strings.Clone(path),
-		Status:       status,
-		Duration:     strings.Clone(duration),
-		ResponseBody: strings.Clone(responseBody),
+		Timestamp:       time.Now().Format("2006-01-02 15:04:05"),
+		Type:            "request",
+		Method:          strings.Clone(method),
+		Path:            strings.Clone(path),
+		Status:          status,
+		Duration:        strings.Clone(duration),
+		ResponseBody:    strings.Clone(responseBody),
+		ResponseHeaders: headers,
 	}
 
 	// Print summary to stdout

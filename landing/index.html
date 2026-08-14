@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mocktail — Self-hosted mock API server &amp; dashboard</title>
+<meta name="description" content="Mocktail is a self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set headers, delays and status codes, and watch live traffic. No cloud, no sign-up. Free and open source." />
+<link rel="canonical" href="https://getmocktail.com/" />
+<meta name="theme-color" content="#2bb673" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mocktail" />
+<meta property="og:url" content="https://getmocktail.com/" />
+<meta property="og:title" content="Mocktail — Self-hosted mock API server & dashboard" />
+<meta property="og:description" content="A complete mock server and dashboard in one binary. Realistic data per request, live traffic, headers &amp; delays. No cloud, no sign-up." />
+<meta property="og:image" content="https://getmocktail.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Mocktail — Self-hosted mock API server & dashboard" />
+<meta name="twitter:description" content="A complete mock server and dashboard in one binary. No cloud, no sign-up." />
+<meta name="twitter:image" content="https://getmocktail.com/og.png" />
+<!-- Structured data: helps Google rich results AND AI/answer engines understand the tool -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Mocktail",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Windows, Linux, Docker",
+  "description": "A self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set custom headers, delays and status codes, watch live traffic, and drive it from AI via MCP.",
+  "url": "https://getmocktail.com/",
+  "downloadUrl": "https://getmocktail.com/#install",
+  "softwareVersion": "4.0",
+  "license": "https://github.com/Huseyinnurbaki/mocktail/blob/master/LICENSE",
+  "codeRepository": "https://github.com/Huseyinnurbaki/mocktail",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Optional per-field fake data generators (uuid, email, price, name)",
+    "Custom response headers, latency, and any status code",
+    "Live request traffic view",
+    "JSON import and export",
+    "Built-in AI assistant (bring your own key)",
+    "MCP server for Claude Desktop and Code"
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: oklch(0.975 0.022 128); --bg-2: oklch(0.955 0.03 126); --card: oklch(1 0 0);
+    --ink: oklch(0.30 0.045 150); --soft: oklch(0.46 0.035 148); --faint: oklch(0.62 0.03 140); --line: oklch(0.88 0.03 135);
+    --leaf: oklch(0.66 0.16 150); --leaf-2: oklch(0.78 0.17 140); --lime: oklch(0.85 0.17 120); --coral: oklch(0.74 0.13 42);
+    --get: oklch(0.60 0.13 150); --post: oklch(0.58 0.13 256); --put: oklch(0.66 0.12 82); --del: oklch(0.62 0.16 32);
+    --glass: oklch(1 0 0 / 0.5);
+    --key: oklch(0.52 0.13 285); --str: oklch(0.55 0.13 42); --num: oklch(0.5 0.12 150);
+    --sans: "SF Pro Rounded", ui-rounded, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sh: 0 20px 44px -20px oklch(0.5 0.1 140 / 0.35);
+    --sh-lg: 0 40px 80px -30px oklch(0.45 0.12 145 / 0.42);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: oklch(0.205 0.03 168); --bg-2: oklch(0.245 0.032 166); --card: oklch(0.255 0.03 166);
+      --ink: oklch(0.95 0.02 140); --soft: oklch(0.76 0.02 140); --faint: oklch(0.60 0.02 140); --line: oklch(0.34 0.02 165);
+      --leaf: oklch(0.76 0.15 150); --leaf-2: oklch(0.84 0.16 142); --lime: oklch(0.86 0.16 122); --coral: oklch(0.80 0.13 46);
+      --get: oklch(0.82 0.11 150); --post: oklch(0.76 0.12 258); --put: oklch(0.84 0.11 84); --del: oklch(0.76 0.15 32);
+      --key: oklch(0.78 0.11 288); --str: oklch(0.80 0.12 44); --num: oklch(0.84 0.12 150);
+      --glass: oklch(1 0 0 / 0.08); --sh: 0 24px 56px -24px oklch(0 0 0 / 0.6); --sh-lg: 0 44px 90px -30px oklch(0 0 0 / 0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: oklch(0.205 0.03 168); --bg-2: oklch(0.245 0.032 166); --card: oklch(0.255 0.03 166);
+    --ink: oklch(0.95 0.02 140); --soft: oklch(0.76 0.02 140); --faint: oklch(0.60 0.02 140); --line: oklch(0.34 0.02 165);
+    --leaf: oklch(0.76 0.15 150); --leaf-2: oklch(0.84 0.16 142); --lime: oklch(0.86 0.16 122); --coral: oklch(0.80 0.13 46);
+    --get: oklch(0.82 0.11 150); --post: oklch(0.76 0.12 258); --put: oklch(0.84 0.11 84); --del: oklch(0.76 0.15 32);
+    --key: oklch(0.78 0.11 288); --str: oklch(0.80 0.12 44); --num: oklch(0.84 0.12 150);
+    --glass: oklch(1 0 0 / 0.08); --sh: 0 24px 56px -24px oklch(0 0 0 / 0.6); --sh-lg: 0 44px 90px -30px oklch(0 0 0 / 0.7);
+  }
+  :root[data-theme="light"] {
+    --bg: oklch(0.975 0.022 128); --bg-2: oklch(0.955 0.03 126); --card: oklch(1 0 0);
+    --ink: oklch(0.30 0.045 150); --soft: oklch(0.46 0.035 148); --faint: oklch(0.62 0.03 140); --line: oklch(0.88 0.03 135);
+    --leaf: oklch(0.66 0.16 150); --leaf-2: oklch(0.78 0.17 140); --lime: oklch(0.85 0.17 120); --coral: oklch(0.74 0.13 42);
+    --get: oklch(0.60 0.13 150); --post: oklch(0.58 0.13 256); --put: oklch(0.66 0.12 82); --del: oklch(0.62 0.16 32);
+    --key: oklch(0.52 0.13 285); --str: oklch(0.55 0.13 42); --num: oklch(0.5 0.12 150);
+    --glass: oklch(1 0 0 / 0.5); --sh: 0 20px 44px -20px oklch(0.5 0.1 140 / 0.35); --sh-lg: 0 40px 80px -30px oklch(0.45 0.12 145 / 0.42);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.55; overflow-x: hidden; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 26px; }
+  a { color: inherit; text-decoration: none; }
+  h1,h2,h3 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; font-weight: 700; }
+  .mono { font-family: var(--mono); }
+  .grad { background: linear-gradient(120deg, var(--leaf), var(--lime)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .verb { font-family: var(--mono); font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; }
+  .v-get { color: var(--get); background: color-mix(in oklch, var(--get) 16%, transparent); }
+  .v-post { color: var(--post); background: color-mix(in oklch, var(--post) 16%, transparent); }
+  .v-del { color: var(--del); background: color-mix(in oklch, var(--del) 16%, transparent); }
+
+  nav { padding: 20px 0; position: sticky; top: 0; z-index: 40; backdrop-filter: blur(10px); background: color-mix(in oklch, var(--bg) 80%, transparent); }
+  nav .wrap { display: flex; align-items: center; gap: 16px; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 750; font-size: 18px; }
+  .logo .b { width: 28px; height: 28px; display: grid; place-items: center; color: var(--leaf); }
+  .logo .b svg { width: 26px; height: 26px; }
+  nav .links { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 14.5px; color: var(--soft); font-weight: 550; }
+  nav .links a:hover { color: var(--ink); }
+  .ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 8px 15px; font-weight: 650; font-size: 13.5px; }
+  .tgl { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); cursor: pointer; color: var(--soft); }
+  .tgl:hover { color: var(--ink); }
+
+  .hero .wrap { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 30px; align-items: center; padding-block: 26px 20px; min-height: 460px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; color: var(--leaf); background: color-mix(in oklch, var(--leaf) 12%, transparent); padding: 5px 12px; border-radius: 999px; }
+  h1.big { font-size: clamp(42px, 6.4vw, 66px); line-height: 1.0; margin: 20px 0 0; }
+  .sub { font-size: 18px; color: var(--soft); max-width: 450px; margin: 20px 0 28px; font-weight: 500; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn { border: none; border-radius: 999px; padding: 13px 24px; font-family: var(--sans); font-weight: 700; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; }
+  .btn.primary { background: linear-gradient(160deg, var(--leaf-2), var(--leaf)); color: white; box-shadow: 0 12px 26px -10px var(--leaf); transition: transform .15s, box-shadow .15s; }
+  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -12px var(--leaf); }
+  .btn.text { color: var(--ink); font-weight: 650; background: transparent; }
+  .btn.text:hover { color: var(--leaf); }
+  .run { font-family: var(--mono); font-size: 13px; color: var(--faint); margin-top: 20px; }
+  .run b { color: var(--leaf); }
+
+  /* glass */
+  .stage { position: relative; display: grid; place-items: center; min-height: 440px; }
+  .halo { position: absolute; width: 380px; height: 380px; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklch, var(--leaf) 26%, transparent), transparent 65%); filter: blur(6px); }
+  .glass { position: relative; width: 188px; height: 262px; z-index: 2; }
+  .cup { position: absolute; inset: 0; border: 3px solid var(--ink); border-radius: 22px 22px 52px 52px; background: var(--glass); overflow: hidden; box-shadow: inset 0 0 30px color-mix(in oklch, var(--leaf) 14%, transparent), var(--sh); backdrop-filter: blur(2px); }
+  .liquid { position: absolute; left: 0; right: 0; bottom: 0; height: 74%; background: linear-gradient(180deg, var(--leaf-2), var(--leaf)); }
+  .liquid::before { content: ""; position: absolute; top: -9px; left: 0; right: 0; height: 18px; border-radius: 50%; background: var(--lime); opacity: 0.85; }
+  .bub { position: absolute; bottom: 8%; border-radius: 50%; background: oklch(1 0 0 / 0.55); animation: rise 3.4s ease-in infinite; }
+  .b1{left:24%;width:9px;height:9px;animation-delay:0s} .b2{left:46%;width:6px;height:6px;animation-delay:.7s} .b3{left:63%;width:11px;height:11px;animation-delay:1.4s} .b4{left:36%;width:7px;height:7px;animation-delay:2.1s} .b5{left:72%;width:5px;height:5px;animation-delay:1s}
+  @keyframes rise { 0%{transform:translateY(0) scale(.9);opacity:0} 15%{opacity:.7} 100%{transform:translateY(-150px) scale(1.1);opacity:0} }
+  .straw { position: absolute; top: -26px; right: 40px; width: 10px; height: 150px; background: repeating-linear-gradient(45deg, var(--coral) 0 8px, oklch(1 0 0 / 0.85) 8px 16px); border: 2px solid var(--ink); border-radius: 6px; transform: rotate(14deg); z-index: 3; }
+  .wedge { position: absolute; top: -18px; left: 26px; width: 46px; height: 46px; border-radius: 50%; background: conic-gradient(from -20deg, var(--lime), var(--leaf-2) 50%, var(--lime)); border: 3px solid var(--ink); z-index: 3; box-shadow: 0 6px 14px -6px oklch(0.4 0.1 140 / 0.5); }
+  .wedge::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: color-mix(in oklch, var(--lime) 70%, white); }
+  .ing { position: absolute; z-index: 4; font-family: var(--mono); font-size: 12px; font-weight: 650; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; box-shadow: 0 8px 18px -8px oklch(0.4 0.1 140 / 0.4); white-space: nowrap; animation: float 6s ease-in-out infinite; }
+  .ing .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .i1{top:8%;left:-6%;animation-delay:0s} .i2{top:26%;right:-10%;animation-delay:1.2s} .i3{bottom:22%;left:-12%;animation-delay:2.1s} .i4{bottom:6%;right:-4%;animation-delay:.6s}
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+
+  /* showcase — real app window */
+  .showcase { padding: 30px 0 20px; }
+  .showcase .cap { text-align: center; margin-bottom: 22px; }
+  .showcase .cap .eyebrow { display: inline-flex; }
+  .showcase .cap h2 { font-size: clamp(26px, 3.6vw, 34px); margin-top: 12px; }
+  .window { max-width: 960px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--sh-lg); }
+  .titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 15px; border-bottom: 1px solid var(--line); background: var(--bg-2); }
+  .titlebar .d { width: 11px; height: 11px; border-radius: 50%; }
+  .titlebar .addr { margin-left: 12px; font-family: var(--mono); font-size: 12px; color: var(--soft); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 3px 12px; }
+  .titlebar .live { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--leaf); display: inline-flex; align-items: center; gap: 6px; }
+  .titlebar .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--leaf); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 color-mix(in oklch,var(--leaf) 55%,transparent)} 70%{box-shadow:0 0 0 7px transparent} 100%{box-shadow:0 0 0 0 transparent} }
+  .panes { display: grid; grid-template-columns: 240px 1fr; min-height: 320px; }
+  .list { border-right: 1px solid var(--line); padding: 9px; display: flex; flex-direction: column; gap: 3px; background: var(--bg-2); }
+  .list .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); padding: 8px 8px 4px; }
+  .lrow { display: flex; align-items: center; gap: 8px; padding: 9px; border-radius: 10px; font-size: 12.5px; }
+  .lrow.sel { background: color-mix(in oklch, var(--leaf) 14%, transparent); }
+  .lrow .path { font-family: var(--mono); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lrow .code { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .lrow .code.err { color: var(--del); }
+  .editor { display: flex; flex-direction: column; min-width: 0; }
+  .ehead { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .ehead .ok { font-family: var(--mono); font-size: 11px; font-weight: 800; color: var(--get); background: color-mix(in oklch, var(--get) 16%, transparent); border-radius: 6px; padding: 2px 8px; }
+  .ehead .p2 { font-family: var(--mono); color: var(--soft); }
+  .ehead .fmt { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .json { padding: 15px 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.95; overflow-x: auto; margin: 0; }
+  .json .k{color:var(--key)} .json .s{color:var(--str)} .json .n{color:var(--num)} .json .p{color:var(--faint)}
+  .rbadge { font-family: var(--mono); font-size: 10px; color: var(--leaf); background: color-mix(in oklch, var(--leaf) 14%, transparent); border-radius: 999px; padding: 1px 7px; margin-left: 8px; }
+
+  /* bento features */
+  .band { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 40px; }
+  .section { padding: 74px 0; }
+  .shead { text-align: center; max-width: 560px; margin: 0 auto 40px; }
+  .shead h2 { font-size: clamp(28px, 4vw, 40px); }
+  .shead p { color: var(--soft); font-size: 16px; margin: 10px 0 0; font-weight: 500; }
+  /* feature showcase — alternating rows, real product visuals instead of icon-cards */
+  .rows { display: flex; flex-direction: column; }
+  .feature { display: grid; grid-template-columns: 1fr 1.06fr; gap: 52px; align-items: center; padding: 48px 0; }
+  .feature + .feature { border-top: 1px solid var(--line); }
+  .feature.rev .demo { order: -1; }
+  .tagword { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--leaf); }
+  .feature h3 { font-size: clamp(22px, 2.6vw, 28px); margin: 12px 0 12px; }
+  .feature .copy p { color: var(--soft); font-size: 15.5px; margin: 0; font-weight: 500; line-height: 1.6; max-width: 410px; }
+  .feature .copy p b { color: var(--ink); font-weight: 650; }
+  .chiprow { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip-ai { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--post); background: color-mix(in oklch, var(--post) 14%, transparent); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+  .chip-key { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--leaf); background: color-mix(in oklch, var(--leaf) 14%, transparent); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+  /* demo panels */
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--sh); overflow: hidden; }
+  .panel .pbar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--bg-2); font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .panel .pbar .d { width: 9px; height: 9px; border-radius: 50%; }
+  .panel .pbar .lab { margin-left: 6px; }
+  .panel .pbar .live { margin-left: auto; color: var(--leaf); display: inline-flex; align-items: center; gap: 6px; }
+  .panel .pbar .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--leaf); animation: pulse 2.4s infinite; }
+  .pbody { padding: 16px 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; overflow-x: auto; }
+  .pbody pre { margin: 0; white-space: pre; }
+  .pbody .k{color:var(--key)} .pbody .s{color:var(--str)} .pbody .p{color:var(--faint)} .pbody .n{color:var(--num)}
+  .prow { display: flex; align-items: center; gap: 9px; padding: 6px 0; font-size: 12.5px; }
+  .prow .path { flex: 1; } .prow .ms { color: var(--faint); }
+  .hkey { color: var(--faint); } .hval { color: var(--ink); }
+  .prompt { display: flex; align-items: center; gap: 9px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; color: var(--ink); }
+  .prompt .sp { color: var(--post); }
+  .genlab { color: var(--faint); font-size: 11px; padding: 10px 0 6px; }
+  .chatl { display: flex; gap: 10px; padding: 6px 0; }
+  .chatl .who { color: var(--faint); width: 66px; flex-shrink: 0; }
+  .chatl.bot .msg { color: var(--leaf); }
+
+  /* install */
+  .first { text-align: center; }
+  .ways { display: inline-flex; gap: 6px; margin: 24px 0 18px; background: var(--bg-2); padding: 5px; border-radius: 999px; border: 1px solid var(--line); }
+  .way { border: none; background: transparent; font-family: var(--mono); font-size: 13px; font-weight: 650; padding: 8px 18px; border-radius: 999px; cursor: pointer; color: var(--soft); display: inline-flex; align-items: center; gap: 7px; }
+  .way[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 3px 10px -4px oklch(0.4 0.1 140 / 0.4); }
+  .way .rec { font-size: 9px; font-weight: 800; color: white; background: var(--leaf); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
+  .way .soon { font-size: 9px; font-weight: 800; color: var(--soft); background: color-mix(in oklch, var(--soft) 16%, transparent); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
+  .glassterm { max-width: 640px; margin: 0 auto; background: var(--card); border-radius: 18px; box-shadow: var(--sh); border: 1px solid var(--line); overflow: hidden; text-align: left; }
+  .glassterm .h { display: flex; align-items: center; gap: 8px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+  .glassterm .h .d { width: 10px; height: 10px; border-radius: 50%; }
+  .glassterm .h .cp { margin-left: auto; border: 1px solid var(--line); background: transparent; border-radius: 999px; font-family: var(--mono); font-size: 11px; color: var(--soft); padding: 5px 13px; cursor: pointer; }
+  .glassterm .h .cp:hover { color: var(--ink); border-color: var(--leaf); }
+  .glassterm .b { display: flex; gap: 12px; padding: 18px 20px; font-family: var(--mono); font-size: 14px; }
+  .glassterm .b .pr { color: var(--leaf); font-weight: 700; }
+  .glassterm .b pre { margin: 0; white-space: pre-wrap; word-break: break-word; flex: 1; line-height: 1.7; }
+  .glassterm .b .cm { color: var(--faint); }
+  .note { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 16px; }
+
+  footer { padding: 44px 0 60px; text-align: center; }
+  footer .tag { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  footer .links { display: flex; gap: 22px; justify-content: center; font-size: 14px; color: var(--soft); margin-top: 14px; }
+  footer .links a:hover { color: var(--leaf); }
+
+  .faq { max-width: 720px; margin: 0 auto; }
+  .qa { padding: 22px 0; border-top: 1px solid var(--line); }
+  .qa:first-child { border-top: none; padding-top: 0; }
+  .qa h3 { font-size: 18px; margin: 0 0 8px; }
+  .qa p { color: var(--soft); font-size: 15px; margin: 0; line-height: 1.65; }
+
+  :focus-visible { outline: 2px solid var(--leaf); outline-offset: 3px; border-radius: 8px; }
+  @media (prefers-reduced-motion: reduce) { .bub{display:none} .ing{animation:none;opacity:1} .titlebar .live::before{animation:none} }
+  @media (max-width: 900px) {
+    .hero .wrap { grid-template-columns: 1fr; min-height: auto; gap: 20px; }
+    .stage { min-height: 340px; } .ing { display: none; }
+    .panes { grid-template-columns: 1fr; } .list { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--line); } .list .lbl { display: none; }
+    .feature { grid-template-columns: 1fr; gap: 24px; padding: 34px 0; }
+    .feature.rev .demo { order: 0; }
+    .feature .copy p { max-width: none; }
+    .section { padding: 56px 0; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 18px; }
+    nav { padding: 14px 0; }
+    nav .links { gap: 12px; }
+    nav .links a:not(.ghost) { display: none; } /* keep GitHub + theme toggle only */
+    .hero { padding-top: 6px; }
+    h1.big { font-size: 40px; } h1.big br { display: none; }
+    .sub { font-size: 16px; margin: 16px 0 24px; }
+    .stage { min-height: 300px; }
+    .showcase { padding: 14px 0; } .showcase .cap h2 { font-size: 24px; }
+    .section { padding: 42px 0; }
+    .feature { padding: 28px 0; } .feature h3 { font-size: 22px; }
+    .ways { flex-wrap: wrap; } .way { padding: 7px 13px; }
+    .first .shead h2, .shead h2 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="b"><svg viewBox="0 0 48 48" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)"/></svg></span> Mocktail</a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer" class="ghost">★ GitHub</a>
+      <button class="tgl" id="theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1 class="big">Whip up a<br><span class="grad">mock API</span>.</h1>
+      <p class="sub">A complete mock server and dashboard in one little binary — mixed fresh on your machine. No cloud, no sign-up, no bitter aftertaste.</p>
+      <div class="cta">
+        <a class="btn primary" href="#install">Start mixing →</a>
+        <a class="btn text" href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">Star on GitHub</a>
+      </div>
+      <div class="run">Install with <b>Homebrew</b> or <b>Docker</b> — the dashboard opens at localhost:6625</div>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <div class="halo"></div>
+      <div class="ing i1"><span class="dot" style="background:var(--leaf)"></span>uuid</div>
+      <div class="ing i2"><span class="dot" style="background:var(--coral)"></span>email</div>
+      <div class="ing i3"><span class="dot" style="background:var(--lime)"></span>fullName</div>
+      <div class="ing i4"><span class="dot" style="background:var(--leaf-2)"></span>price</div>
+      <div class="glass">
+        <div class="straw"></div>
+        <div class="cup"><div class="liquid"></div><span class="bub b1"></span><span class="bub b2"></span><span class="bub b3"></span><span class="bub b4"></span><span class="bub b5"></span></div>
+        <div class="wedge"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="showcase">
+  <div class="wrap">
+    <div class="cap">
+      <h2>A dashboard that comes in the box.</h2>
+    </div>
+    <div class="window" aria-hidden="true">
+      <div class="titlebar">
+        <span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span>
+        <span class="addr">localhost:6625</span>
+        <span class="live">live</span>
+      </div>
+      <div class="panes">
+        <div class="list">
+          <div class="lbl">api/v1</div>
+          <div class="lrow sel"><span class="verb v-get">GET</span><span class="path">/users</span><span class="code">200</span></div>
+          <div class="lrow"><span class="verb v-post">POST</span><span class="path">/users</span><span class="code">201</span></div>
+          <div class="lrow"><span class="verb v-get">GET</span><span class="path">/orders</span><span class="code">200</span></div>
+          <div class="lrow"><span class="verb v-get">GET</span><span class="path">/products</span><span class="code">200</span></div>
+          <div class="lrow"><span class="verb v-post">POST</span><span class="path">/auth/login</span><span class="code err">401</span></div>
+        </div>
+        <div class="editor">
+          <div class="ehead"><span class="ok">200</span><span class="p2">GET /api/v1/users</span><span class="fmt">JSON · valid</span></div>
+<pre class="json">{
+  <span class="k">"users"</span><span class="p">:</span> [
+    {
+      <span class="k">"id"</span><span class="p">:</span> <span class="s">"3f9a8c1e"</span><span class="rbadge">⟳ uuid</span>
+      <span class="k">"name"</span><span class="p">:</span> <span class="s">"Ada Lovelace"</span><span class="rbadge">⟳ fullName</span>
+      <span class="k">"email"</span><span class="p">:</span> <span class="s">"ada@hey.dev"</span><span class="rbadge">⟳ email</span>
+      <span class="k">"orders"</span><span class="p">:</span> <span class="n">14</span>
+    }
+  ]
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="shead">
+        <h2>Freshly mixed, every request.</h2>
+        <p>Model the responses your app expects — headers, delays, even the flaky 401 — and let Mocktail keep the data lively.</p>
+      </div>
+      <div class="rows">
+
+        <div class="feature">
+          <div class="copy">
+            <span class="tagword">Randomize · optional</span>
+            <h3>Fixed by default, fresh on demand</h3>
+            <p>Serve a plain static response as-is — or attach a generator to any field (<b>uuid, email, price, name</b>) so it re-rolls every call. Opt in per field; point one at a real response and it anonymizes it.</p>
+          </div>
+          <div class="demo"><div class="panel">
+            <div class="pbar"><span class="verb v-get">GET</span><span class="lab">/api/v1/users · 200</span></div>
+            <div class="pbody"><pre>{
+  <span class="k">"id"</span><span class="p">:</span>    <span class="s">"3f9a8c1e"</span>     <span class="rbadge">⟳ uuid</span>
+  <span class="k">"name"</span><span class="p">:</span>  <span class="s">"Ada Lovelace"</span> <span class="rbadge">⟳ fullName</span>
+  <span class="k">"email"</span><span class="p">:</span> <span class="s">"ada@hey.dev"</span>  <span class="rbadge">⟳ email</span>
+}</pre></div>
+          </div></div>
+        </div>
+
+        <div class="feature rev">
+          <div class="copy">
+            <span class="tagword">Live traffic</span>
+            <h3>Watch every request land</h3>
+            <p>A real-time stream of everything hitting your mocks — method, status, latency, and the <b>exact response and headers</b> served. Filter by path or status, replay at a glance.</p>
+          </div>
+          <div class="demo"><div class="panel">
+            <div class="pbar"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><span class="live">live</span></div>
+            <div class="pbody">
+              <div class="prow"><span class="verb v-get">GET</span><span class="path">/orders</span><span class="ms">12 ms</span></div>
+              <div class="prow"><span class="verb v-post">POST</span><span class="path">/users</span><span class="ms">8 ms</span></div>
+              <div class="prow"><span class="verb v-get">GET</span><span class="path">/products</span><span class="ms">3 ms</span></div>
+              <div class="prow"><span class="verb v-post">POST</span><span class="path">/auth/login</span><span class="ms" style="color:var(--del)">401 · 5 ms</span></div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="feature">
+          <div class="copy">
+            <span class="tagword">Headers &amp; latency</span>
+            <h3>Model the messy parts</h3>
+            <p>Real APIs aren't always a happy <b>200</b>. Return a <b>429</b> with <span class="mono">Retry-After</span>, add 800&nbsp;ms of latency, serve a <span class="mono">problem+json</span> error — whatever your app has to handle.</p>
+          </div>
+          <div class="demo"><div class="panel">
+            <div class="pbar"><span class="lab">response headers</span></div>
+            <div class="pbody"><pre><span class="p">HTTP/1.1</span> <span style="color:var(--del)">429 Too Many Requests</span>
+<span class="hkey">Retry-After:</span>   <span class="hval">30</span>
+<span class="hkey">Content-Type:</span>  <span class="hval">application/problem+json</span>
+<span class="hkey">X-RateLimit:</span>   <span class="hval">0/100</span></pre></div>
+          </div></div>
+        </div>
+
+        <div class="feature rev">
+          <div class="copy">
+            <span class="tagword">AI assistant</span>
+            <h3>Describe it, don't type it</h3>
+            <p><b>Bring your own key.</b> Say what you want in plain language and Mocktail drafts the whole response with Claude, right in the dashboard. Your key never leaves your machine; chats are never stored.</p>
+            <div class="chiprow"><span class="chip-key">🔑 BYO key</span></div>
+          </div>
+          <div class="demo"><div class="panel">
+            <div class="pbar"><span class="lab">✳ assistant</span></div>
+            <div class="pbody">
+              <div class="prompt"><span class="sp">✳</span> an order with line items and a total</div>
+              <div class="genlab">drafts →</div>
+<pre>{
+  <span class="k">"id"</span><span class="p">:</span> <span class="s">"ord_8a2f"</span>,
+  <span class="k">"items"</span><span class="p">:</span> <span class="n">3</span>,
+  <span class="k">"total"</span><span class="p">:</span> <span class="s">"$84.20"</span>
+}</pre>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="feature">
+          <div class="copy">
+            <span class="tagword">MCP</span>
+            <h3>Or let your AI tools drive</h3>
+            <p>The built-in <b>MCP server</b> plugs Mocktail into <b>Claude Desktop &amp; Code</b>. Ask, and they create and edit mocks for you — a sentence becomes a live endpoint, no dashboard required.</p>
+            <div class="chiprow"><span class="chip-ai">MCP server</span></div>
+          </div>
+          <div class="demo"><div class="panel">
+            <div class="pbar"><span class="d" style="background:var(--post)"></span><span class="lab">claude · mcp</span></div>
+            <div class="pbody">
+              <div class="chatl"><span class="who">you</span><span class="msg">add a paginated /orders endpoint</span></div>
+              <div class="chatl bot"><span class="who">claude</span><span class="msg">✓ created GET /api/v1/orders → 200</span></div>
+            </div>
+          </div></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="section first" id="install">
+  <div class="wrap">
+    <div class="shead">
+      <h2>Your first pour.</h2>
+      <p>The dashboard comes with it. Open <span class="mono">localhost:6625</span> and start mocking.</p>
+    </div>
+    <div class="ways" role="tablist">
+      <button class="way" role="tab" aria-selected="true" data-t="brew">Homebrew <span class="rec">EASIEST</span></button>
+      <button class="way" role="tab" aria-selected="false" data-t="docker">Docker</button>
+      <button class="way" role="tab" aria-selected="false" data-t="desktop">Desktop <span class="soon">SOON</span></button>
+    </div>
+    <div class="glassterm">
+      <div class="h"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><button class="cp" id="copy">Copy</button></div>
+      <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask Huseyinnurbaki/mocktail/mocktail
+mocktail
+<span class="cm"># → opens http://localhost:6625</span></pre></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="shead"><h2>Questions, answered.</h2></div>
+    <div class="faq">
+      <div class="qa">
+        <h3>What is Mocktail?</h3>
+        <p>Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service.</p>
+      </div>
+      <div class="qa">
+        <h3>Is Mocktail free and open source?</h3>
+        <p>Yes. Mocktail is free and open source on <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">GitHub</a>. There's no sign-up and no paid tier to use it — it runs entirely on your own machine.</p>
+      </div>
+      <div class="qa">
+        <h3>How do I install Mocktail?</h3>
+        <p>Install with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/mocktail/mocktail</span>) or run it with Docker; the dashboard opens at <span class="mono">localhost:6625</span>. A native desktop app is coming soon.</p>
+      </div>
+      <div class="qa">
+        <h3>Where does my data live?</h3>
+        <p>Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share.</p>
+      </div>
+      <div class="qa">
+        <h3>Can Mocktail generate realistic test data?</h3>
+        <p>Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it.</p>
+      </div>
+      <div class="qa">
+        <h3>Does Mocktail work with AI tools?</h3>
+        <p>Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key, key stays on your machine), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service." } },
+    { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up and no paid tier to use it — it runs entirely on your own machine." } },
+    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install with Homebrew (brew install --cask Huseyinnurbaki/mocktail/mocktail) or run it with Docker; the dashboard opens at localhost:6625. A native desktop app is coming soon." } },
+    { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share." } },
+    { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it." } },
+    { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks." } }
+  ]
+}
+</script>
+
+<footer>
+  <div class="wrap">
+    <div class="tag">Mock with <span class="grad">Mocktail</span>.</div>
+    <div class="mono" style="font-size:12px;color:var(--faint)">Self-hosted · single binary · your data</div>
+    <div class="links">
+      <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/Huseyinnurbaki/mocktail/blob/master/changelog.md" target="_blank" rel="noreferrer">Changelog</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const root = document.documentElement;
+  const saved = localStorage.getItem("mt-v5-theme");
+  if (saved) root.setAttribute("data-theme", saved);
+  document.getElementById("theme").addEventListener("click", () => {
+    const cur = root.getAttribute("data-theme");
+    const next = cur === "light" ? "dark" : cur === "dark" ? "light" : (matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+    root.setAttribute("data-theme", next); localStorage.setItem("mt-v5-theme", next);
+  });
+  const CMDS = {
+    brew:   { html: 'brew install --cask Huseyinnurbaki/mocktail/mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install --cask Huseyinnurbaki/mocktail/mocktail && mocktail" },
+    docker: { html: 'docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest\n<span class="cm"># → open http://localhost:6625</span>', copy: "docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest" },
+    desktop:{ html: '<span class="cm"># A native desktop app is coming soon.</span>\n<span class="cm"># For now, install with Homebrew or Docker above.</span>', copy: "" },
+  };
+  const cmd = document.getElementById("cmd");
+  cmd.dataset.copy = CMDS.brew.copy;
+  document.querySelectorAll(".way").forEach(w => w.addEventListener("click", () => {
+    document.querySelectorAll(".way").forEach(x => x.setAttribute("aria-selected", "false"));
+    w.setAttribute("aria-selected", "true");
+    const c = CMDS[w.dataset.t]; cmd.innerHTML = c.html; cmd.dataset.copy = c.copy;
+  }));
+  document.getElementById("copy").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(cmd.dataset.copy); e.target.textContent = "Copied ✓"; setTimeout(() => e.target.textContent = "Copy", 1400); } catch {}
+  });
+</script>
+
+</body>
+</html>

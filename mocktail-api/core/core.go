@@ -1,7 +1,9 @@
 package core
 
 import (
+	"encoding/json"
 	"mocktail-api/database"
+	"mocktail-api/randomize"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -17,6 +19,8 @@ type Api struct {
 	StatusCode int             `gorm:"default:200" json:"StatusCode"`
 	Delay      int             `gorm:"default:0" json:"Delay"`
 	Response   datatypes.JSON  `validate:"required"`
+	Randomize  datatypes.JSON  `json:"Randomize"` // optional per-field faker config; nil = serve Response as-is
+	Headers    datatypes.JSON  `json:"Headers"`   // optional response headers {"Header-Name":"value"}; nil = none
 }
 
 type Apis struct {
@@ -93,7 +97,7 @@ func UpdateApi(c *fiber.Ctx) error {
 	db := database.DBConn
 
 	var existingApi Api
-	if err := db.Where("ID = ?", id).First(&existingApi).Error; err != nil {
+	if err := db.Where("id = ?", id).First(&existingApi).Error; err != nil {
 		return c.Status(404).JSON(ErrorResponse{Message: "API not found"})
 	}
 
@@ -108,6 +112,8 @@ func UpdateApi(c *fiber.Ctx) error {
 	existingApi.StatusCode = updatedApi.StatusCode
 	existingApi.Delay = updatedApi.Delay
 	existingApi.Response = updatedApi.Response
+	existingApi.Randomize = updatedApi.Randomize
+	existingApi.Headers = updatedApi.Headers
 	existingApi.Key = updatedApi.Method + existingApi.Endpoint
 
 	// Set defaults if not provided
@@ -142,7 +148,7 @@ func DeleteApiByKey(c *fiber.Ctx) error {
 	id := c.Params("id")
 	db := database.DBConn
 
-	if err := db.Unscoped().Where("ID = ?", id).Delete(&Api{}).Error; err != nil {
+	if err := db.Unscoped().Where("id = ?", id).Delete(&Api{}).Error; err != nil {
 		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
 	}
 
@@ -192,6 +198,8 @@ func ImportApis(c *fiber.Ctx) error {
 			StatusCode: statusCode,
 			Delay:      delay,
 			Response:   importedApi.Response,
+			Randomize:  importedApi.Randomize,
+			Headers:    importedApi.Headers,
 		}
 
 		// Try to insert
@@ -213,6 +221,24 @@ func ImportApis(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+
+// PreviewApi generates a sample of a response with the given randomize config
+// applied, without persisting anything — powers the editor's live preview.
+func PreviewApi(c *fiber.Ctx) error {
+	var body struct {
+		Response  json.RawMessage  `json:"Response"`
+		Randomize randomize.Config `json:"Randomize"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Message: err.Error()})
+	}
+	var data interface{}
+	if err := json.Unmarshal(body.Response, &data); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Message: "Invalid response JSON"})
+	}
+	data = randomize.Apply(data, body.Randomize)
+	return c.JSON(data)
+}
 
 func normalizeEndpoint(endpoint string) string {
 	return strings.TrimLeft(endpoint, "/")

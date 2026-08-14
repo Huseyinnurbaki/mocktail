@@ -1,21 +1,40 @@
 package main
 
 import (
+	"crypto/rand"
+	"embed"
+	"encoding/hex"
+	"fmt"
+	"io/fs"
 	"log"
+	"mocktail-api/ai"
 	"mocktail-api/core"
 	"mocktail-api/database"
 	"mocktail-api/logger"
 	"mocktail-api/mocktail"
+	"net"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/sqlite"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
+
+// uiFS holds the built dashboard, baked into the binary so it's fully self-contained (works
+// wherever it's installed — brew, a .app bundle, anywhere — no ./build directory needed).
+// The build pipeline (Makefile build-ui / Dockerfile) stages the Vite output into ./build before
+// `go build`. A committed .gitkeep keeps this compiling when the UI hasn't been built (e.g. CI's
+// Go-only job); the served dashboard is empty in that case, which those jobs don't exercise.
+//
+//go:embed all:build
+var uiFS embed.FS
 
 // API Key middleware
 func apiKeyMiddleware(c *fiber.Ctx) error {
@@ -43,26 +62,76 @@ func apiKeyMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func setupRoutes(app *fiber.App) {
-	app.Static("/", "./build")
+// adminKey guards the management API (/core/v1/*). Empty = auth disabled (default).
+var adminKey string
 
+// resolveAdminKey mirrors MOCKTAIL_PORT's tri-state:
+//   - unset       → auth off (open; default, backward-compatible)
+//   - "<value>"   → auth on with that key (containers)
+//   - "auto"/"0"  → auth on with a random per-launch key (crypto/rand; desktop/CLI, no storage)
+// The generated flag is true only for the auto case, so main() knows to print the ready URL.
+func resolveAdminKey() (key string, generated bool) {
+	v := os.Getenv("MOCKTAIL_ADMIN_KEY")
+	switch {
+	case v == "":
+		return "", false
+	case strings.EqualFold(v, "auto") || v == "0":
+		b := make([]byte, 24)
+		if _, err := rand.Read(b); err != nil {
+			log.Fatalf("failed to generate admin key: %v", err)
+		}
+		return hex.EncodeToString(b), true
+	default:
+		return v, false
+	}
+}
+
+// adminAuthMiddleware gates the core/management API when adminKey is set. Static assets and
+// /health stay open (they're registered outside this group) so the app loads and the status
+// pill can poll. The dashboard sends the key as X-Admin-Key (or ?admin_key= as a fallback).
+func adminAuthMiddleware(c *fiber.Ctx) error {
+	if adminKey == "" {
+		return c.Next()
+	}
+	provided := c.Get("X-Admin-Key")
+	if provided == "" {
+		provided = c.Query("admin_key")
+	}
+	if provided != adminKey {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or missing admin key"})
+	}
+	return c.Next()
+}
+
+func setupRoutes(app *fiber.App) {
 	// Health check endpoint (no auth)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "healthy",
+			"status":  "healthy",
 			"service": "mocktail-api",
+			"port":    boundPort,
 		})
 	})
 
-	// Core API - No auth required (dashboard uses this)
-	coreApi := app.Group("/core/v1")
+	// Core API - management/dashboard. Gated by MOCKTAIL_ADMIN_KEY when set (off by default).
+	coreApi := app.Group("/core/v1", adminAuthMiddleware)
 	coreApi.Get("/apis", core.GetApis)
 	coreApi.Post("/api", core.CreateApi)
 	coreApi.Put("/api/:id", core.UpdateApi)
 	coreApi.Post("/import", core.ImportApis)
+	coreApi.Post("/preview", core.PreviewApi)
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
 	coreApi.Get("/logs", core.GetLogs)
 	coreApi.Delete("/logs", core.ClearLogs)
+
+	// AI assistant — provider-backed chat + model listing + key config. Behind the admin gate
+	// (real cost); the key is a backend secret and never returned to the frontend.
+	coreApi.Get("/ai/config", ai.GetConfig)
+	coreApi.Post("/ai/config", ai.PostConfig)
+	coreApi.Delete("/ai/config", ai.DeleteConfig)
+	coreApi.Get("/ai/providers", ai.GetProviders)
+	coreApi.Get("/ai/models", ai.GetModels)
+	coreApi.Post("/ai/chat", ai.PostChat)
 
 	// Mock API - Protected with API key
 	mocktailApi := app.Group("/mocktail", apiKeyMiddleware)
@@ -72,32 +141,125 @@ func setupRoutes(app *fiber.App) {
 	mocktailApi.Patch("/:endpoint/*", mocktail.MockApiHandler)
 	mocktailApi.Delete("/:endpoint/*", mocktail.MockApiHandler)
 
+	// Serve the embedded dashboard — registered LAST so it only catches paths no API route
+	// claimed (the app's UI, /assets/*, favicon, etc.). The dashboard is baked into the binary,
+	// so this works wherever the binary is installed.
+	build, _ := fs.Sub(uiFS, "build")
+	app.Use("/", filesystem.New(filesystem.Config{Root: http.FS(build), Index: "index.html"}))
+}
+
+// resolveDBPath decides where apis.db lives:
+//  1. MOCKTAIL_DB_PATH (explicit file path) — used by Docker to point at a mounted volume.
+//  2. else the OS per-user app-data dir (e.g. ~/Library/Application Support/mocktail/apis.db) —
+//     so the desktop app + brew-installed CLI keep one DB that survives updates and isn't tied
+//     to the working directory.
+//  3. else the legacy relative ./db/apis.db (fallback when no HOME, e.g. a bare scratch container).
+func resolveDBPath() string {
+	if p := os.Getenv("MOCKTAIL_DB_PATH"); p != "" {
+		return p
+	}
+	if dir, err := os.UserConfigDir(); err == nil {
+		return filepath.Join(dir, "mocktail", "apis.db")
+	}
+	return filepath.Join("db", "apis.db")
 }
 
 func initDatabase() {
 	var err error
 
-	// Create db directory if it doesn't exist
-	if err := os.MkdirAll("db", 0755); err != nil {
-		panic("failed to create db directory")
+	dbPath := resolveDBPath()
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		panic("failed to create db directory: " + err.Error())
 	}
 
-	database.DBConn, err = gorm.Open(sqlite.Open("db/apis.db"), &gorm.Config{})
+	database.DBConn, err = gorm.Open(gormlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
-	logger.Log("Connection Opened to Database")
+	logger.Log("Connection Opened to Database (%s)", dbPath)
 	database.DBConn.AutoMigrate(&core.Api{})
 	logger.Log("Database Migrated")
 }
 
-// TODO: read addr from env
+// boundPort is the TCP port the server actually listens on (resolved at startup, reported by /health).
+var boundPort int
+
+// autoPortBase is Mocktail's signature default port. Common ports (3000/4000/8080) are often
+// already taken on a dev machine, so Mocktail uses a quiet one — 6625 spells "MOCK" on a phone
+// keypad (M-O-C-K) and sits well clear of the busy ranges.
+const autoPortBase = 6625
+
+// bindListener opens the TCP listener based on MOCKTAIL_PORT (then the platform-standard PORT):
+//   - a number → that exact port (fails if busy — an explicit request)
+//   - unset    → 6625 (the default; Docker maps 6625:6625)
+//   - "auto"/0 → prefer 6625, scan the next 10, else any OS-assigned free port. For the desktop
+//     app, which has no terminal to resolve a port clash.
+func bindListener() (net.Listener, error) {
+	p := os.Getenv("MOCKTAIL_PORT")
+	if p == "" {
+		p = os.Getenv("PORT")
+	}
+
+	switch {
+	case p == "":
+		return net.Listen("tcp", fmt.Sprintf(":%d", autoPortBase))
+	case !strings.EqualFold(p, "auto") && p != "0":
+		return net.Listen("tcp", ":"+p)
+	}
+
+	// auto: try the quiet range first, then fall back to an OS-assigned free port.
+	for i := 0; i < 10; i++ {
+		if ln, err := net.Listen("tcp", fmt.Sprintf(":%d", autoPortBase+i)); err == nil {
+			return ln, nil
+		}
+	}
+	return net.Listen("tcp", ":0")
+}
+
+// version is set at build time by GoReleaser via -ldflags "-X main.version=...".
+var version = "dev"
+
+const usage = `Mocktail — self-hosted mock API server + dashboard, in a single binary.
+
+Usage:
+  mocktail            Start the server (dashboard + mock API); prints the URL.
+  mocktail --version  Print the version.
+  mocktail --help     Show this help.
+
+Common environment variables:
+  MOCKTAIL_PORT       Listen port (default 6625; "auto" picks a free one).
+  MOCKTAIL_DB_PATH    SQLite file location (default: OS app-data dir).
+  MOCKTAIL_API_KEY    Require X-API-Key on served mocks (/mocktail/*).
+  MOCKTAIL_ADMIN_KEY  Protect the management API (/core/v1/*).
+
+Docs: https://getmocktail.com
+`
+
+// handleCLIFlags handles --version/--help and reports whether the program should exit early.
+func handleCLIFlags() bool {
+	if len(os.Args) < 2 {
+		return false
+	}
+	switch os.Args[1] {
+	case "--version", "-v", "version":
+		fmt.Println("mocktail", version)
+		return true
+	case "--help", "-h", "help":
+		fmt.Print(usage)
+		return true
+	}
+	return false
+}
+
 func main() {
+	if handleCLIFlags() {
+		return
+	}
+
 	// Load .env file if it exists (for local development)
 	// Silently ignore if file doesn't exist (production uses env vars directly)
 	_ = godotenv.Load()
 
-	// addr := `:` + os.Getenv("PORT")
 	app := fiber.New()
 
 	// Configure CORS from environment variables
@@ -128,7 +290,8 @@ func main() {
 		// Skip logging for static files, health check, logs endpoint, and catalog polling
 		path := c.Path()
 		if path == "/health" || path == "/" || strings.HasPrefix(path, "/static") ||
-		   strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" {
+		   strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" ||
+		   strings.HasPrefix(path, "/core/v1/ai") {
 			return c.Next()
 		}
 
@@ -150,12 +313,19 @@ func main() {
 		method := string([]byte(c.Method()))
 		pathCopy := string([]byte(path))
 
+		// Capture the response headers actually served (custom Content-Type, X-*, etc.).
+		respHeaders := map[string]string{}
+		c.Response().Header.VisitAll(func(k, v []byte) {
+			respHeaders[string(k)] = string(v)
+		})
+
 		logger.LogRequest(
 			method,
 			pathCopy,
 			status,
 			duration.Round(time.Millisecond).String(),
 			responseBody,
+			respHeaders,
 		)
 
 		return err
@@ -174,11 +344,34 @@ func main() {
 	} else {
 		logger.Log("API Key: (not set - mock endpoints are open)")
 	}
+
+	// Resolve the management API (admin) key. Off by default; on when MOCKTAIL_ADMIN_KEY is set.
+	var adminGenerated bool
+	adminKey, adminGenerated = resolveAdminKey()
+	switch {
+	case adminKey == "":
+		logger.Log("Admin Key: (not set - core API is open)")
+	case adminGenerated:
+		logger.Log("Admin Key: *** (auto-generated this launch)")
+	default:
+		logger.Log("Admin Key: *** (set via MOCKTAIL_ADMIN_KEY)")
+	}
 	logger.Log("==============================")
 
 	initDatabase()
 
 	setupRoutes(app)
 
-	log.Fatal(app.Listen(":4000"))
+	ln, err := bindListener()
+	if err != nil {
+		log.Fatalf("Failed to bind a port: %v", err)
+	}
+	boundPort = ln.Addr().(*net.TCPAddr).Port
+	logger.Log("Mocktail listening on http://localhost:%d", boundPort)
+	// For the auto-generated key there's no terminal handshake, so print a ready-to-use URL.
+	// The token rides the URL fragment (#) — never sent to the server or written to logs by browsers.
+	if adminGenerated {
+		logger.Log("Open the dashboard: http://localhost:%d/#admin_key=%s", boundPort, adminKey)
+	}
+	log.Fatal(app.Listener(ln))
 }

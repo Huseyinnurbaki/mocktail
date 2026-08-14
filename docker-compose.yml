@@ -4,10 +4,18 @@ services:
     image: mocktail:latest
     build: .
     ports:
-      - "4000:4000"
+      - "6625:6625"
     volumes:
+      # SQLite DB persists here. The image pins MOCKTAIL_DB_PATH=/db/apis.db (see Dockerfile);
+      # change both the mount target and MOCKTAIL_DB_PATH below if you relocate it.
       - ./mocktail-api/db:/db
     environment:
+      # [optional] Where the SQLite DB lives inside the container (default /db/apis.db)
+      # MOCKTAIL_DB_PATH: /db/apis.db
+
+      # [optional] Port to listen on (default 6625; "auto"/"0" picks a free port)
+      # MOCKTAIL_PORT: "6625"
+
       # [optional] Override the URL shown in the dashboard (e.g. reverse proxy / custom domain)
       # MOCKTAIL_BASE_URL: https://api.mycompany.com/mocktail
 

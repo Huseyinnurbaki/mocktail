@@ -1,0 +1,132 @@
+@import "tailwindcss";
+@import "./assets/fonts/fonts.css";
+
+/* =========================================================================
+   Mocktail design tokens — "Workbench" (direction 1a)
+   All colors OKLCH so light & dark share one hue family.
+   Brand hue 165 (mint) · error/DELETE 30 (coral) · delay/warning 75 (amber)
+   · POST & path params 265 (periwinkle).
+   ========================================================================= */
+
+/* ---- Light (default) ---- */
+:root {
+  --accent-h: 165; /* accent hue — overridden by [data-accent]; light/dark lightness handled below */
+  --bg: oklch(0.985 0.003 165);
+  --surface: oklch(0.995 0.002 165);
+  --surface-sunken: oklch(0.975 0.003 165);
+  --border: oklch(0.88 0.008 165);
+  --border-subtle: oklch(0.93 0.006 165);
+  --text: oklch(0.22 0.01 165);
+  --text-muted: oklch(0.55 0.015 165);
+  --accent: oklch(0.70 0.12 var(--accent-h));
+  --accent-on: oklch(0.20 0.05 var(--accent-h));
+  --accent-tint: oklch(0.95 0.03 var(--accent-h));
+  --accent-text: oklch(0.42 0.08 var(--accent-h));
+  --success: oklch(0.42 0.08 165);
+  --warning: oklch(0.52 0.10 75);
+  --error: oklch(0.48 0.13 30);
+  --param: oklch(0.45 0.12 265);
+  --get-bg: oklch(0.93 0.05 165);  --get-fg: oklch(0.40 0.10 165);
+  --post-bg: oklch(0.93 0.04 265); --post-fg: oklch(0.42 0.12 265);
+  --put-bg: oklch(0.94 0.035 75);  --put-fg: oklch(0.45 0.10 75);
+  --del-bg: oklch(0.94 0.04 30);   --del-fg: oklch(0.48 0.13 30);
+}
+
+/* ---- Dark tokens (shared by system-dark and forced-dark) ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.19 0.008 165);
+    --surface: oklch(0.23 0.01 165);
+    --surface-sunken: oklch(0.205 0.008 165);
+    --border: oklch(0.30 0.012 165);
+    --border-subtle: oklch(0.27 0.012 165);
+    --text: oklch(0.94 0.006 165);
+    --text-muted: oklch(0.66 0.012 165);
+    --accent: oklch(0.72 0.13 var(--accent-h));
+    --accent-on: oklch(0.18 0.05 var(--accent-h));
+    --accent-tint: oklch(0.28 0.05 var(--accent-h));
+    --accent-text: oklch(0.85 0.10 var(--accent-h));
+    --success: oklch(0.82 0.10 165);
+    --warning: oklch(0.82 0.10 75);
+    --error: oklch(0.72 0.15 30);
+    --param: oklch(0.78 0.12 265);
+    --get-bg: oklch(0.28 0.05 165);  --get-fg: oklch(0.82 0.10 165);
+    --post-bg: oklch(0.28 0.05 265); --post-fg: oklch(0.82 0.10 265);
+    --put-bg: oklch(0.28 0.04 75);   --put-fg: oklch(0.82 0.09 75);
+    --del-bg: oklch(0.28 0.05 30);   --del-fg: oklch(0.82 0.11 30);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: oklch(0.19 0.008 165);
+  --surface: oklch(0.23 0.01 165);
+  --surface-sunken: oklch(0.205 0.008 165);
+  --border: oklch(0.30 0.012 165);
+  --border-subtle: oklch(0.27 0.012 165);
+  --text: oklch(0.94 0.006 165);
+  --text-muted: oklch(0.66 0.012 165);
+  --accent: oklch(0.72 0.13 var(--accent-h));
+  --accent-on: oklch(0.18 0.05 var(--accent-h));
+  --accent-tint: oklch(0.28 0.05 var(--accent-h));
+  --accent-text: oklch(0.85 0.10 var(--accent-h));
+  --success: oklch(0.82 0.10 165);
+  --warning: oklch(0.82 0.10 75);
+  --error: oklch(0.72 0.15 30);
+  --param: oklch(0.78 0.12 265);
+  --get-bg: oklch(0.28 0.05 165);  --get-fg: oklch(0.82 0.10 165);
+  --post-bg: oklch(0.28 0.05 265); --post-fg: oklch(0.82 0.10 265);
+  --put-bg: oklch(0.28 0.04 75);   --put-fg: oklch(0.82 0.09 75);
+  --del-bg: oklch(0.28 0.05 30);   --del-fg: oklch(0.82 0.11 30);
+}
+
+/* ---- Accent themes: hue only; lightness/chroma inherited from the light/dark blocks above ---- */
+:root[data-accent="emerald"] { --accent-h: 165; }
+:root[data-accent="teal"]    { --accent-h: 195; }
+:root[data-accent="ocean"]   { --accent-h: 245; }
+:root[data-accent="indigo"]  { --accent-h: 275; }
+:root[data-accent="violet"]  { --accent-h: 300; }
+:root[data-accent="magenta"] { --accent-h: 340; }
+:root[data-accent="rose"]    { --accent-h: 15; }
+:root[data-accent="amber"]   { --accent-h: 70; }
+
+/* ---- Map tokens into Tailwind's theme (inline → resolve at runtime for theming) ---- */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-on: var(--accent-on);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-text: var(--accent-text);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-param: var(--param);
+  --color-get-bg: var(--get-bg);   --color-get-fg: var(--get-fg);
+  --color-post-bg: var(--post-bg); --color-post-fg: var(--post-fg);
+  --color-put-bg: var(--put-bg);   --color-put-fg: var(--put-fg);
+  --color-del-bg: var(--del-bg);   --color-del-fg: var(--del-fg);
+
+  /* Self-host these (see src/assets/fonts/README) so the desktop build works offline. */
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  /* Hide scrollbars everywhere but keep scrolling. */
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  * { border-color: var(--border); }
+}

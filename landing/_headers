@@ -1,0 +1,7 @@
+# Cloudflare Pages headers.
+
+# The dashboard (running on localhost / Docker / desktop) polls this cross-origin for the
+# update check, so it needs CORS. Short cache so a new release is picked up quickly.
+/version.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300

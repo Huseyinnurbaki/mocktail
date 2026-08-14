@@ -4,6 +4,56 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.0.0] - 2026-08-13
+
+The biggest release yet — a full dashboard redesign, an in-app AI assistant, response headers, a
+live traffic view, and a CGO-free build. **Note the breaking port change below.**
+
+### ⚠️ Breaking
+
+- **Default port is now `6625`** (was `4000`) — Mocktail's signature port ("MOCK" on a phone
+  keypad), clear of the busy `3000`/`4000`/`8080` range. Update bookmarks, `-p 6625:6625` Docker
+  mappings, and the MCP `MOCKTAIL_URL`. Set `MOCKTAIL_PORT` to override; `auto` scans for a free port.
+
+### ⬆️ Upgrading from v3.x
+
+- **Docker:** just pull `4.0.0` and recreate — your mounted volume is unchanged, so mocks persist.
+- **Everything else:** the SQLite file moved to the OS app-data dir, so the simplest, guaranteed path
+  is **Export → Import**: in v3, **Settings → Export** your mocks to JSON; after upgrading, **Settings
+  → Import** them into v4. (Existing paths are skipped on import, so it's safe to re-run.)
+
+### ✨ Added
+
+- **AI assistant (in-app, agentic)** — a dashboard assistant that answers questions about Mocktail
+  and your own mocks, and can **create / update / delete** endpoints from natural language, with the
+  catalog updating live. Bring your own key; it's stored in the OS keychain and used **server-side
+  only** — never in the browser. Pluggable provider layer (Anthropic first). Reads your mocks only
+  when asked (`list_mocks` / `get_mock` tools). `/this` targets the selected endpoint.
+- **Response headers** — set custom headers per mock (including a `Content-Type` override, e.g.
+  `application/problem+json`). Shown in the Test tab, Live view, and Preview; carried through import/export.
+- **Live traffic view** — a filterable stream of real requests hitting your mocks (method / status /
+  path, with `/prefix/*` wildcards), served response + headers, and arrow-key navigation.
+- **Themes & accents** — light / dark / system with selectable accent colors.
+- **Inline search completion** — type a path in the catalog search and press Tab to drill base-path
+  segments; keyboard shortcuts throughout (`⌘F`/`⌘E`/`⌘L`/`⌘O`/`⌘↵`/`⌘D`, `↑↓`, `↵`).
+- **`MOCKTAIL_ADMIN_KEY`** — optional auth on the management API (`/core/v1/*`). Tri-state:
+  unset (open) · `<value>` · `auto` (random per launch). `/` and `/health` stay open.
+- **`MOCKTAIL_PORT`** — set a fixed port, or `auto` to prefer `6625` then scan for a free one;
+  `/health` now reports the bound port.
+- **Backend test suite + CI** — handler, logger, AI-tool (with abuse/guardrail tests), and
+  DB/startup integration tests, run on every push via GitHub Actions.
+
+### ♻️ Changed
+
+- **Dashboard fully rebuilt** — migrated from Chakra UI to **React + Tailwind CSS v4** (OKLCH tokens),
+  Vite build, CodeMirror 6 editor. New catalog, editor, live, and settings surfaces; responsive.
+- **CGO-free build** — SQLite now uses the pure-Go `ncruces/go-sqlite3` driver (`CGO_ENABLED=0`),
+  simplifying cross-compilation. (Building the image yourself needs Docker ≥ 4 GB.)
+- **Database location** — the SQLite file now lives in the OS per-user app-data dir by default
+  (survives updates, not tied to the working directory). Docker still uses `/db/apis.db`; override
+  anywhere with `MOCKTAIL_DB_PATH`.
+- **Settings** — grouped Help/FAQ, API-keys tab, GitHub link, and an update-available check.
+
 ## [3.1.9] - 2026-06-03
 
 ### 🔒 Security

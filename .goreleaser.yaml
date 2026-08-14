@@ -1,0 +1,57 @@
+# GoReleaser — cross-platform binaries + GitHub release + Homebrew formula.
+# The Go module lives in mocktail-api/, and the CI workflow builds the dashboard into
+# mocktail-api/build before this runs (go:embed bakes it into the binary).
+version: 2
+
+project_name: mocktail
+
+builds:
+  - id: mocktail
+    dir: mocktail-api # Go module is in this subdirectory
+    main: .
+    binary: mocktail # what users type (the module is "mocktail-api", the binary is "mocktail")
+    env:
+      - CGO_ENABLED=0 # pure-Go SQLite → trivial cross-compilation
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: mocktail
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true # release notes are maintained by hand in changelog.md
+
+# Publishes/updates a Homebrew cask in the tap on every release. (Homebrew now distributes
+# prebuilt binaries as casks, not formulae — GoReleaser deprecated `brews`.)
+homebrew_casks:
+  - name: mocktail
+    repository:
+      owner: Huseyinnurbaki
+      name: homebrew-mocktail
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://getmocktail.com"
+    description: "Self-hosted mock API server with a dashboard, in a single binary"
+    # The binary is unsigned (no Apple Developer account), so strip the download quarantine on
+    # install — otherwise macOS Gatekeeper blocks the first run. Standard for unsigned CLI casks.
+    hooks:
+      post:
+        install: |
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/mocktail"]
+    caveats: |
+      Start Mocktail with:  mocktail
+      Then open the dashboard at http://localhost:6625
