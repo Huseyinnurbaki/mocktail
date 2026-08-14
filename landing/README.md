@@ -23,12 +23,26 @@ Deliberately deferred (v1 tradeoffs):
 - **Not Astro yet.** The roadmap picks Astro + Tailwind; this v1 is plain HTML to ship something real
   fast. Migrate when it grows past one page (docs/changelog/MDX).
 
-## Deploy (GitHub Pages)
-- **Simplest:** Settings → Pages → deploy from branch, folder `/landing` (or move to `/docs`).
-- **Custom domain:** add a `CNAME` file here containing `getmocktail.com`, and point DNS at Pages.
-  A custom domain serves at **root**, so there's no `/mocktail/` base-path issue.
-- Excluded from the Docker image automatically (the Dockerfile uses explicit `COPY ./mocktail-api` /
-  `COPY ./mocktail-ui`).
+## Deploy (Cloudflare Pages)
+Deployed to **Cloudflare Pages** (project `mocktail`, custom domain **getmocktail.com**). Deploys are
+**manual and deliberate** — run on a stable release, never automatically on a git tag — so
+pre-releases (`vX.Y.Z-rc.N`) never touch the public site or its SEO.
+
+```console
+./deploy.sh          # rsyncs landing/, injects the version from version.json, then wrangler deploys
+```
+
+`deploy.sh` reads the version from **`version.json`** (the single source of truth) and injects it into
+the `SoftwareApplication` JSON-LD, so structured data always matches the release without a hardcoded
+`softwareVersion` in `index.html`.
+
+> **⚠️ On each STABLE release, remember:**
+> 1. Bump **`landing/version.json`** — `version` + `highlights` (the highlights feed the in-app
+>    "update available" tooltip in Settings).
+> 2. Run **`./landing/deploy.sh`**.
+> 3. Only if the tagline/brand changed: re-render `og.png` and update the GitHub social-preview image.
+
+- Excluded from the Docker image automatically (the Dockerfile `COPY`s only `mocktail-api` / `mocktail-ui`).
 
 ## Local preview
 ```console

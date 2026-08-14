@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Mocktail — Self-hosted mock API server &amp; dashboard</title>
-<meta name="description" content="Mocktail is a self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set headers, delays and status codes, and watch live traffic. No cloud, no sign-up. Free and open source." />
+<meta name="description" content="Self-hosted mock API server + dashboard in one ~25 MB binary. Define endpoints, generate realistic data, test errors and latency, and inspect live traffic." />
 <link rel="canonical" href="https://getmocktail.com/" />
 <meta name="theme-color" content="#2bb673" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -13,14 +13,14 @@
 <meta property="og:site_name" content="Mocktail" />
 <meta property="og:url" content="https://getmocktail.com/" />
 <meta property="og:title" content="Mocktail — Self-hosted mock API server & dashboard" />
-<meta property="og:description" content="A complete mock server and dashboard in one binary. Realistic data per request, live traffic, headers &amp; delays. No cloud, no sign-up." />
+<meta property="og:description" content="A self-hosted, open-source mock API server + dashboard in one ~25 MB binary. Realistic data, live traffic, custom headers, status codes, and latency." />
 <meta property="og:image" content="https://getmocktail.com/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Mocktail — Self-hosted mock API server & dashboard" />
-<meta name="twitter:description" content="A complete mock server and dashboard in one binary. No cloud, no sign-up." />
+<meta name="twitter:description" content="Open-source, self-hosted mock API server + dashboard in one ~25 MB binary. Run locally or deploy on your own infrastructure." />
 <meta name="twitter:image" content="https://getmocktail.com/og.png" />
 <!-- Structured data: helps Google rich results AND AI/answer engines understand the tool -->
 <script type="application/ld+json">
@@ -29,21 +29,27 @@
   "@type": "SoftwareApplication",
   "name": "Mocktail",
   "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "macOS, Windows, Linux, Docker",
-  "description": "A self-hosted mock API server with a built-in dashboard, in a single binary. Define endpoints, generate realistic data per request, set custom headers, delays and status codes, watch live traffic, and drive it from AI via MCP.",
+  "operatingSystem": "macOS, Windows, Linux",
+  "description": "A self-hosted, open-source mock API server with a built-in dashboard and database in a single ~25 MB binary. Define endpoints, generate realistic data, customize headers, latency and status codes, inspect live traffic, and create and manage mocks with AI or MCP. Run locally or deploy to your own infrastructure.",
   "url": "https://getmocktail.com/",
   "downloadUrl": "https://getmocktail.com/#install",
-  "softwareVersion": "4.0",
   "license": "https://github.com/Huseyinnurbaki/mocktail/blob/master/LICENSE",
   "codeRepository": "https://github.com/Huseyinnurbaki/mocktail",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "featureList": [
-    "Optional per-field fake data generators (uuid, email, price, name)",
-    "Custom response headers, latency, and any status code",
-    "Live request traffic view",
+    "JSON editor with syntax highlighting and live validation",
+    "Per-field realistic data generators and selected-field anonymization",
+    "Static or fresh-per-request responses with per-field freezing",
+    "Custom response headers, latency, and HTTP status codes",
+    "Test endpoints directly from the dashboard",
+    "Live request traffic inspection",
+    "Generated cURL, Node.js, Python, and Go examples",
     "JSON import and export",
-    "Built-in AI assistant (bring your own key)",
-    "MCP server for Claude Desktop and Code"
+    "Built-in AI assistant with bring-your-own API key",
+    "MCP server for AI coding agents",
+    "Persistent SQLite storage",
+    "Homebrew, Docker, and direct binary distribution",
+    "Self-hosted single ~25 MB binary"
   ]
 }
 </script>
@@ -178,16 +184,25 @@
   .shead p { color: var(--soft); font-size: 16px; margin: 10px 0 0; font-weight: 500; }
   /* feature showcase — alternating rows, real product visuals instead of icon-cards */
   .rows { display: flex; flex-direction: column; }
+  .journey { max-width: 940px; margin: 0 auto; }
+  .track { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .track::before { content: ""; position: absolute; left: calc(100% / 6); right: calc(100% / 6); top: 37px; height: 2px; background: color-mix(in oklch, var(--leaf) 18%, var(--line)); }
+  .jstep { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .jstep .stg { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--leaf); height: 18px; line-height: 18px; }
+  .jstep .node { width: 15px; height: 15px; border-radius: 50%; background: var(--leaf); border: 3px solid var(--bg); box-shadow: 0 0 0 4px color-mix(in oklch, var(--leaf) 15%, transparent); margin: 13px 0 18px; position: relative; z-index: 1; }
+  .jstep h3 { font-size: 18px; letter-spacing: -0.01em; margin: 0 0 7px; }
+  .jstep .sit { color: var(--soft); font-size: 14px; line-height: 1.55; margin: 0; max-width: 260px; font-weight: 500; }
+  .aspan { margin: 34px auto 0; display: flex; align-items: baseline; justify-content: center; gap: 11px; text-align: center; color: var(--soft); font-size: 15px; }
+  .aspan .mk { color: var(--leaf); font-size: 16px; }
+  .aspan b { color: var(--ink); font-weight: 650; }
   .feature { display: grid; grid-template-columns: 1fr 1.06fr; gap: 52px; align-items: center; padding: 48px 0; }
+  .feature > * { min-width: 0; } /* let the demo column shrink so its <pre> scrolls instead of overflowing the viewport */
   .feature + .feature { border-top: 1px solid var(--line); }
   .feature.rev .demo { order: -1; }
   .tagword { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--leaf); }
   .feature h3 { font-size: clamp(22px, 2.6vw, 28px); margin: 12px 0 12px; }
   .feature .copy p { color: var(--soft); font-size: 15.5px; margin: 0; font-weight: 500; line-height: 1.6; max-width: 410px; }
   .feature .copy p b { color: var(--ink); font-weight: 650; }
-  .chiprow { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip-ai { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--post); background: color-mix(in oklch, var(--post) 14%, transparent); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
-  .chip-key { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--leaf); background: color-mix(in oklch, var(--leaf) 14%, transparent); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
   /* demo panels */
   .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--sh); overflow: hidden; }
   .panel .pbar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--bg-2); font-family: var(--mono); font-size: 11px; color: var(--faint); }
@@ -215,10 +230,13 @@
   .way[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 3px 10px -4px oklch(0.4 0.1 140 / 0.4); }
   .way .rec { font-size: 9px; font-weight: 800; color: white; background: var(--leaf); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
   .way .soon { font-size: 9px; font-weight: 800; color: var(--soft); background: color-mix(in oklch, var(--soft) 16%, transparent); border-radius: 999px; padding: 1px 6px; letter-spacing: 0.04em; }
-  .glassterm { max-width: 640px; margin: 0 auto; background: var(--card); border-radius: 18px; box-shadow: var(--sh); border: 1px solid var(--line); overflow: hidden; text-align: left; }
+  .glassterm .binmeta { padding: 14px 20px 0; font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .glassterm .h #dlhdr:hover { color: var(--ink); border-color: var(--leaf); }
+  .glassterm { max-width: 640px; min-height: 200px; margin: 0 auto; background: var(--card); border-radius: 18px; box-shadow: var(--sh); border: 1px solid var(--line); overflow: hidden; text-align: left; }
   .glassterm .h { display: flex; align-items: center; gap: 8px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
   .glassterm .h .d { width: 10px; height: 10px; border-radius: 50%; }
-  .glassterm .h .cp { margin-left: auto; border: 1px solid var(--line); background: transparent; border-radius: 999px; font-family: var(--mono); font-size: 11px; color: var(--soft); padding: 5px 13px; cursor: pointer; }
+  .glassterm .h .cp { margin-left: auto; width: 112px; height: 28px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; -webkit-appearance: none; appearance: none; border: 1px solid var(--line); background: transparent; border-radius: 999px; font-family: var(--mono); font-size: 11px; line-height: 1; color: var(--soft); padding: 0 12px; cursor: pointer; }
+  .glassterm .h .cp[hidden] { display: none; }
   .glassterm .h .cp:hover { color: var(--ink); border-color: var(--leaf); }
   .glassterm .b { display: flex; gap: 12px; padding: 18px 20px; font-family: var(--mono); font-size: 14px; }
   .glassterm .b .pr { color: var(--leaf); font-weight: 700; }
@@ -246,6 +264,9 @@
     .feature { grid-template-columns: 1fr; gap: 24px; padding: 34px 0; }
     .feature.rev .demo { order: 0; }
     .feature .copy p { max-width: none; }
+    .track { grid-template-columns: 1fr; gap: 26px; }
+    .track::before { display: none; }
+    .jstep .node { margin: 10px 0 12px; }
     .section { padding: 56px 0; }
   }
   @media (max-width: 560px) {
@@ -260,7 +281,8 @@
     .showcase { padding: 14px 0; } .showcase .cap h2 { font-size: 24px; }
     .section { padding: 42px 0; }
     .feature { padding: 28px 0; } .feature h3 { font-size: 22px; }
-    .ways { flex-wrap: wrap; } .way { padding: 7px 13px; }
+    .ways { flex-wrap: wrap; justify-content: center; border-radius: 18px; } .way { padding: 7px 13px; }
+    .way .rec, .way .soon { display: none; } /* drop EASIEST/SOON badges so 4 tabs fit one line */
     .first .shead h2, .shead h2 { font-size: 26px; }
   }
 </style>
@@ -272,6 +294,7 @@
     <a class="logo" href="#top"><span class="b"><svg viewBox="0 0 48 48" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)"/></svg></span> Mocktail</a>
     <div class="links">
       <a href="#features">Features</a>
+      <a href="#use-cases">Use cases</a>
       <a href="#install">Install</a>
       <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer" class="ghost">★ GitHub</a>
       <button class="tgl" id="theme" aria-label="Toggle theme">◐</button>
@@ -283,8 +306,8 @@
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <h1 class="big">Whip up a<br><span class="grad">mock API</span>.</h1>
-      <p class="sub">A complete mock server and dashboard in one little binary — mixed fresh on your machine. No cloud, no sign-up, no bitter aftertaste.</p>
+      <h1 class="big">Whip up a <br><span class="grad">mock API</span>.</h1>
+      <p class="sub">A complete mock server, dashboard, and database in one ~25&nbsp;MB binary. Mix one up locally in seconds — or self-host it on your own infrastructure.</p>
       <div class="cta">
         <a class="btn primary" href="#install">Start mixing →</a>
         <a class="btn text" href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">Star on GitHub</a>
@@ -355,9 +378,9 @@
 
         <div class="feature">
           <div class="copy">
-            <span class="tagword">Randomize · optional</span>
-            <h3>Fixed by default, fresh on demand</h3>
-            <p>Serve a plain static response as-is — or attach a generator to any field (<b>uuid, email, price, name</b>) so it re-rolls every call. Opt in per field; point one at a real response and it anonymizes it.</p>
+            <span class="tagword">Editor · randomize</span>
+            <h3>Edit, validate, randomize</h3>
+            <p>Write and validate JSON right in Mocktail. Keep responses fixed, generate fresh values on every request (<b>uuid, email, price, name</b>), or swap real fields for fake data when you need to anonymize a response.</p>
           </div>
           <div class="demo"><div class="panel">
             <div class="pbar"><span class="verb v-get">GET</span><span class="lab">/api/v1/users · 200</span></div>
@@ -371,9 +394,9 @@
 
         <div class="feature rev">
           <div class="copy">
-            <span class="tagword">Live traffic</span>
+            <span class="tagword">Create → Test → Inspect</span>
             <h3>Watch every request land</h3>
-            <p>A real-time stream of everything hitting your mocks — method, status, latency, and the <b>exact response and headers</b> served. Filter by path or status, replay at a glance.</p>
+            <p>Create an endpoint, hit <b>Test</b> right from the dashboard, and watch it land in the live stream — method, status, latency, and the <b>exact response and headers</b> served. Filter by path or status. The whole loop, without leaving the app.</p>
           </div>
           <div class="demo"><div class="panel">
             <div class="pbar"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><span class="live">live</span></div>
@@ -406,7 +429,6 @@
             <span class="tagword">AI assistant</span>
             <h3>Describe it, don't type it</h3>
             <p><b>Bring your own key.</b> Say what you want in plain language and Mocktail drafts the whole response with Claude, right in the dashboard. Your key never leaves your machine; chats are never stored.</p>
-            <div class="chiprow"><span class="chip-key">🔑 BYO key</span></div>
           </div>
           <div class="demo"><div class="panel">
             <div class="pbar"><span class="lab">✳ assistant</span></div>
@@ -427,7 +449,6 @@
             <span class="tagword">MCP</span>
             <h3>Or let your AI tools drive</h3>
             <p>The built-in <b>MCP server</b> plugs Mocktail into <b>Claude Desktop &amp; Code</b>. Ask, and they create and edit mocks for you — a sentence becomes a live endpoint, no dashboard required.</p>
-            <div class="chiprow"><span class="chip-ai">MCP server</span></div>
           </div>
           <div class="demo"><div class="panel">
             <div class="pbar"><span class="d" style="background:var(--post)"></span><span class="lab">claude · mcp</span></div>
@@ -443,19 +464,56 @@
   </section>
 </div>
 
+<section class="section" id="use-cases">
+  <div class="wrap">
+    <div class="shead">
+      <h2>When to pour one.</h2>
+      <p>One tool across the whole lifecycle — from your first frontend commit to demo day.</p>
+    </div>
+    <div class="journey">
+      <div class="track">
+        <div class="jstep">
+          <span class="stg">Build</span>
+          <span class="node" aria-hidden="true"></span>
+          <h3>No backend yet</h3>
+          <p class="sit">Keep building the frontend while the real API catches up.</p>
+        </div>
+        <div class="jstep">
+          <span class="stg">Test</span>
+          <span class="node" aria-hidden="true"></span>
+          <h3>Test the ugly stuff</h3>
+          <p class="sit">Slow responses, 401 · 429 · 500, rate limits, edge cases — without breaking anything real.</p>
+        </div>
+        <div class="jstep">
+          <span class="stg">Demo</span>
+          <span class="node" aria-hidden="true"></span>
+          <h3>Demo day can’t go down</h3>
+          <p class="sit">A stable, self-contained API for demos, prototypes, workshops, or QA.</p>
+        </div>
+      </div>
+      <div class="aspan">
+        <span class="mk" aria-hidden="true">✦</span>
+        <span><b>Let AI do the setup.</b> Built-in assistant, or bring your own agent through MCP.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section first" id="install">
   <div class="wrap">
     <div class="shead">
       <h2>Your first pour.</h2>
-      <p>The dashboard comes with it. Open <span class="mono">localhost:6625</span> and start mocking.</p>
+      <p>The dashboard comes with it — on macOS, Linux, and Windows. Open <span class="mono">localhost:6625</span> and start mocking.</p>
     </div>
     <div class="ways" role="tablist">
       <button class="way" role="tab" aria-selected="true" data-t="brew">Homebrew <span class="rec">EASIEST</span></button>
       <button class="way" role="tab" aria-selected="false" data-t="docker">Docker</button>
+      <button class="way" role="tab" aria-selected="false" data-t="binary">Binary</button>
       <button class="way" role="tab" aria-selected="false" data-t="desktop">Desktop <span class="soon">SOON</span></button>
     </div>
     <div class="glassterm">
-      <div class="h"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><button class="cp" id="copy">Copy</button></div>
+      <div class="h"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><a class="cp" id="dlhdr" href="https://github.com/Huseyinnurbaki/mocktail/releases/latest" target="_blank" rel="noreferrer" hidden>Download ↗</a><button class="cp" id="copy">Copy</button></div>
+      <div class="binmeta" id="binmeta" hidden>macOS · Linux · Windows • amd64 · arm64 — unzip &amp; run</div>
       <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask Huseyinnurbaki/tap/mocktail
 mocktail
 <span class="cm"># → opens http://localhost:6625</span></pre></div>
@@ -469,27 +527,31 @@ mocktail
     <div class="faq">
       <div class="qa">
         <h3>What is Mocktail?</h3>
-        <p>Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service.</p>
+        <p>Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. Define endpoints and responses, then call them from your app like a real API. Run it locally or deploy it to your own infrastructure.</p>
       </div>
       <div class="qa">
         <h3>Is Mocktail free and open source?</h3>
-        <p>Yes. Mocktail is free and open source on <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">GitHub</a>. There's no sign-up and no paid tier to use it — it runs entirely on your own machine.</p>
+        <p>Yes. Mocktail is free and open source on <a href="https://github.com/Huseyinnurbaki/mocktail" target="_blank" rel="noreferrer">GitHub</a>. There's no sign-up or paid tier required — run it on your laptop or your own servers.</p>
       </div>
       <div class="qa">
         <h3>How do I install Mocktail?</h3>
-        <p>Install with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/tap/mocktail</span>) or run it with Docker; the dashboard opens at <span class="mono">localhost:6625</span>. A native desktop app is coming soon.</p>
+        <p>Install it with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/tap/mocktail</span>), run it with Docker, or download the binary directly. Local installs open the dashboard at <span class="mono">localhost:6625</span> by default. A native desktop app is coming soon.</p>
       </div>
       <div class="qa">
         <h3>Where does my data live?</h3>
-        <p>Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share.</p>
+        <p>Wherever you run Mocktail. Data is stored in a single SQLite file on your machine or a mounted volume when using Docker. Nothing is sent to Mocktail, and there's no telemetry. Mocks can also be exported as JSON to commit or share.</p>
       </div>
       <div class="qa">
         <h3>Can Mocktail generate realistic test data?</h3>
-        <p>Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it.</p>
+        <p>Yes, optionally. Serve a fixed response as-is, or attach generators to individual fields like UUIDs, emails, prices, and names for fresh values on every request. You can also replace fields in existing responses with generated data.</p>
       </div>
       <div class="qa">
         <h3>Does Mocktail work with AI tools?</h3>
-        <p>Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key, key stays on your machine), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks.</p>
+        <p>Yes. The built-in AI assistant can draft responses from plain-language prompts using your own API key, while the MCP server lets tools like Claude Desktop and Claude Code create and manage mocks directly.</p>
+      </div>
+      <div class="qa">
+        <h3>Can my team share a Mocktail instance?</h3>
+        <p>Yes. Deploy the Docker image to infrastructure your team can access and use the same Mocktail instance across development, testing, and demos.</p>
       </div>
     </div>
   </div>
@@ -502,12 +564,13 @@ mocktail
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service." } },
-    { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up and no paid tier to use it — it runs entirely on your own machine." } },
-    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install with Homebrew (brew install --cask Huseyinnurbaki/tap/mocktail) or run it with Docker; the dashboard opens at localhost:6625. A native desktop app is coming soon." } },
-    { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share." } },
-    { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it." } },
-    { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks." } }
+    { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. Define endpoints and responses, then call them from your app like a real API. Run it locally or deploy it to your own infrastructure." } },
+    { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up or paid tier required — run it on your laptop or your own servers." } },
+    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install it with Homebrew (brew install --cask Huseyinnurbaki/tap/mocktail), run it with Docker, or download the binary directly. Local installs open the dashboard at localhost:6625 by default. A native desktop app is coming soon." } },
+    { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Wherever you run Mocktail. Data is stored in a single SQLite file on your machine or a mounted volume when using Docker. Nothing is sent to Mocktail, and there's no telemetry. Mocks can also be exported as JSON to commit or share." } },
+    { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, optionally. Serve a fixed response as-is, or attach generators to individual fields like UUIDs, emails, prices, and names for fresh values on every request. You can also replace fields in existing responses with generated data." } },
+    { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The built-in AI assistant can draft responses from plain-language prompts using your own API key, while the MCP server lets tools like Claude Desktop and Claude Code create and manage mocks directly." } },
+    { "@type": "Question", "name": "Can my team share a Mocktail instance?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Deploy the Docker image to infrastructure your team can access and use the same Mocktail instance across development, testing, and demos." } }
   ]
 }
 </script>
@@ -536,7 +599,8 @@ mocktail
   const CMDS = {
     brew:   { html: 'brew install --cask Huseyinnurbaki/tap/mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install --cask Huseyinnurbaki/tap/mocktail && mocktail" },
     docker: { html: 'docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest\n<span class="cm"># → open http://localhost:6625</span>', copy: "docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest" },
-    desktop:{ html: '<span class="cm"># A native desktop app is coming soon.</span>\n<span class="cm"># For now, install with Homebrew or Docker above.</span>', copy: "" },
+    binary: { html: './mocktail\n<span class="cm"># Windows: mocktail.exe</span>\n<span class="cm"># → http://localhost:6625</span>', copy: "./mocktail" },
+    desktop:{ html: '<span class="cm"># A native desktop app is coming soon.</span>\n<span class="cm"># For now, install with Homebrew, Docker, or the binary above.</span>', copy: "" },
   };
   const cmd = document.getElementById("cmd");
   cmd.dataset.copy = CMDS.brew.copy;
@@ -544,6 +608,10 @@ mocktail
     document.querySelectorAll(".way").forEach(x => x.setAttribute("aria-selected", "false"));
     w.setAttribute("aria-selected", "true");
     const c = CMDS[w.dataset.t]; cmd.innerHTML = c.html; cmd.dataset.copy = c.copy;
+    const isBin = w.dataset.t === "binary";
+    document.getElementById("dlhdr").hidden = !isBin;
+    document.getElementById("copy").hidden = isBin;
+    document.getElementById("binmeta").hidden = !isBin;
   }));
   document.getElementById("copy").addEventListener("click", async (e) => {
     try { await navigator.clipboard.writeText(cmd.dataset.copy); e.target.textContent = "Copied ✓"; setTimeout(() => e.target.textContent = "Copy", 1400); } catch {}

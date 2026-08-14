@@ -7,6 +7,7 @@ mocktail-api/build/*
 *.db
 node_modules
 .wrangler
+landing/.build
 mocktail-api/.env
 design_handoff_mocktail_dashboard
 mocktail-api/mocktail-bin
