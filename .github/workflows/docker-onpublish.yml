@@ -1,8 +1,18 @@
-name: Docker Image OnPublish CI
+name: Docker Image OnTag CI
 
+# Fires on the version-tag push itself — NOT `release: published`. GoReleaser publishes the
+# GitHub release with the default GITHUB_TOKEN, and GitHub suppresses downstream workflow runs
+# triggered by GITHUB_TOKEN events, so a `release: published` trigger here never runs.
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
+  # Manual re-run: pick a tag in "Use workflow from", or pass `tag` explicitly.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to publish, e.g. v4.0.0 (defaults to the ref you run from)'
+        required: false
+        type: string
 
 env:
   IMAGE_NAME: hhaluk/mocktail
@@ -23,12 +33,19 @@ jobs:
         username: hhaluk
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Extract version from tag
-      id: version
+    - name: Compute tags from git tag
+      id: meta
       run: |
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        REF="${{ github.event.inputs.tag }}"
+        [ -z "$REF" ] && REF="${GITHUB_REF#refs/tags/}"
+        VERSION="${REF#v}"
+        TAGS="${IMAGE_NAME}:${VERSION}"
+        # Only move :latest for stable releases — a pre-release (e.g. 4.1.0-rc.1) publishes
+        # its own version tag but must not overwrite latest.
+        if [[ "$VERSION" != *-* ]]; then
+          TAGS="${TAGS},${IMAGE_NAME}:latest"
+        fi
+        echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
     - name: Build and push release
       uses: docker/build-push-action@v5
@@ -36,9 +53,7 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: |
-          ${{ env.IMAGE_NAME }}:latest
-          ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |

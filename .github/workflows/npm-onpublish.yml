@@ -1,8 +1,18 @@
-name: npm Publish OnRelease
+name: npm Publish OnTag
 
+# Fires on the version-tag push itself — NOT `release: published`. GoReleaser publishes the
+# GitHub release with the default GITHUB_TOKEN, and GitHub suppresses downstream workflow runs
+# triggered by GITHUB_TOKEN events, so a `release: published` trigger here never runs.
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
+  # Manual re-run: pick a tag in "Use workflow from", or pass `tag` explicitly.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to publish, e.g. v4.0.0 (defaults to the ref you run from)'
+        required: false
+        type: string
 
 jobs:
   publish:
@@ -17,23 +27,31 @@ jobs:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Extract version from tag
+    - name: Extract version + dist-tag from tag
       id: version
       run: |
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        REF="${{ github.event.inputs.tag }}"
+        [ -z "$REF" ] && REF="${GITHUB_REF#refs/tags/}"
+        VERSION="${REF#v}"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        # Pre-releases (e.g. 4.1.0-rc.1) go to the `next` dist-tag so `npm install mocktail-mcp`
+        # (which resolves `latest`) never lands on an rc; stable tags go to `latest`.
+        if [[ "$VERSION" == *-* ]]; then
+          echo "dist_tag=next" >> "$GITHUB_OUTPUT"
+        else
+          echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Install dependencies
       working-directory: mcp-server
       run: npm ci
 
-    - name: Publish release version
+    - name: Publish
       working-directory: mcp-server
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         CURRENT=$(node -p "require('./package.json').version")
         TARGET=${{ steps.version.outputs.version }}
-        [ "$CURRENT" != "$TARGET" ] && npm version $TARGET --no-git-tag-version
-        npm publish --tag latest
+        [ "$CURRENT" != "$TARGET" ] && npm version $TARGET --no-git-tag-version --allow-same-version
+        npm publish --tag ${{ steps.version.outputs.dist_tag }}
