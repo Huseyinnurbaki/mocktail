@@ -43,7 +43,7 @@ release:
 
     **Homebrew** (macOS / Linux):
     ```sh
-    brew install --cask Huseyinnurbaki/mocktail/mocktail
+    brew install --cask Huseyinnurbaki/tap/mocktail
     mocktail   # → dashboard at http://localhost:6625
     ```
 
@@ -61,7 +61,7 @@ homebrew_casks:
   - name: mocktail
     repository:
       owner: Huseyinnurbaki
-      name: homebrew-mocktail
+      name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     homepage: "https://getmocktail.com"
     description: "Self-hosted mock API server with a dashboard, in a single binary"

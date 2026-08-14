@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # need tags so `git describe` can resolve the latest release
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -19,20 +21,19 @@ jobs:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Extract short SHA
-      id: sha
-      run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
     - name: Install dependencies
       working-directory: mcp-server
       run: npm ci
 
-    - name: Publish with commit SHA tag
+    # Version comes from the latest git tag + commits-since + sha (e.g. 4.0.0-3-ge056b5f),
+    # not the (often stale) package.json — so the dev channel auto-tracks the latest release.
+    # --long always includes the sha suffix, so it can never collide with a real published version.
+    - name: Publish dev snapshot
       working-directory: mcp-server
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
-        VERSION=${BASE}-${{ steps.sha.outputs.short }}
-        npm version $VERSION --no-git-tag-version --allow-same-version
+        VERSION=$(git describe --tags --long --always | sed 's/^v//')
+        echo "Publishing mocktail-mcp@${VERSION} (dev)"
+        npm version "$VERSION" --no-git-tag-version --allow-same-version
         npm publish --tag dev

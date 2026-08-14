@@ -34,7 +34,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Install with Homebrew
 
 ```console
-brew install --cask Huseyinnurbaki/mocktail/mocktail
+brew install --cask Huseyinnurbaki/tap/mocktail
 mocktail
 ```
 

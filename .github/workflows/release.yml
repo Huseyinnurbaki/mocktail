@@ -47,5 +47,5 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PAT with contents:write on the homebrew-mocktail tap repo (default token can't push cross-repo)
+          # PAT with contents:write on the homebrew-tap repo (default token can't push cross-repo)
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

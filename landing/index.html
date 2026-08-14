@@ -456,7 +456,7 @@
     </div>
     <div class="glassterm">
       <div class="h"><span class="d" style="background:var(--del)"></span><span class="d" style="background:var(--put)"></span><span class="d" style="background:var(--leaf)"></span><button class="cp" id="copy">Copy</button></div>
-      <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask Huseyinnurbaki/mocktail/mocktail
+      <div class="b"><span class="pr">$</span><pre id="cmd">brew install --cask Huseyinnurbaki/tap/mocktail
 mocktail
 <span class="cm"># → opens http://localhost:6625</span></pre></div>
     </div>
@@ -477,7 +477,7 @@ mocktail
       </div>
       <div class="qa">
         <h3>How do I install Mocktail?</h3>
-        <p>Install with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/mocktail/mocktail</span>) or run it with Docker; the dashboard opens at <span class="mono">localhost:6625</span>. A native desktop app is coming soon.</p>
+        <p>Install with Homebrew (<span class="mono">brew install --cask Huseyinnurbaki/tap/mocktail</span>) or run it with Docker; the dashboard opens at <span class="mono">localhost:6625</span>. A native desktop app is coming soon.</p>
       </div>
       <div class="qa">
         <h3>Where does my data live?</h3>
@@ -504,7 +504,7 @@ mocktail
   "mainEntity": [
     { "@type": "Question", "name": "What is Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Mocktail is a self-hosted mock API server with a built-in dashboard, shipped as a single binary. You define endpoints and their responses, and your app calls them like a real API — locally, with no cloud service." } },
     { "@type": "Question", "name": "Is Mocktail free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Mocktail is free and open source on GitHub. There's no sign-up and no paid tier to use it — it runs entirely on your own machine." } },
-    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install with Homebrew (brew install --cask Huseyinnurbaki/mocktail/mocktail) or run it with Docker; the dashboard opens at localhost:6625. A native desktop app is coming soon." } },
+    { "@type": "Question", "name": "How do I install Mocktail?", "acceptedAnswer": { "@type": "Answer", "text": "Install with Homebrew (brew install --cask Huseyinnurbaki/tap/mocktail) or run it with Docker; the dashboard opens at localhost:6625. A native desktop app is coming soon." } },
     { "@type": "Question", "name": "Where does my data live?", "acceptedAnswer": { "@type": "Answer", "text": "Everything runs locally and is stored on your machine — self-hosted, no cloud, no telemetry. Your mocks are plain JSON you can export, commit, and share." } },
     { "@type": "Question", "name": "Can Mocktail generate realistic test data?", "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Serve a fixed response as-is, or attach a generator to any field (uuid, email, price, name) so it returns fresh data on every request. Point one at a real response and it anonymizes it." } },
     { "@type": "Question", "name": "Does Mocktail work with AI tools?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A built-in AI assistant drafts responses from a plain-language prompt (bring your own key), and the MCP server lets Claude Desktop and Claude Code create and edit your mocks." } }
@@ -534,7 +534,7 @@ mocktail
     root.setAttribute("data-theme", next); localStorage.setItem("mt-v5-theme", next);
   });
   const CMDS = {
-    brew:   { html: 'brew install --cask Huseyinnurbaki/mocktail/mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install --cask Huseyinnurbaki/mocktail/mocktail && mocktail" },
+    brew:   { html: 'brew install --cask Huseyinnurbaki/tap/mocktail\nmocktail\n<span class="cm"># → opens http://localhost:6625</span>', copy: "brew install --cask Huseyinnurbaki/tap/mocktail && mocktail" },
     docker: { html: 'docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest\n<span class="cm"># → open http://localhost:6625</span>', copy: "docker run -p 6625:6625 -v $(pwd)/data:/db hhaluk/mocktail:latest" },
     desktop:{ html: '<span class="cm"># A native desktop app is coming soon.</span>\n<span class="cm"># For now, install with Homebrew or Docker above.</span>', copy: "" },
   };
