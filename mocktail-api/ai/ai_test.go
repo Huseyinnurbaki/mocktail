@@ -19,11 +19,11 @@ import (
 func useTempStore(t *testing.T) {
 	t.Helper()
 	dir := t.TempDir()
-	origKeyPath, origSettings, origStore := keyFilePath, settingsFilePath, keyStore
-	keyFilePath = filepath.Join(dir, "ai_key")
+	origKeyDir, origSettings, origStore := keyDir, settingsFilePath, keyStore
+	keyDir = dir
 	settingsFilePath = filepath.Join(dir, "ai_config.json")
-	keyStore = &fileStore{path: &keyFilePath}
-	t.Cleanup(func() { keyFilePath, settingsFilePath, keyStore = origKeyPath, origSettings, origStore })
+	keyStore = &fileStore{dir: &keyDir}
+	t.Cleanup(func() { keyDir, settingsFilePath, keyStore = origKeyDir, origSettings, origStore })
 	t.Setenv(EnvAPIKey, "")
 	t.Setenv(EnvModel, "")
 	t.Setenv(EnvBaseURL, "")
@@ -79,15 +79,23 @@ func TestResolveKeySources(t *testing.T) {
 	})
 	t.Run("env wins", func(t *testing.T) {
 		useTempStore(t)
-		_ = keyStore.Set("stored-key")
+		_ = keyStore.Set(resolveProviderID(), "stored-key")
 		t.Setenv(EnvAPIKey, "env-key")
 		if k, src := Resolve(); k != "env-key" || src != "env" {
 			t.Fatalf("Resolve() = (%q,%q), want (\"env-key\",\"env\")", k, src)
 		}
 	})
+	t.Run("per-provider env wins over generic", func(t *testing.T) {
+		useTempStore(t)
+		t.Setenv(EnvAPIKey, "generic-key")
+		t.Setenv(providerEnvKey(resolveProviderID()), "provider-key") // MOCKTAIL_AI_API_KEY_ANTHROPIC
+		if k, src := Resolve(); k != "provider-key" || src != "env" {
+			t.Fatalf("Resolve() = (%q,%q), want (\"provider-key\",\"env\")", k, src)
+		}
+	})
 	t.Run("stored when no env", func(t *testing.T) {
 		useTempStore(t)
-		if err := keyStore.Set("stored-key"); err != nil {
+		if err := keyStore.Set(resolveProviderID(), "stored-key"); err != nil {
 			t.Fatalf("set: %v", err)
 		}
 		if k, src := Resolve(); k != "stored-key" || src != "stored" {
@@ -197,7 +205,7 @@ func TestGetModelsFallbackAndLive(t *testing.T) {
 	t.Run("live when key present", func(t *testing.T) {
 		useTempStore(t)
 		stubAnthropic(t)
-		_ = keyStore.Set("key")
+		_ = keyStore.Set(resolveProviderID(), "key")
 		resp, _ := app.Test(httptest.NewRequest("GET", "/ai/models", nil), -1)
 		var out ModelsResponse
 		json.NewDecoder(resp.Body).Decode(&out)
@@ -319,7 +327,7 @@ func TestPostChatNoKey(t *testing.T) {
 func TestPostChatStreamsSSE(t *testing.T) {
 	useTempStore(t)
 	stubAnthropic(t)
-	_ = keyStore.Set("key")
+	_ = keyStore.Set(resolveProviderID(), "key")
 	app := aiApp()
 
 	body, _ := json.Marshal(map[string]any{"messages": []Message{{Role: "user", Content: "hi"}}})

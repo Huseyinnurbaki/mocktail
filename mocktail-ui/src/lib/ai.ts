@@ -8,6 +8,9 @@ export interface AIConfig {
   provider: string
   model: string
   keyHint?: string
+  // False when the key can't be set from this session (remote/containerized dashboard) — the
+  // UI then points at the MOCKTAIL_AI_API_KEY_<PROVIDER> env var instead of showing an input that 403s.
+  editable: boolean
 }
 export interface AIProvider {
   id: string

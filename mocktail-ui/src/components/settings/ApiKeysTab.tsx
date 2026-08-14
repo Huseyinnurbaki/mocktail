@@ -116,7 +116,7 @@ export function ApiKeysTab() {
         <label className="text-[12.5px] text-muted">API key</label>
         {envManaged ? (
           <div className="rounded-[8px] border border-border bg-surface-sunken px-3 py-2 text-[12.5px] text-muted">
-            Managed via <span className="font-mono">MOCKTAIL_AI_API_KEY</span> — read-only here.
+            Managed via an environment variable — read-only here.
             {config?.keyHint && <span className="ml-1 font-mono">({config.keyHint})</span>}
           </div>
         ) : configured ? (
@@ -131,6 +131,15 @@ export function ApiKeysTab() {
             >
               Remove
             </button>
+          </div>
+        ) : config && !config.editable ? (
+          <div className="rounded-[8px] border border-border bg-surface-sunken px-3 py-2 text-[12.5px] leading-[1.5] text-muted">
+            For security, a key can only be set from a session on the machine running Mocktail — not
+            over the network. Running in a container or reaching the dashboard remotely? Pass the key as
+            an environment variable:
+            <div className="mt-1.5 overflow-x-auto rounded-[6px] border border-border bg-surface px-2 py-1 font-mono text-[11.5px] text-fg">
+              docker run -e MOCKTAIL_AI_API_KEY_ANTHROPIC=sk-ant-… …
+            </div>
           </div>
         ) : (
           <div className="flex gap-2">

@@ -20,9 +20,15 @@ import (
 // is the right control for it, not an env var. Env is only for the genuinely-headless case:
 // injecting the secret key in a container where there's no loopback session to type into.
 const (
-	EnvModel   = "MOCKTAIL_AI_MODEL"    // optional: pin a model id (else: Settings choice → provider default)
-	EnvAPIKey  = "MOCKTAIL_AI_API_KEY"  // operator-set key (containers); read-only, wins over stored
-	EnvBaseURL = "MOCKTAIL_AI_BASE_URL" // override the provider base URL (used by tests)
+	EnvModel = "MOCKTAIL_AI_MODEL" // optional: pin a model id (else: Settings choice → provider default)
+	// EnvAPIKey is the DEPRECATED generic operator-set key, kept as a back-compat fallback. Prefer
+	// the per-provider var MOCKTAIL_AI_API_KEY_<PROVIDER> (e.g. _ANTHROPIC), which takes precedence
+	// and lets multiple providers be configured at once. See providerEnvKey / envKeyFor in store.go.
+	EnvAPIKey  = "MOCKTAIL_AI_API_KEY"
+	// EnvBaseURL overrides a provider's API endpoint — an advanced knob for routing through an AI
+	// gateway/proxy (observability, caching, corporate egress) and how tests point at a stub. A
+	// per-provider var MOCKTAIL_AI_BASE_URL_<PROVIDER> takes precedence over this generic one.
+	EnvBaseURL = "MOCKTAIL_AI_BASE_URL"
 )
 
 // Assistant defaults (server-side constants, easy to tune).

@@ -26,7 +26,7 @@ services:
 
       # AI assistant — server-side only, key never touches the frontend. Provider is a Settings
       # dropdown (no env var for it); env just injects the secret key + an optional model pin.
-      # MOCKTAIL_AI_API_KEY: "sk-ant-..."
+      # MOCKTAIL_AI_API_KEY_ANTHROPIC: "sk-ant-..."   # per provider; generic MOCKTAIL_AI_API_KEY still works (deprecated)
       # MOCKTAIL_AI_MODEL: "claude-..."   # else the Settings choice / recommended model from the live list
 
       # ── Planned (designed, NOT yet wired — see ../roadmap.md) ──────

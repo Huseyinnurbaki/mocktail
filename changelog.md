@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.0.1] - 2026-08-14
+
+A small follow-up to 4.0.0 — fixes AI key setup for containers/remote dashboards and lays the
+per-provider groundwork for future AI providers.
+
+### 🐛 Fixed
+
+- **AI key setup on containers / remote dashboards.** Setting a key from a non-local session no
+  longer shows an input that then fails with a 403. Settings → API keys now detects the session and
+  points you at the environment variable instead.
+
+### ♻️ Changed
+
+- **AI keys and endpoint overrides are now per provider.** Use `MOCKTAIL_AI_API_KEY_ANTHROPIC` (and
+  `MOCKTAIL_AI_BASE_URL_ANTHROPIC` to route through an AI gateway/proxy), with `_<PROVIDER>` for
+  future providers. The generic `MOCKTAIL_AI_API_KEY` / `MOCKTAIL_AI_BASE_URL` still work as
+  **deprecated** fallbacks. Stored keys are scoped per provider (keychain `apikey-<provider>`, file
+  `ai_key_<provider>`).
+
+### ⬆️ Upgrading
+
+- **Re-enter your AI key** if you saved one in Settings on 4.0.0 — the keychain slot moved
+  (`apikey` → `apikey-anthropic`), so the app shows no key until you paste it again (it validates
+  instantly). Setting the key via an environment variable is unaffected.
+
 ## [4.0.0] - 2026-08-14
 
 The biggest release yet — a full dashboard redesign, an in-app AI assistant, response headers, a

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,6 +19,10 @@ type ConfigResponse struct {
 	Provider   string `json:"provider"`
 	Model      string `json:"model"`
 	KeyHint    string `json:"keyHint,omitempty"`
+	// Editable reports whether the key can be set/cleared from THIS session — true only on a
+	// loopback client with no env-managed key. False for a remote/containerized dashboard, so
+	// the UI can point the user at the MOCKTAIL_AI_API_KEY_<PROVIDER> env var instead of a dead input.
+	Editable bool `json:"editable"`
 }
 
 func buildConfig() ConfigResponse {
@@ -36,9 +39,12 @@ func buildConfig() ConfigResponse {
 }
 
 // GetConfig — GET /core/v1/ai/config. Reports whether a key is set and where from, plus a
-// masked hint; never the key itself.
+// masked hint (never the key itself) and whether it's settable from this session.
 func GetConfig(c *fiber.Ctx) error {
-	return c.JSON(buildConfig())
+	cfg := buildConfig()
+	// Settable only from a loopback client and when no env var is managing the active provider's key.
+	cfg.Editable = isLoopback(c) && cfg.Source != "env"
+	return c.JSON(cfg)
 }
 
 // GetProviders — GET /core/v1/ai/providers. Powers the Settings dropdown (data-driven from
@@ -73,11 +79,12 @@ func PostConfig(c *fiber.Ctx) error {
 	}
 
 	if body.APIKey != nil {
+		provider := resolveProviderID()
 		if !isLoopback(c) {
 			return c.Status(403).JSON(fiber.Map{"error": "API key can only be set from a local (loopback) session"})
 		}
-		if os.Getenv(EnvAPIKey) != "" {
-			return c.Status(409).JSON(fiber.Map{"error": "API key is managed via MOCKTAIL_AI_API_KEY and cannot be changed here"})
+		if envKeyFor(provider) != "" {
+			return c.Status(409).JSON(fiber.Map{"error": "API key is managed via an environment variable and cannot be changed here"})
 		}
 		key := strings.TrimSpace(*body.APIKey)
 		if key == "" {
@@ -91,7 +98,7 @@ func PostConfig(c *fiber.Ctx) error {
 		if _, err := p.ListModels(c.Context(), key); err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "key rejected by provider: " + err.Error()})
 		}
-		if err := keyStore.Set(key); err != nil {
+		if err := keyStore.Set(provider, key); err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "failed to store key: " + err.Error()})
 		}
 	}
@@ -107,12 +114,14 @@ func PostConfig(c *fiber.Ctx) error {
 	return c.JSON(buildConfig())
 }
 
-// DeleteConfig — DELETE /core/v1/ai/config. Clears a stored key (env-managed keys can't be cleared).
+// DeleteConfig — DELETE /core/v1/ai/config. Clears the active provider's stored key
+// (env-managed keys can't be cleared).
 func DeleteConfig(c *fiber.Ctx) error {
-	if os.Getenv(EnvAPIKey) != "" {
-		return c.Status(409).JSON(fiber.Map{"error": "API key is managed via MOCKTAIL_AI_API_KEY"})
+	provider := resolveProviderID()
+	if envKeyFor(provider) != "" {
+		return c.Status(409).JSON(fiber.Map{"error": "API key is managed via an environment variable"})
 	}
-	if err := keyStore.Delete(); err != nil {
+	if err := keyStore.Delete(provider); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(buildConfig())

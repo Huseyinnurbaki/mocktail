@@ -359,7 +359,9 @@ The dashboard has a built-in **✨ Assistant** (right panel) that can chat about
 **Adding a key**
 
 - **Desktop / local (recommended):** open **Settings → API keys**, pick the provider, paste your key, and choose a model. The key is validated (a bad key is rejected) and stored securely. Key entry is allowed **only from a local (loopback) session** — a key never crosses a network from a browser.
-- **Containers / headless:** set `MOCKTAIL_AI_API_KEY` (env). When set, it **wins** and the Settings field becomes read-only. Optionally pin a model with `MOCKTAIL_AI_MODEL`.
+- **Containers / headless:** set `MOCKTAIL_AI_API_KEY_ANTHROPIC` (env, **per provider** — e.g. `_ANTHROPIC`; the generic `MOCKTAIL_AI_API_KEY` still works as a **deprecated** fallback). When set, it **wins** and the Settings field becomes read-only. Optionally pin a model with `MOCKTAIL_AI_MODEL`.
+
+> **Why `MOCKTAIL_AI_MODEL` for containers?** On desktop you'd just pick the model in Settings. But the Settings choice is stored in a file in the app-data dir, so in an **ephemeral container** it resets on every recreate unless that dir is on a mounted volume. Pinning the model with `MOCKTAIL_AI_MODEL` keeps the AI config **declarative** (all in your compose/orchestrator) and stable across restarts — and it lets an operator force a model on a shared instance (e.g. a cheap one, for cost control). On a single desktop it's redundant.
 
 > There is intentionally **no** env var to *select* the provider — that's a Settings dropdown (data-driven from the backend). Env is only for injecting the secret key + an optional model pin.
 
@@ -367,9 +369,9 @@ The dashboard has a built-in **✨ Assistant** (right panel) that can chat about
 
 | Surface | Location | Protection |
 | ------- | -------- | ---------- |
-| **Desktop / CLI** | OS keychain — macOS **Keychain**, Windows **Credential Manager**, Linux **Secret Service** (service `mocktail-ai`, account `apikey`) | OS-encrypted, session-gated |
-| **Headless Linux** (no Secret Service) | `~/.config/mocktail/ai_key` | `0600` file (owner-only) |
-| **Containers** | not stored — read from `MOCKTAIL_AI_API_KEY` at runtime | managed by your orchestrator / secrets manager |
+| **Desktop / CLI** | OS keychain — macOS **Keychain**, Windows **Credential Manager**, Linux **Secret Service** (service `mocktail-ai`, account `apikey-<provider>`) | OS-encrypted, session-gated |
+| **Headless Linux** (no Secret Service) | `~/.config/mocktail/ai_key_<provider>` | `0600` file (owner-only) |
+| **Containers** | not stored — read from `MOCKTAIL_AI_API_KEY_<PROVIDER>` (or the deprecated `MOCKTAIL_AI_API_KEY`) at runtime | managed by your orchestrator / secrets manager |
 
 Your **non-secret** choices (selected provider + model) persist to `ai_config.json` in the same app-data dir (e.g. macOS `~/Library/Application Support/mocktail/ai_config.json`). The dashboard only ever receives a **masked hint** (`sk-…1234`), never the raw key.
 
@@ -377,7 +379,7 @@ Inspect or remove the stored key any time:
 
 ```bash
 # macOS — view the keychain item (Keychain Access → search "mocktail-ai" also works)
-security find-generic-password -s mocktail-ai -a apikey
+security find-generic-password -s mocktail-ai -a apikey-anthropic
 
 # Or just use Settings → API keys → Remove
 ```

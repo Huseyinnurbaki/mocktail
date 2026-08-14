@@ -303,7 +303,7 @@ the generator dropdown (so the capability is discoverable) but is **disabled** u
 Design when we build it — **reuse the shipped AI layer** (`mocktail-api/ai/`): same `Provider`
 interface, same key storage (keychain/file/env), same **provider/model dropdowns** in Settings.
 - **Provider + model = Settings dropdowns** (data-driven from the registry), not env vars. The key is
-  a backend secret (keychain on desktop, `MOCKTAIL_AI_API_KEY` in containers). No key → feature off.
+  a backend secret (keychain on desktop, `MOCKTAIL_AI_API_KEY_<PROVIDER>` in containers). No key → feature off.
 - **Pluggable providers.** Generation sits behind the same small provider interface so backends swap
   via the dropdown, never code changes:
 
@@ -616,11 +616,47 @@ is set, with `/clear` + a Clear button and an "add a key" prompt when unconfigur
 AI client (`fetchAIConfig/Providers/Models`, `saveAIConfig`, `deleteAIKey`, `streamChat`).
 
 **Provider selection is a dropdown, not an env var** — there is intentionally no `MOCKTAIL_AI_PROVIDER`.
-Env is only for headless secret injection (`MOCKTAIL_AI_API_KEY`) + an optional model pin.
+Env is only for headless secret injection — **per provider** `MOCKTAIL_AI_API_KEY_<PROVIDER>` (e.g.
+`_ANTHROPIC`; the generic `MOCKTAIL_AI_API_KEY` is a **deprecated** fallback) — plus an optional model pin.
 
 **Deferred (perf, when transcripts grow):** virtualize the chat list + collapse large blocks (the
-list is currently un-virtualized; fine at the 100-msg cap). **Later:** agentic tools (reuse MCP schemas),
-OpenAI/Gemini providers (drop-in — implement the interface).
+list is currently un-virtualized; fine at the 100-msg cap).
+
+### Adding a provider (OpenAI / Gemini …) — what it actually costs
+The **key/config plumbing is done and per-provider** (env `MOCKTAIL_AI_API_KEY_<PROVIDER>` → generic
+fallback → keychain/file scoped `apikey-<provider>` / `ai_key_<provider>`). Registering a provider and
+its per-provider key "just works" — no storage/config changes. The **Settings dropdown is already
+data-driven** from the registry, so setting a key per provider and switching the active one is supported
+today at the storage layer. The **endpoint override is per-provider too** —
+`MOCKTAIL_AI_BASE_URL_<PROVIDER>` (→ generic `MOCKTAIL_AI_BASE_URL`) — for routing a provider through an
+AI gateway/proxy (observability, caching, corporate egress).
+
+The real work per provider is the **adapter** — implementing the `Provider` interface for that vendor's
+wire format:
+- `ListModels` / `FallbackModels` / `DefaultModel` — the model list (live + hardcoded safety net).
+- `Chat` — streaming completions in that vendor's SSE shape.
+- **`Agent` — the hard part.** The agentic tool-calling loop is vendor-specific: Anthropic `tool_use`
+  blocks vs OpenAI `tool_calls` deltas vs Gemini `functionCall` parts, each with different auth and
+  streaming formats. This has to be written fresh against each provider's protocol; it is **not** a
+  config flip.
+
+**Frontend follow-up (only when a 2nd provider ships):** today's API-keys tab shows the *active*
+provider's key; add a per-provider key-status overview (a "configured ✓" badge / row per provider) so
+several keys can be managed at a glance.
+
+### AI settings persistence in containers — find a proper solution
+The non-secret AI settings (provider + model) are stored in a **file** in the app-data dir
+(`ai_config.json`). In an **ephemeral container** that file resets on every recreate unless the config
+dir is on a mounted volume — so a model/provider picked in Settings doesn't survive. `MOCKTAIL_AI_MODEL`
+is the current declarative workaround (env pin, reproducible, survives restarts, can override the UI for
+cost control), but it's a patch, not the fix. Options to evaluate:
+- **Store AI settings in the DB** (already persisted / volume-mounted for mocks) instead of a separate
+  config file — one place to persist, no extra volume to remember.
+- **Consolidate all state under one mounted path** and document mounting it (config + db + keys).
+- Keep the env pin as the *declarative* path and just document the volume clearly.
+Decide alongside the desktop app / multi-provider work; also make `MOCKTAIL_AI_MODEL` per-provider then
+(`MOCKTAIL_AI_MODEL_<PROVIDER>`), matching the key/base-URL convention. `MOCKTAIL_AI_MODEL` on a single
+desktop is redundant with the Settings dropdown — its value is purely the container/ops case above.
 
 ### Provider abstraction (backend, pluggable)
 ```go
@@ -644,14 +680,14 @@ A registry maps a provider id → impl. **Single active provider** at a time (se
 ### Provider key storage (backend-only, per surface)
 | Surface | Where the key lives | At rest |
 |---|---|---|
-| **Container/Docker** | **env** `MOCKTAIL_AI_API_KEY` (operator-set; app never writes it) | managed by orchestrator/secrets-manager |
+| **Container/Docker** | **env** `MOCKTAIL_AI_API_KEY_<PROVIDER>` (per provider; generic `MOCKTAIL_AI_API_KEY` is a deprecated fallback; operator-set, app never writes it) | managed by orchestrator/secrets-manager |
 | **Desktop / CLI** | **OS keychain** via Go `zalando/go-keyring` (macOS Keychain / Windows Credential Manager / Linux Secret Service) | ✅ OS-encrypted + access-controlled |
 | **Headless Linux (no Secret Service)** | `0600` file in app-data dir, or env | perms-protected plaintext, **documented** (no false-security custom crypto) |
 
 - **Frontend contract — never returns the raw key:**
   `GET /core/v1/ai/config` → `{configured, source:"env"|"stored"|"none", provider, model, keyHint:"sk-…a1b2"}`;
   `POST /core/v1/ai/config` (key goes in, never comes back); `DELETE` clears it.
-- **`env` wins and makes the Settings key field read-only** ("Managed via `MOCKTAIL_AI_API_KEY`").
+- **`env` wins and makes the Settings key field read-only** ("Managed via an environment variable").
 - **Localhost-only key entry:** the "set key" UI is enabled **only when the request is loopback**
   (desktop/local). A remotely-accessed instance forces the env path — no key ever crosses a network
   from a browser.

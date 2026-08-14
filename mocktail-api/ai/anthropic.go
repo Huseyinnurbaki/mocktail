@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -35,8 +34,8 @@ func (a anthropic) FallbackModels() []Model {
 	}
 }
 
-func (anthropic) baseURL() string {
-	if v := os.Getenv(EnvBaseURL); v != "" {
+func (a anthropic) baseURL() string {
+	if v := envBaseURLFor(a.ID()); v != "" {
 		return strings.TrimRight(v, "/")
 	}
 	return "https://api.anthropic.com"

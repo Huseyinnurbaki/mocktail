@@ -62,7 +62,7 @@ func sseFrame(v any) string {
 func TestAgentCreatesMock(t *testing.T) {
 	useTempStore(t)
 	useTempDB(t)
-	if err := keyStore.Set("key"); err != nil {
+	if err := keyStore.Set(resolveProviderID(), "key"); err != nil {
 		t.Fatalf("set key: %v", err)
 	}
 

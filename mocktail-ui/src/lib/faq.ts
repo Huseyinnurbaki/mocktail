@@ -69,7 +69,7 @@ export const FAQ: { group: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Where is my AI provider key stored?',
-        a: 'On your machine, never in the browser. On desktop/CLI it goes in the OS keychain (macOS Keychain, Windows Credential Manager, or Linux Secret Service); on headless Linux, a 0600 file in the app-data dir. In containers, set MOCKTAIL_AI_API_KEY instead. All AI calls are made server-side — the dashboard only ever sees a masked hint like sk-…1234. Manage it in Settings → API keys.',
+        a: 'On your machine, never in the browser. On desktop/CLI it goes in the OS keychain (macOS Keychain, Windows Credential Manager, or Linux Secret Service); on headless Linux, a 0600 file in the app-data dir. In containers, set MOCKTAIL_AI_API_KEY_ANTHROPIC instead (per provider; the generic MOCKTAIL_AI_API_KEY still works as a deprecated fallback). All AI calls are made server-side — the dashboard only ever sees a masked hint like sk-…1234. Manage it in Settings → API keys.',
       },
     ],
   },
