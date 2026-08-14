@@ -2,6 +2,7 @@ build
 .DS_Store
 *.db
 node_modules
+.wrangler
 mocktail-api/.env
 design_handoff_mocktail_dashboard
 mocktail-api/mocktail-bin

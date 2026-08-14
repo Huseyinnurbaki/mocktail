@@ -9,21 +9,21 @@
 [![Docker Build CI](https://github.com/Huseyinnurbaki/mocktail/actions/workflows/dockerize.yml/badge.svg?branch=master)](https://github.com/Huseyinnurbaki/mocktail/actions/workflows/dockerize.yml)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hhaluk/mocktail?color=gray&logo=docker)
 
-Mocktail is completely free, lightweight (~13MB), self-hosted, containerized mock server with a modern dashboard.
+Mocktail is a completely free, self-hosted, single-binary mock server with a modern dashboard — now with an in-app AI assistant.
 
 No limitations or restrictions. Mock any HTTP request. Export and import your mocks.
 
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
 [Changelog](changelog.md) 📋 •
-[v3.0 Changes](#v30-changes) 🔥
+[What's new in v4](changelog.md#400---2026-08-13) 🔥
 
 > **Note:** Looking for v2? See [v2.0.3](https://github.com/Huseyinnurbaki/mocktail/tree/2.0.3) - the last stable v2 release.
 
 </div>
 
 <p align="center">
-  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail_V3.gif?raw=true" alt="mocktail_gif" />
+  <img src="https://github.com/Huseyinnurbaki/notes/blob/master/Storage/mocktail_V4.gif?raw=true" alt="Mocktail dashboard" />
 </p>
 
 ## Quickstart
@@ -34,7 +34,7 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:3.1.6
+docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:4.0.0
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -66,21 +66,23 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 
 ## Features
 
+- **AI Assistant** ✨ - An in-app assistant that answers questions about Mocktail and your own mocks, and can **create / update / delete** endpoints from natural language — the catalog updates live as it works. Bring your own key; it's stored in the OS keychain and used server-side only, never in the browser
 - **Create Mock APIs** - Support for GET/POST/PUT/PATCH/DELETE methods
 - **Custom Status Codes** - Return any HTTP status (200, 404, 500, etc.) to test error handling
+- **Response Headers** - Set custom headers per mock, including a `Content-Type` override (e.g. `application/problem+json`)
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
-- **JSON Editor** - CodeMirror-powered editor with syntax highlighting, error detection, and code folding
+- **Live Traffic** - A filterable stream of real requests hitting your mocks (method / status / path), with the served response, headers, and keyboard navigation
+- **Randomize** - Generate realistic fake data with 20+ faker types plus fixed values, per-field configuration, and live preview — static by default, fresh on each request when enabled
+- **JSON Editor** - CodeMirror 6 editor with syntax highlighting, error detection, and code folding
 - **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
-- **Randomize & Anonymize** ⚠️ _Beta_ - Generate realistic fake data with 20+ faker types plus Custom (fixed value) and AI Generate (prompt-based) modes, with per-field configuration, live preview, and "apply same value to all" support
-- **Irregular Array Support** - Handles arrays with inconsistent object structures, showing field frequency and applying configs selectively
-- **Modern Dashboard** - Clean, intuitive interface built with React and Chakra UI v3
-- **Catalog View** - Browse, search, and manage all your mock endpoints with quick actions and persistent selection
-- **Quick Edit** - Update status codes and delays instantly via gear icon in catalog
-- **Test Endpoints** - Test mocks directly from the catalog list with visual feedback
-- **Import/Export** - Export mocks to JSON and import them anywhere
-- **Persistent Storage** - SQLite database with volume mounting
+- **Modern Dashboard** - Clean, responsive interface built with React + Tailwind CSS v4, with light / dark / system themes and accent colors
+- **Catalog View** - Browse, search (with inline path completion), and manage all your mocks with quick actions and keyboard shortcuts
+- **Test Endpoints** - Test mocks directly from the catalog with status, latency, body, and response headers
+- **Import/Export** - Export mocks to JSON (including randomize + headers) and import them anywhere
+- **Persistent Storage** - Pure-Go SQLite (no CGO); DB lives in the OS app-data dir by default, or a mounted volume in Docker
+- **Optional Auth** - `MOCKTAIL_API_KEY` protects served mocks; `MOCKTAIL_ADMIN_KEY` protects the management API
 - **Multi-Platform** - Native support for amd64 and arm64 (Intel, Apple Silicon, Raspberry Pi)
-- **Health Check** - `/health` endpoint for monitoring and orchestration
+- **Health Check** - `/health` endpoint (reports the bound port) for monitoring and orchestration
 - **Customizable URLs** - Override display URLs for reverse proxy/custom domain setups
 
 ## MCP Server (AI Integration)
