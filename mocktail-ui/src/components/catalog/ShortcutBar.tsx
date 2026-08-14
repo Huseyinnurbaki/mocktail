@@ -12,7 +12,7 @@ export function ShortcutBar({
 }) {
   const action = 'text-accent-text transition-colors hover:text-accent'
   return (
-    <div className="shrink-0 border-t border-border px-[18px] py-2 font-mono text-[11.5px] text-muted">
+    <div className="shrink-0 overflow-x-auto whitespace-nowrap border-t border-border px-[18px] py-2 font-mono text-[11.5px] text-muted">
       ↑↓ navigate · ↵ open · {MOD}↵ run · {MOD}C copy · {MOD}D duplicate ·{' '}
       <button onClick={onNew} className={action}>
         {MOD}E new

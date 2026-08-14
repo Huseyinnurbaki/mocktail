@@ -69,10 +69,8 @@ func TestToolGuardrails(t *testing.T) {
 		mustErr(t, "get_mock", `{"path":"/does-not-exist"}`, "no matching")
 	})
 
-	t.Run("delete unknown id is a safe no-op", func(t *testing.T) {
-		if _, isErr := callTool("delete_mock", `{"id":424242}`); isErr {
-			t.Fatal("delete of an unknown id should not error")
-		}
+	t.Run("delete of an unknown id errors (no silent no-op)", func(t *testing.T) {
+		mustErr(t, "delete_mock", `{"id":424242}`, "nothing deleted")
 	})
 
 	t.Run("unknown tool rejected", func(t *testing.T) {

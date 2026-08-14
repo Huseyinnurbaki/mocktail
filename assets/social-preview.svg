@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1fa566" />
+      <stop offset="1" stop-color="#48d18e" />
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#g)" />
+  <g fill="#ffffff" transform="translate(90 171) scale(6.2)">
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)" />
+    <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)" />
+  </g>
+  <text x="440" y="300" font-family="Helvetica, Arial, sans-serif" font-size="104" font-weight="700" fill="#ffffff" letter-spacing="-3">Mocktail</text>
+  <text x="444" y="374" font-family="Helvetica, Arial, sans-serif" font-size="46" font-weight="400" fill="#eafff4">Whip up a mock API.</text>
+  <text x="444" y="446" font-family="Menlo, monospace" font-size="28" fill="#d3f7e5">self-hosted · single binary · getmocktail.com</text>
+</svg>

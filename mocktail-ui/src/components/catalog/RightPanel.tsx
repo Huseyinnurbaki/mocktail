@@ -50,9 +50,9 @@ export function RightPanel({
 
   return (
     <aside
-      // Use the dragged width on wide screens, but scale down with the viewport (never past 260px)
-      // so the list keeps ~60% instead of the panel resisting; hide only < md.
-      style={{ width: `clamp(260px, 40vw, ${width}px)` }}
+      // The drag sets the width directly, floored at 260px and capped at 60vw so the catalog
+      // list always keeps ≥40vw. Persisted, so a dragged width sticks across sessions. Hidden < md.
+      style={{ width: `clamp(260px, ${width}px, 55vw)` }}
       className="hidden shrink-0 flex-col overflow-hidden border-l border-border md:flex"
     >
       <div className="flex shrink-0 border-b border-border">

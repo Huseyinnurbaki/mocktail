@@ -316,8 +316,14 @@ func deleteMock(input json.RawMessage) (string, bool) {
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
 	}
-	if err := database.DBConn.Unscoped().Where("id = ?", args.ID).Delete(&core.Api{}).Error; err != nil {
-		return "delete failed: " + err.Error(), true
+	res := database.DBConn.Unscoped().Where("id = ?", args.ID).Delete(&core.Api{})
+	if res.Error != nil {
+		return "delete failed: " + res.Error.Error(), true
+	}
+	// Report a no-op as an error instead of a false success — otherwise the assistant claims it
+	// deleted a mock that was never there (e.g. a stale/wrong id).
+	if res.RowsAffected == 0 {
+		return fmt.Sprintf("no mock with id %d — nothing deleted", args.ID), true
 	}
 	return fmt.Sprintf(`{"deleted":%d}`, args.ID), false
 }

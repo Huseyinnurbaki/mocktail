@@ -101,20 +101,25 @@ export function useAssistantChat({
     const history: ChatMessage[] = [...toHistory(items), { role: 'user', content: sent }]
     setItems((prev) => [...prev, { role: 'user', content: text, sent }])
     setStreaming(true)
+    let mutated = false
     try {
       await streamChat(history, {
         model: config?.model,
         onToken: (t) => setItems((prev) => appendText(prev, t)),
         onTool: (tool) => {
           setItems((prev) => [...prev, { role: 'tool', note: tool.note }])
-          // A mutating tool changed the catalog — refresh the list live.
-          if (tool.name !== 'list_mocks') onMocksChanged()
+          // list_mocks / get_mock only read; anything else changes the catalog.
+          if (tool.name !== 'list_mocks' && tool.name !== 'get_mock') mutated = true
         },
       })
     } catch (e) {
       setErr(errText(e))
     } finally {
       setStreaming(false)
+      // Refresh AFTER the turn finishes. Tool events arrive when a tool *starts* (before it runs on
+      // the backend), so refreshing per-event races the DB write — one refresh at the end reflects
+      // every tool's result correctly.
+      if (mutated) onMocksChanged()
     }
   }
 

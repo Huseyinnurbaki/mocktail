@@ -74,9 +74,26 @@ export default function Editor({
     setSaving(true)
     setSaveError(null)
     try {
-      const id = await saveMock({ id: currentId, method, path: path.trim(), status, delayMs, body, randomize, headers })
-      setCurrentId(id)
-      setBaseline({ method, path: path.trim(), status, delayMs, body, randomize, headers })
+      const saved = await saveMock({ id: currentId, method, path: path.trim(), status, delayMs, body, randomize, headers })
+      setCurrentId(saved.id)
+      // Adopt the server's stored state so "once" fields show their baked-in values (they're
+      // generated at save and no longer live in the randomize config).
+      setMethod(saved.method)
+      setPath(saved.path)
+      setStatus(saved.status)
+      setDelayMs(saved.delayMs)
+      setBody(saved.body)
+      setRandomize(saved.randomize)
+      setHeaders(saved.headers)
+      setBaseline({
+        method: saved.method,
+        path: saved.path,
+        status: saved.status,
+        delayMs: saved.delayMs,
+        body: saved.body,
+        randomize: saved.randomize,
+        headers: saved.headers,
+      })
       onReload()
       return true
     } catch (e: unknown) {

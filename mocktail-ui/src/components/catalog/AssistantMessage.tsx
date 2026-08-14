@@ -54,7 +54,9 @@ function Prose({ text }: { text: string }) {
   )
 }
 
-const METHOD_RE = /(GET|POST|PUT|PATCH|DELETE)(\s+(\/[^\s,.;:]*))?|(\{[^{}]*\}|\[[^\[\]]*\])/g
+// Matches: an HTTP method (optionally followed by a path) · inline JSON · or a bare /path token
+// (so paths in prose like "Deleted /api/v1/users-copy" get styled too, not just METHOD /path).
+const METHOD_RE = /(GET|POST|PUT|PATCH|DELETE)(\s+(\/[^\s,.;:]*))?|(\{[^{}]*\}|\[[^\[\]]*\])|(?<!\w)(\/[\w-]+(?:\/[\w-]+)*)/g
 
 /** Color inline `METHOD /path` and short inline JSON objects. */
 function renderInline(text: string): ReactNode[] {
@@ -76,6 +78,12 @@ function renderInline(text: string): ReactNode[] {
         ) : (
           m[4]
         ),
+      )
+    } else if (m[5]) {
+      out.push(
+        <span key={i++} className="font-mono text-[12px] text-accent-text">
+          {m[5]}
+        </span>,
       )
     }
     last = METHOD_RE.lastIndex

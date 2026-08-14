@@ -47,7 +47,7 @@ export default function App() {
       .then((h) => h.port && setPort(h.port))
       .catch(() => {})
   }, [error, port])
-  const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 340, 260, 720)
+  const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 460, 260, 1200)
   const { result: sendResult, busy: sendBusy, err: sendErr, run } = useSend(selectedId)
 
   const rows = useMemo(() => {
@@ -149,6 +149,7 @@ export default function App() {
             error={error}
             rows={rows}
             query={query}
+            port={port ?? undefined}
             selectedId={selectedId}
             onSelect={setSelectedId}
             onOpen={(m) => setEditing(mockToDraft(m))}
@@ -157,6 +158,7 @@ export default function App() {
               setSelectedId(m.id)
               setCtx({ x: e.clientX, y: e.clientY, mock: m })
             }}
+            onHelp={() => setSettingsTab('help')}
           />
           <ShortcutBar
             onNew={() => setEditing(newDraft())}

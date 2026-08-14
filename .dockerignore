@@ -10,7 +10,14 @@
 # Documentation
 readme.md
 changelog.md
+roadmap.md
 LICENSE
+
+# Non-build source — repo assets, landing site, MCP server, examples (never copied into the image)
+assets
+landing
+examples
+mcp-server
 
 # Docker files
 docker-compose.yml

@@ -7,7 +7,7 @@ toolchain go1.26.1
 require (
 	github.com/brianvoe/gofakeit/v7 v7.15.0
 	github.com/go-playground/validator/v10 v10.22.0
-	github.com/gofiber/fiber/v2 v2.52.12
+	github.com/gofiber/fiber/v2 v2.52.15
 	github.com/joho/godotenv v1.5.1
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/valyala/fasthttp v1.52.0
@@ -38,9 +38,9 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
 )

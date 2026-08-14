@@ -157,8 +157,9 @@ export function DataTab({
         <div className="flex flex-col gap-1">
           <Toggle on={!spec.once} onChange={(v) => update({ once: !v })} label="Regenerate on every request" />
           {spec.once && (
-            <div className="text-[11px] text-muted">
-              Frozen — generated once and baked into the response when you save.
+            <div className="rounded-[6px] border border-warning/40 bg-warning/10 px-2 py-1.5 text-[11px] leading-[1.5] text-warning">
+              Frozen — hit <span className="font-semibold">Save</span> to generate a value once and bake
+              it into the response body.
             </div>
           )}
         </div>

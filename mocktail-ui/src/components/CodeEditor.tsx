@@ -192,15 +192,17 @@ export function CodeEditor({
       highlightField,
       theme,
       EditorView.updateListener.of((u) => {
-        if (u.docChanged) onChangeRef.current(u.state.doc.toString())
+        if (u.docChanged) {
+          onChangeRef.current(u.state.doc.toString())
+          return // don't retarget the field while typing — only on caret moves
+        }
+        // Follow the caret so the Data panel tracks the selected field for *any* cursor
+        // move — click, arrow keys, or word-select — not just mouse clicks.
+        if (u.selectionSet) {
+          onSelectFieldRef.current?.(pathAtClick(u.state, u.state.selection.main.head))
+        }
       }),
       EditorView.domEventHandlers({
-        mouseup(e, v) {
-          if (e.detail > 1) return false // word/line selection — handled below
-          const pos = v.posAtCoords({ x: e.clientX, y: e.clientY })
-          if (pos != null) onSelectFieldRef.current?.(pathAtClick(v.state, pos))
-          return false
-        },
         // Explicitly select the word on double-click (don't rely on native
         // word-select, which something in this setup was suppressing).
         // Native word-select is being suppressed in this setup, so select the

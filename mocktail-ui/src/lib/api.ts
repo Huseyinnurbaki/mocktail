@@ -149,7 +149,12 @@ export async function sendMock(method: string, path: string): Promise<TestResult
 }
 
 /** Saves a mock (POST if new, PUT if existing) and returns its id. */
-export async function saveMock(d: Draft): Promise<number> {
+/**
+ * Persists a mock (POST if new, PUT if existing) and returns the saved record. The returned
+ * mock reflects the server's stored state — notably, "once" fields are baked into the response,
+ * so the caller can refresh its editor with the frozen values instead of the pre-bake template.
+ */
+export async function saveMock(d: Draft): Promise<Mock> {
   // Split fields: per-request stay as config; "once" fields are generated now and baked in.
   const perRequest: RandomizeConfig = {}
   const once: RandomizeConfig = {}
@@ -186,6 +191,5 @@ export async function saveMock(d: Draft): Promise<number> {
     body: JSON.stringify(payload),
   })
   if (!res.ok) throw new Error(await errMessage(res, `${isNew ? 'POST' : 'PUT'} ${url}`))
-  const saved = (await res.json()) as { ID?: number }
-  return saved.ID ?? d.id ?? 0
+  return toMock((await res.json()) as ApiRecord)
 }
