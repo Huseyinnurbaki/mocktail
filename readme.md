@@ -16,9 +16,9 @@ No limitations or restrictions. Mock any HTTP request. Export and import your mo
 [Quickstart](#quickstart) 🚀 •
 [Features](#features) ✨ •
 [Changelog](changelog.md) 📋 •
-[What's new in v4](changelog.md#400---2026-08-13) 🔥
+[What's new in v4](changelog.md#400---2026-08-14) 🔥
 
-> **On v3?** The last v3 release lives on the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch — check it out to stay on v3, or see [Upgrading from v3.x](changelog.md#400---2026-08-13) to move to v4.
+> **On v3?** The last v3 release lives on the [`v3.1.9`](https://github.com/Huseyinnurbaki/mocktail/tree/v3.1.9) branch — check it out to stay on v3, or see [Upgrading from v3.x](changelog.md#400---2026-08-14) to move to v4.
 
 </div>
 
@@ -50,7 +50,7 @@ mocktail
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:4.0.0
+docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:4.0.2
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -271,7 +271,7 @@ MOCKTAIL_CORS_CREDENTIALS=true
 docker run -p 6625:6625 \
   -e MOCKTAIL_CORS_ORIGINS=https://myapp.com \
   -e MOCKTAIL_CORS_CREDENTIALS=true \
-  hhaluk/mocktail:latest
+  hhaluk/mocktail:4.0.2
 ```
 
 **Docker Compose Example:**
@@ -279,7 +279,7 @@ docker run -p 6625:6625 \
 ```yaml
 services:
   mocktail:
-    image: hhaluk/mocktail:latest
+    image: hhaluk/mocktail:4.0.2
     ports:
       - "6625:6625"
     environment:

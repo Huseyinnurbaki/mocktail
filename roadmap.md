@@ -151,6 +151,14 @@ the Homebrew tap in one pipeline — slots next to the existing `.github/workflo
 **Notability note:** an *own tap* works immediately with no approval. Getting into the
 official `homebrew-core` / `homebrew-cask` requires a notability bar (stars/forks) — a later goal.
 
+### Docker tag hygiene — make `:latest` mean latest *stable*
+Today `dockerize.yml` moves `hhaluk/mocktail:latest` on **every master push**, so between releases
+`:latest` drifts to unreleased/dev code — which is why docs currently pin an explicit version
+(`:4.0.2`) and have to be hand-bumped each release. Fix: **master pushes tag only the commit SHA (and
+maybe `:edge`), never `:latest`.** Reserve `:latest` for `docker-onpublish.yml` on **stable tags**
+(it already guards prereleases). Then `:latest` = latest stable, docs can use `:latest` again
+maintenance-free, and the readme/compose version pins go away. ~2-line change to `dockerize.yml`.
+
 ---
 
 ## UI glow up — "Workbench" redesign (direction 1a)

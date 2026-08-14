@@ -2,7 +2,7 @@
 # Run:  docker compose -f docker-compose.basic.yml up -d   →   http://localhost:6625
 services:
   mocktail:
-    image: hhaluk/mocktail:latest
+    image: hhaluk/mocktail:4.0.2
     container_name: mocktail
     ports:
       - "6625:6625"
