@@ -42,6 +42,16 @@ func randomizeSchema() map[string]any {
 	}
 }
 
+// headersSchema describes the optional custom response headers on create/update.
+func headersSchema() map[string]any {
+	return map[string]any{
+		"type": "object",
+		"description": "Optional custom response headers as a name→value map (e.g. " +
+			"{\"X-Mock-Source\":\"Mocktail\"}). May include a Content-Type override.",
+		"additionalProperties": map[string]any{"type": "string"},
+	}
+}
+
 func mockTools() []ToolSpec {
 	methodEnum := []any{"GET", "POST", "PUT", "PATCH", "DELETE"}
 	return []ToolSpec{
@@ -73,6 +83,7 @@ func mockTools() []ToolSpec {
 					"statusCode": map[string]any{"type": "integer", "description": "HTTP status, default 200"},
 					"delay":      map[string]any{"type": "integer", "description": "delay in ms, 0–30000 (max 30s), default 0"},
 					"randomize":  randomizeSchema(),
+					"headers":    headersSchema(),
 				},
 				"required": []any{"method", "endpoint", "response"},
 			},
@@ -90,6 +101,7 @@ func mockTools() []ToolSpec {
 					"statusCode": map[string]any{"type": "integer"},
 					"delay":      map[string]any{"type": "integer", "description": "delay in ms, 0–30000 (max 30s)"},
 					"randomize":  randomizeSchema(),
+					"headers":    headersSchema(),
 				},
 				"required": []any{"id", "method", "endpoint", "response"},
 			},
@@ -251,6 +263,7 @@ func createMock(input json.RawMessage) (string, bool) {
 		StatusCode int             `json:"statusCode"`
 		Delay      int             `json:"delay"`
 		Randomize  json.RawMessage `json:"randomize"`
+		Headers    json.RawMessage `json:"headers"`
 	}
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
@@ -265,6 +278,7 @@ func createMock(input json.RawMessage) (string, bool) {
 		Delay:      args.Delay,
 		Response:   toJSON(args.Response),
 		Randomize:  rawObject(args.Randomize),
+		Headers:    rawObject(args.Headers),
 	}
 	if err := core.InsertApi(api); err != nil { // normalizes endpoint, sets Key, validates
 		return "create failed: " + err.Error(), true
@@ -281,6 +295,7 @@ func updateMock(input json.RawMessage) (string, bool) {
 		StatusCode int             `json:"statusCode"`
 		Delay      int             `json:"delay"`
 		Randomize  json.RawMessage `json:"randomize"`
+		Headers    json.RawMessage `json:"headers"`
 	}
 	if err := json.Unmarshal(input, &args); err != nil {
 		return "invalid arguments: " + err.Error(), true
@@ -297,6 +312,7 @@ func updateMock(input json.RawMessage) (string, bool) {
 	existing.Endpoint = endpoint
 	existing.Response = toJSON(args.Response)
 	existing.Randomize = rawObject(args.Randomize)
+	existing.Headers = rawObject(args.Headers)
 	existing.StatusCode = args.StatusCode
 	existing.Delay = args.Delay
 	existing.Key = existing.Method + endpoint

@@ -38,7 +38,9 @@ function toMock(a: ApiRecord): Mock {
 }
 
 export async function fetchMocks(signal?: AbortSignal): Promise<Mock[]> {
-  const res = await fetch('/core/v1/apis', { signal })
+  // no-store: this is refetched right after mutations (e.g. the assistant creating a mock); the
+  // browser must not serve a cached list, or the new/changed mock won't appear until a hard refresh.
+  const res = await fetch('/core/v1/apis', { signal, cache: 'no-store' })
   if (!res.ok) throw new Error(`GET /core/v1/apis → ${res.status}`)
   const data = (await res.json()) as ApiRecord[]
   return Array.isArray(data) ? data.map(toMock) : []

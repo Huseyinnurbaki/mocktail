@@ -1,9 +1,9 @@
 {
-  "version": "4.0.2",
+  "version": "4.0.3",
   "url": "https://getmocktail.com/#install",
   "highlights": [
-    "Fixes AI key setup on Docker & remotely-accessed dashboards",
-    "Per-provider AI keys — groundwork for more providers",
+    "Assistant can now set custom response headers on your mocks",
+    "Fixes a stale catalog list after the assistant creates or edits a mock",
     "Plus everything in v4.0: AI assistant, response headers, live traffic"
   ]
 }

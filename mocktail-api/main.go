@@ -114,7 +114,12 @@ func setupRoutes(app *fiber.App) {
 	})
 
 	// Core API - management/dashboard. Gated by MOCKTAIL_ADMIN_KEY when set (off by default).
-	coreApi := app.Group("/core/v1", adminAuthMiddleware)
+	// Never let the browser cache management responses — the catalog is refetched right after
+	// mutations (e.g. the assistant creating a mock), and a cached list would show stale data.
+	coreApi := app.Group("/core/v1", func(c *fiber.Ctx) error {
+		c.Set("Cache-Control", "no-store")
+		return c.Next()
+	}, adminAuthMiddleware)
 	coreApi.Get("/apis", core.GetApis)
 	coreApi.Post("/api", core.CreateApi)
 	coreApi.Put("/api/:id", core.UpdateApi)

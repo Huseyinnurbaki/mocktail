@@ -97,6 +97,24 @@ func TestToolsRejectWhenNoDB(t *testing.T) {
 	}
 }
 
+// create_mock persists custom response headers (regression: the tool previously couldn't set them).
+func TestCreateMockPersistsHeaders(t *testing.T) {
+	useTempDB(t)
+	if _, isErr := callTool("create_mock", `{"method":"GET","endpoint":"/hdr","response":"{}","headers":{"X-Mock-Source":"Mocktail"},"delay":300}`); isErr {
+		t.Fatal("create_mock with headers should succeed")
+	}
+	var a core.Api
+	if err := database.DBConn.Where("key = ?", "GEThdr").First(&a).Error; err != nil {
+		t.Fatalf("mock not found: %v", err)
+	}
+	if !strings.Contains(string(a.Headers), "X-Mock-Source") || !strings.Contains(string(a.Headers), "Mocktail") {
+		t.Fatalf("headers not persisted: %q", string(a.Headers))
+	}
+	if a.Delay != 300 {
+		t.Fatalf("delay not persisted: %d", a.Delay)
+	}
+}
+
 // SQL-injection-style input is parameterized by GORM — treated as a literal, never executed.
 func TestToolInputIsParameterized(t *testing.T) {
 	useTempDB(t)

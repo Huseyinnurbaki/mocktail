@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.0.3] - 2026-08-15
+
+Assistant bug fixes.
+
+### 🐛 Fixed
+
+- The **AI assistant can now set custom response headers** on create/update (e.g.
+  `X-Mock-Source: Mocktail`) — the `create_mock`/`update_mock` tools were missing the `headers`
+  parameter, so the assistant would say it couldn't add them.
+- **Catalog no longer shows a stale list** right after the assistant creates or edits a mock — the
+  management API is now served with `Cache-Control: no-store`, so the browser can't return a cached
+  list (previously the new mock only appeared after a manual refresh).
+
 ## [4.0.2] - 2026-08-14
 
 UI polish and clearer AI-key guidance.
