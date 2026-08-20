@@ -119,6 +119,8 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
 
 ### Setup
 
+> Add `MOCKTAIL_API_KEY` **only if** you've protected your instance with `MOCKTAIL_API_KEY`. For a default (open) Mocktail, leave it out.
+
 <details>
   <summary>npx (Recommended)</summary>
 
@@ -127,7 +129,6 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:6625 \
-  -e MOCKTAIL_API_KEY=your-api-key \
   -- npx mocktail-mcp
 ```
 
@@ -142,8 +143,7 @@ Add to your config file (`~/Library/Application Support/Claude/claude_desktop_co
       "command": "npx",
       "args": ["mocktail-mcp"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:6625",
-        "MOCKTAIL_API_KEY": "your-api-key"
+        "MOCKTAIL_URL": "http://localhost:6625"
       }
     }
   }
@@ -162,7 +162,6 @@ If you cloned the repo and want to run the MCP server locally:
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:6625 \
-  -e MOCKTAIL_API_KEY=your-api-key \
   -- node /path/to/mocktail/mcp-server/index.js
 ```
 
@@ -175,8 +174,7 @@ claude mcp add mocktail \
       "command": "node",
       "args": ["/path/to/mocktail/mcp-server/index.js"],
       "env": {
-        "MOCKTAIL_URL": "http://localhost:6625",
-        "MOCKTAIL_API_KEY": "your-api-key"
+        "MOCKTAIL_URL": "http://localhost:6625"
       }
     }
   }

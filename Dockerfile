@@ -1,4 +1,5 @@
-FROM node:20-alpine AS builder-ui
+# UI assets are arch-independent — build once on the native (build) platform, never under emulation.
+FROM --platform=$BUILDPLATFORM node:20-alpine AS builder-ui
 
 WORKDIR /src
 
@@ -11,7 +12,10 @@ RUN --mount=type=cache,target=/root/.yarn \
 COPY ./mocktail-ui .
 RUN yarn build
 
-FROM golang:1.26-alpine AS builder-api
+# Run the Go toolchain on the native (build) platform and CROSS-COMPILE to the target arch.
+# Building arm64 without this ran the whole compiler under QEMU emulation — hours-long / hanging
+# builds. With GOARCH from buildx's TARGETARCH the compile is native and fast on every arch.
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder-api
 
 WORKDIR /src
 COPY ./mocktail-api .
@@ -20,9 +24,11 @@ RUN go mod download
 # Stage the built dashboard where go:embed expects it, then build — the UI is baked into the
 # binary (no separate ./build at runtime).
 COPY --from=builder-ui /src/build ./build
-# Pure Go (ncruces/go-sqlite3 via WASM) — no C toolchain, no static-link dance.
-# -s -w strips debug symbols/DWARF (~12 MB smaller binary; no downside for a server).
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app .
+
+# Cross-compile: GOARCH = buildx's TARGETARCH (amd64 | arm64). Pure Go (ncruces/go-sqlite3 via
+# WASM) — no C toolchain. -s -w strips debug symbols/DWARF (~12 MB smaller binary).
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -ldflags="-s -w" -o /app .
 
 FROM scratch
 

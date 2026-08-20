@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Mocktail Bar</title>
+<style>
+  :root {
+    --bg: #0b0713; --bg2: #140b22; --ink: #f4ecff; --soft: #b9a8d6;
+    --line: #2a1c40; --neon: #ff5db1; --neon2: #5de6ff; --gold: #ffcf6b;
+    --sans: "SF Pro Display", ui-rounded, system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); min-height: 100%; }
+  body {
+    margin: 0; min-height: 100vh; font-family: var(--sans); color: var(--ink);
+    background:
+      radial-gradient(900px 500px at 80% -10%, #35124a 0%, transparent 60%),
+      radial-gradient(700px 500px at 0% 10%, #10233f 0%, transparent 55%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { text-align: center; margin-bottom: 34px; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: var(--neon); font-weight: 700; }
+  h1 { margin: 10px 0 6px; font-size: clamp(38px, 7vw, 68px); font-weight: 800; letter-spacing: -.02em;
+       background: linear-gradient(92deg, var(--neon), var(--gold) 55%, var(--neon2));
+       -webkit-background-clip: text; background-clip: text; color: transparent;
+       text-shadow: 0 0 42px rgba(255,93,177,.25); }
+  header p { color: var(--soft); margin: 0; font-size: 15px; }
+  .status { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px;
+            color: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; }
+  .status.ok .dot { background: #43e08a; box-shadow: 0 0 10px #43e08a; }
+  .status.down .dot { background: #ff5d6c; box-shadow: 0 0 10px #ff5d6c; }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 12px; color: var(--soft); flex-wrap: wrap; justify-content: center; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; color: var(--soft); font: inherit; font-size: 12px; padding: 6px 15px; cursor: pointer; }
+  .seg button.on { background: var(--neon); color: #1a0714; font-weight: 700; }
+  .toggle code { display: inline-block; min-width: 31ch; text-align: left; color: var(--neon2); font-size: 11.5px; }
+
+  .sechead { display: flex; align-items: center; gap: 14px; margin: 40px 0 18px; }
+  .sechead h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+  .sechead .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+  .sechead .lock { color: var(--gold); font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+
+  .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  .card { position: relative; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+          background: rgba(255,255,255,.02); backdrop-filter: blur(6px); transition: transform .25s, box-shadow .25s;
+          animation: pour .5s cubic-bezier(.2,.8,.2,1) backwards; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px -22px rgba(255,93,177,.5); }
+  .glass { height: 132px; display: grid; place-items: center; font-size: 52px;
+           background: radial-gradient(120% 90% at 50% 120%, var(--from), var(--to)); }
+  .card .body { padding: 14px 16px 18px; }
+  .card h3 { margin: 0 0 3px; font-size: 17px; }
+  .card .tag { margin: 0; color: var(--soft); font-size: 12.5px; line-height: 1.45; min-height: 34px; }
+  .abv { display: inline-block; margin-top: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .06em;
+         color: var(--neon2); border: 1px solid color-mix(in srgb, var(--neon2) 40%, transparent);
+         border-radius: 999px; padding: 2px 9px; }
+  @keyframes pour { from { opacity: 0; transform: translateY(14px); } }
+
+  /* locked secret menu */
+  .locked { border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: 18px;
+            padding: 40px 24px; text-align: center; background: rgba(255,207,107,.04); }
+  .locked .ico { font-size: 44px; }
+  .locked h3 { margin: 12px 0 4px; font-size: 20px; color: var(--gold); }
+  .locked p { margin: 0 auto; color: var(--soft); max-width: 460px; font-size: 14px; line-height: 1.55; }
+  .locked code { color: var(--ink); background: rgba(255,255,255,.06); padding: 1px 7px; border-radius: 6px; }
+
+  .banner { border: 1px solid #5a2130; background: rgba(255,93,108,.08); color: #ffb3bd;
+            border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.5; }
+  .banner code { color: #fff; }
+  .refresh { margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--soft);
+             border-radius: 999px; padding: 6px 15px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .refresh:hover { color: var(--ink); border-color: var(--neon); }
+  footer { text-align: center; margin-top: 56px; color: var(--soft); font-size: 12.5px; }
+  footer b { color: var(--neon); }
+  a { color: var(--neon2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Est. Localhost · No Reservations</div>
+    <h1>The Mocktail Bar</h1>
+    <p>Zero-proof cocktails, served fresh from a mock API.</p>
+    <div id="status" class="status"><span class="dot"></span><span id="statusText">connecting…</span></div>
+    <div class="toggle">
+      <span>Backend:</span>
+      <span class="seg">
+        <button id="mLive" onclick="setMode('live')">Real API</button>
+        <button id="mMock" class="on" onclick="setMode('mock')">Mocktail</button>
+      </span>
+      <code id="base"></code>
+    </div>
+  </header>
+
+  <div id="error"></div>
+
+  <div class="sechead"><h2>House Menu</h2><span class="rule"></span>
+    <button class="refresh" onclick="load()">↻ Refresh</button>
+  </div>
+  <div id="house" class="menu"></div>
+
+  <div class="sechead"><h2>Secret Menu</h2><span class="rule"></span><span id="secretState" class="lock"></span></div>
+  <div id="secret"></div>
+
+  <footer>Powered by <b>Mocktail</b> — the menu you see is whatever your mock API returns.</footer>
+</div>
+
+<script>
+  // The whole point: this app doesn't care *what* serves its API — flip the base URL.
+  //   "Real API"  → your actual backend (here :3000, which isn't running yet)
+  //   "Mocktail"  → your mocks at :6625, which just work
+  const REAL_API = 'http://localhost:3000';           // the backend you haven't built yet
+  const MOCK_API = 'http://localhost:6625/mocktail';  // Mocktail
+  let API = MOCK_API;
+
+  const $ = (id) => document.getElementById(id);
+
+  // Only rewrite a section when its content actually changed — so a no-op refresh doesn't
+  // re-flash every card, but a real change (toggle, 401→200, edited response) still animates in.
+  const _seen = {};
+  function paint(id, html) {
+    if (_seen[id] === html) return;
+    _seen[id] = html;
+    $(id).innerHTML = html;
+  }
+
+  function setMode(mode) {
+    API = mode === 'mock' ? MOCK_API : REAL_API;
+    $('mMock').classList.toggle('on', mode === 'mock');
+    $('mLive').classList.toggle('on', mode === 'live');
+    $('base').textContent = API;
+    load();
+  }
+
+  function drinkCard(c, i) {
+    const from = c.colorFrom || '#ff5db1', to = c.colorTo || '#5de6ff';
+    return `<article class="card" style="animation-delay:${i * 60}ms">
+      <div class="glass" style="--from:${from};--to:${to}">${c.garnish || '🍹'}</div>
+      <div class="body">
+        <h3>${c.name ?? 'Mystery Pour'}</h3>
+        <p class="tag">${c.tagline ?? ''}</p>
+        <span class="abv">ABV ${c.abv ?? 0}%</span>
+      </div>
+    </article>`;
+  }
+
+  function setStatus(state, text) {
+    $('status').className = 'status ' + state;
+    $('statusText').textContent = text;
+  }
+
+  async function load() {
+    $('error').innerHTML = '';
+    // 1) House menu — always available.
+    //    GET /api/cocktails → 200, array of cocktails:
+    //      { name, tagline, garnish (emoji), colorFrom (hex), colorTo (hex), abv: 0 }
+    try {
+      const res = await fetch(`${API}/api/cocktails`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`GET /api/cocktails → ${res.status}`);
+      const cocktails = await res.json();
+      paint('house', cocktails.map(drinkCard).join(''));
+      setStatus('ok', `connected · ${cocktails.length} on the menu`);
+    } catch (e) {
+      setStatus('down', 'no bartender');
+      $('error').innerHTML = `<div class="banner">🚧 Couldn't reach the bar at <code>${API}/api/cocktails</code>.
+        Start Mocktail and create a <code>GET /api/cocktails</code> mock (see the README — the AI assistant or MCP can do it for you).</div>`;
+      paint('house', '');
+    }
+
+    // 2) Secret menu — members only.
+    //    GET /api/menu/secret → 401 while locked; when a member is authorized it returns
+    //      200 with the same cocktail shape as /api/cocktails. (Start it at 401.)
+    try {
+      const res = await fetch(`${API}/api/menu/secret`, { cache: 'no-store' });
+      if (res.status === 401) return showLocked();
+      if (!res.ok) throw new Error(`GET /api/menu/secret → ${res.status}`);
+      const secret = await res.json();
+      $('secretState').textContent = '★ UNLOCKED';
+      paint('secret', `<div class="menu">${secret.map(drinkCard).join('')}</div>`);
+    } catch {
+      showLocked(); // treat any hiccup as "still locked" for the demo
+    }
+  }
+
+  function showLocked() {
+    $('secretState').textContent = '🔒 MEMBERS ONLY';
+    paint('secret', `<div class="locked">
+      <div class="ico">🔒</div>
+      <h3>The secret menu is locked</h3>
+      <p>Ask the bartender to open it — flip <code>GET /api/menu/secret</code> from
+      <code>401</code> to <code>200</code> in Mocktail (or tell the assistant "unlock the secret menu"),
+      then hit Refresh.</p>
+    </div>`);
+  }
+
+  setMode('mock'); // default to Mocktail (works out of the box)
+</script>
+</body>
+</html>

@@ -3,6 +3,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { readFileSync } from "node:fs";
+
+// Single source of truth for the version the server advertises to the MCP client — read from
+// package.json (which the publish workflow bumps to the release tag), never hardcoded.
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
 
 const MOCKTAIL_URL = process.env.MOCKTAIL_URL;
 const MOCKTAIL_API_KEY = process.env.MOCKTAIL_API_KEY || "";
@@ -35,7 +40,7 @@ async function mocktailRequest(path, options = {}) {
 
 const server = new McpServer({
   name: "mocktail",
-  version: "3.1.6",
+  version: pkg.version,
 });
 
 // list_mocks

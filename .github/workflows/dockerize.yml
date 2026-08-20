@@ -12,6 +12,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     # Only push on master branch, not on PRs
     if: github.event_name != 'pull_request'
 
@@ -48,6 +49,7 @@ jobs:
   # For PRs - just build to verify, don't push
   build-only:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     if: github.event_name == 'pull_request'
 
     steps:

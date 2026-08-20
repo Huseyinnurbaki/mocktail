@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MOCKTAIL ARCADE</title>
+<style>
+  :root { --amber: #ffb000; --amber-dim: #a56c00; --green: #39ff14; --red: #ff3b47; --bg: #050400; }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); min-height: 100%; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--amber);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    text-shadow: 0 0 6px rgba(255,176,0,.55);
+    overflow-x: hidden;
+  }
+  /* CRT scanlines + vignette + flicker */
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); }
+  body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9;
+    background: radial-gradient(120% 120% at 50% 50%, transparent 62%, rgba(0,0,0,.75));
+    animation: flick 6s infinite steps(60); }
+  @keyframes flick { 0%,97%{opacity:1} 98%{opacity:.86} 100%{opacity:1} }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 44px 22px 80px; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 30px; }
+  h1 { margin: 0; font-size: clamp(34px, 8vw, 66px); font-weight: 800; letter-spacing: .12em;
+       animation: buzz 4s infinite; }
+  @keyframes buzz { 0%,92%,100%{text-shadow:0 0 8px rgba(255,176,0,.6)} 94%{text-shadow:2px 0 8px var(--red),-2px 0 8px var(--green)} }
+  .sub { color: var(--amber-dim); letter-spacing: .34em; font-size: 12px; margin-top: 8px; }
+  .blink { animation: bl 1s steps(2) infinite; } @keyframes bl { 50%{opacity:0} }
+  .status { margin-top: 14px; font-size: 12px; color: var(--amber-dim); letter-spacing: .1em; }
+  .status.ok { color: var(--green); text-shadow: 0 0 6px rgba(57,255,20,.6); }
+  .status.down { color: var(--red); text-shadow: 0 0 6px rgba(255,59,71,.6); }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 11px; color: var(--amber-dim); letter-spacing: .1em; flex-wrap: wrap; justify-content: center; }
+  .seg { display: inline-flex; border: 1px solid var(--amber-dim); border-radius: 3px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; color: var(--amber-dim); font: inherit; font-size: 11px; letter-spacing: .12em; padding: 5px 13px; cursor: pointer; text-shadow: inherit; }
+  .seg button.on { background: var(--amber); color: #000; text-shadow: none; }
+  .toggle code { display: inline-block; min-width: 31ch; text-align: left; color: var(--green); text-shadow: 0 0 6px rgba(57,255,20,.5); }
+
+  .panel { border: 2px solid var(--amber-dim); border-radius: 6px; padding: 6px 0; margin-top: 30px;
+           box-shadow: 0 0 18px rgba(255,176,0,.12) inset; }
+  .panel .pt { text-align: center; letter-spacing: .3em; font-size: 13px; padding: 8px; border-bottom: 2px solid var(--amber-dim); }
+  .row { display: grid; grid-template-columns: 54px 1fr auto; gap: 12px; align-items: center;
+         padding: 9px 18px; font-size: 16px; animation: scanin .4s backwards; }
+  .row + .row { border-top: 1px dashed rgba(255,176,0,.16); }
+  .row .rk { color: var(--amber-dim); }
+  .row .rk.g1 { color: #fff; text-shadow: 0 0 10px #fff; } .row .rk.g2 { color: var(--green); } .row .rk.g3 { color: var(--red); }
+  .row .who { letter-spacing: .18em; }
+  .row .who small { color: var(--amber-dim); letter-spacing: .08em; text-transform: uppercase; margin-left: 8px; font-size: 10px; }
+  .row .sc { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+  @keyframes scanin { from { opacity: 0; transform: translateX(-8px); } }
+
+  .vault { text-align: center; padding: 40px 20px; }
+  .vault.locked { color: var(--red); text-shadow: 0 0 8px rgba(255,59,71,.55); }
+  .vault .big { font-size: 26px; letter-spacing: .16em; }
+  .vault p { color: var(--amber-dim); text-shadow: none; font-size: 12.5px; letter-spacing: .06em; line-height: 1.7; max-width: 460px; margin: 14px auto 0; }
+  .vault code { color: var(--amber); background: rgba(255,176,0,.1); padding: 1px 6px; border-radius: 3px; }
+
+  .bar { display: flex; align-items: center; gap: 14px; margin-top: 26px; justify-content: center; }
+  .btn { border: 2px solid var(--amber); background: transparent; color: var(--amber); font: inherit;
+         font-size: 13px; letter-spacing: .16em; padding: 9px 20px; border-radius: 4px; cursor: pointer; text-shadow: inherit; }
+  .btn:hover { background: var(--amber); color: #000; text-shadow: none; }
+  .err { border: 2px solid var(--red); color: var(--red); text-shadow: none; padding: 14px 18px; margin-top: 24px;
+         font-size: 13px; line-height: 1.6; border-radius: 4px; }
+  .err code { color: #fff; }
+  footer { text-align: center; margin-top: 46px; color: var(--amber-dim); font-size: 11px; letter-spacing: .1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MOCKTAIL ARCADE</h1>
+    <div class="sub">HIGH SCORES</div>
+    <div id="status" class="status">◈ BOOTING<span class="blink">_</span></div>
+    <div class="toggle">
+      <span>BACKEND:</span>
+      <span class="seg">
+        <button id="mLive" onclick="setMode('live')">REAL API</button>
+        <button id="mMock" class="on" onclick="setMode('mock')">MOCKTAIL</button>
+      </span>
+      <code id="base"></code>
+    </div>
+  </header>
+
+  <div id="error"></div>
+
+  <div class="panel">
+    <div class="pt">— TOP SCORES —</div>
+    <div id="scores"></div>
+  </div>
+
+  <div class="panel">
+    <div class="pt">🔒 THE VAULT</div>
+    <div id="vault"></div>
+  </div>
+
+  <div class="bar"><button class="btn" onclick="load()">↻ REFRESH</button></div>
+  <footer>INSERT COIN · POWERED BY MOCKTAIL · THE BOARD IS WHATEVER YOUR MOCK API RETURNS</footer>
+</div>
+
+<script>
+  // The point: the board doesn't care what serves it — flip the base URL.
+  //   "REAL API" → your actual backend (:3000, not running yet)
+  //   "MOCKTAIL" → your mocks at :6625, which just work
+  const REAL_API = 'http://localhost:3000';           // the backend you haven't built yet
+  const MOCK_API = 'http://localhost:6625/mocktail';  // Mocktail
+  let API = MOCK_API;
+  const $ = (id) => document.getElementById(id);
+
+  // Only rewrite a panel when its content actually changed — a no-op refresh won't re-flash the
+  // whole board, but a real change (toggle, 401→200, edited response) still scans in.
+  const _seen = {};
+  function paint(id, html) {
+    if (_seen[id] === html) return;
+    _seen[id] = html;
+    $(id).innerHTML = html;
+  }
+
+  function setMode(mode) {
+    API = mode === 'mock' ? MOCK_API : REAL_API;
+    $('mMock').classList.toggle('on', mode === 'mock');
+    $('mLive').classList.toggle('on', mode === 'live');
+    $('base').textContent = API;
+    load();
+  }
+
+  function scoreRow(s, i) {
+    const g = i === 0 ? 'g1' : i === 1 ? 'g2' : i === 2 ? 'g3' : '';
+    const rank = String(s.rank ?? i + 1).padStart(2, '0');
+    return `<div class="row" style="animation-delay:${i * 55}ms">
+      <span class="rk ${g}">${rank}</span>
+      <span class="who">${s.initials ?? '???'}<small>${s.game ?? ''}</small></span>
+      <span class="sc">${Number(s.score ?? 0).toLocaleString()}</span>
+    </div>`;
+  }
+
+  async function load() {
+    $('error').innerHTML = '';
+    // 1) Public leaderboard.
+    //    GET /api/scores → 200, array of scores:
+    //      { rank (number), initials (3 letters), score (number), game (name) }
+    try {
+      const res = await fetch(`${API}/api/scores`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`GET /api/scores → ${res.status}`);
+      const scores = await res.json();
+      paint('scores', scores.map(scoreRow).join(''));
+      $('status').className = 'status ok';
+      $('status').innerHTML = `◈ ONLINE · ${scores.length} RANKED`;
+    } catch {
+      $('status').className = 'status down';
+      $('status').innerHTML = '✖ NO SIGNAL';
+      $('error').innerHTML = `<div class="err">NO SIGNAL — couldn't reach <code>${API}/api/scores</code>.
+        Start Mocktail and create a <code>GET /api/scores</code> mock (the AI assistant or MCP agent can, see README).</div>`;
+      paint('scores', '');
+    }
+
+    // 2) The Vault — restricted, hidden scores.
+    //    GET /api/vault → 401 while locked; when authorized it returns 200 with the same
+    //      score shape as /api/scores. (Start it at 401.)
+    try {
+      const res = await fetch(`${API}/api/vault`, { cache: 'no-store' });
+      if (res.status === 401) return lockVault();
+      if (!res.ok) throw new Error(`GET /api/vault → ${res.status}`);
+      const secret = await res.json();
+      paint('vault', secret.map(scoreRow).join(''));
+    } catch {
+      lockVault();
+    }
+  }
+
+  function lockVault() {
+    paint('vault', `<div class="vault locked">
+      <div class="big">⛔ ACCESS DENIED</div>
+      <p>INSERT COIN. Flip <code>GET /api/vault</code> from <code>401</code> to <code>200</code> in
+      Mocktail (or tell the assistant "unlock the vault"), then hit REFRESH.</p>
+    </div>`);
+  }
+
+  setMode('mock'); // default to Mocktail (works out of the box)
+</script>
+</body>
+</html>
