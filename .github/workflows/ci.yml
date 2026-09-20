@@ -47,4 +47,5 @@ jobs:
           cache-dependency-path: mocktail-ui/yarn.lock
       - run: yarn install --frozen-lockfile
       - run: yarn typecheck
+      - run: yarn test
       - run: yarn build

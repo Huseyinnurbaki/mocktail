@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.0.4] - 2026-09-19
+
+Admin-key auth now actually works in the dashboard and MCP server.
+
+### 🐛 Fixed
+
+- **`MOCKTAIL_ADMIN_KEY` now works from the dashboard.** The backend gated `/core/v1/*` behind the
+  admin key, but the UI never read the `#admin_key=` fragment or sent the `X-Admin-Key` header, so a
+  protected instance returned 401 on every management/AI call. The dashboard now reads the key from
+  the URL fragment, sends it as `X-Admin-Key`, and scrubs it from the URL (never as a `?admin_key=`
+  query param, which would leak to logs). ([#55](https://github.com/Huseyinnurbaki/mocktail/issues/55))
+- **Admin key prompt.** Opening a protected instance without the `#admin_key=` URL now shows a
+  passcode prompt (validated against the backend) instead of a cryptic "backend unreachable" error —
+  useful for fixed keys, which don't get a printed ready-URL.
+- **MCP server now sends the admin key.** `mocktail-mcp` calls the management API (`/core/v1/*`), so
+  it now sends `X-Admin-Key` from `MOCKTAIL_ADMIN_KEY`. Previously it only sent `X-API-Key`, which
+  guards served mocks — not the endpoints it actually uses — so it failed against a protected
+  instance.
+
 ## [4.0.3] - 2026-08-15
 
 Assistant bug fixes.

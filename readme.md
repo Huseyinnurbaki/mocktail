@@ -119,7 +119,7 @@ Mocktail includes an [MCP (Model Context Protocol)](https://modelcontextprotocol
 
 ### Setup
 
-> Add `MOCKTAIL_API_KEY` **only if** you've protected your instance with `MOCKTAIL_API_KEY`. For a default (open) Mocktail, leave it out.
+> Add `MOCKTAIL_ADMIN_KEY` **if** you've protected the management API with it — the MCP server calls `/core/v1/*` (list/create/update/delete/import), which the admin key gates. `MOCKTAIL_API_KEY` only matters if a proxy in front of Mocktail requires it. For a default (open) Mocktail, leave both out.
 
 <details>
   <summary>npx (Recommended)</summary>
@@ -187,8 +187,9 @@ claude mcp add mocktail \
 
 | Variable           | Required | Description                                                       |
 | ------------------ | -------- | ----------------------------------------------------------------- |
-| `MOCKTAIL_URL`     | Yes      | Base URL of your Mocktail instance (e.g. `http://localhost:6625`) |
-| `MOCKTAIL_API_KEY` | No       | API key sent as `X-API-Key` header on all requests                |
+| `MOCKTAIL_URL`       | Yes      | Base URL of your Mocktail instance (e.g. `http://localhost:6625`) |
+| `MOCKTAIL_ADMIN_KEY` | No       | Admin key sent as `X-Admin-Key`. **Required if the instance sets `MOCKTAIL_ADMIN_KEY`** — the MCP server calls the management API (`/core/v1/*`), which it gates. |
+| `MOCKTAIL_API_KEY`   | No       | API key sent as `X-API-Key`. Only needed if a proxy in front of Mocktail requires it — not the management endpoints this server uses. |
 
 > **Note:** If you configured `MOCKTAIL_BASE_URL` for a custom domain or reverse proxy, use that same URL for `MOCKTAIL_URL` (e.g. `https://api.mycompany.com/mocktail` becomes `MOCKTAIL_URL=https://api.mycompany.com`).
 

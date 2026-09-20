@@ -1,6 +1,7 @@
 // AI assistant client — provider config, models, and streaming chat.
 // The API key is a backend secret; these calls only ever move a masked hint around.
 import { errMessage } from './http'
+import { apiFetch } from './auth'
 
 export interface AIConfig {
   configured: boolean
@@ -31,19 +32,19 @@ export interface ToolActivity {
 }
 
 export async function fetchAIConfig(): Promise<AIConfig> {
-  const res = await fetch('/core/v1/ai/config')
+  const res = await apiFetch('/core/v1/ai/config')
   if (!res.ok) throw new Error(await errMessage(res, 'GET /core/v1/ai/config'))
   return (await res.json()) as AIConfig
 }
 
 export async function fetchAIProviders(): Promise<{ providers: AIProvider[]; active: string }> {
-  const res = await fetch('/core/v1/ai/providers')
+  const res = await apiFetch('/core/v1/ai/providers')
   if (!res.ok) throw new Error(await errMessage(res, 'GET /core/v1/ai/providers'))
   return (await res.json()) as { providers: AIProvider[]; active: string }
 }
 
 export async function fetchAIModels(): Promise<{ models: AIModel[]; source: string; reason?: string }> {
-  const res = await fetch('/core/v1/ai/models')
+  const res = await apiFetch('/core/v1/ai/models')
   if (!res.ok) throw new Error(await errMessage(res, 'GET /core/v1/ai/models'))
   return (await res.json()) as { models: AIModel[]; source: string; reason?: string }
 }
@@ -54,7 +55,7 @@ export async function saveAIConfig(input: {
   model?: string
   provider?: string
 }): Promise<AIConfig> {
-  const res = await fetch('/core/v1/ai/config', {
+  const res = await apiFetch('/core/v1/ai/config', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -64,7 +65,7 @@ export async function saveAIConfig(input: {
 }
 
 export async function deleteAIKey(): Promise<AIConfig> {
-  const res = await fetch('/core/v1/ai/config', { method: 'DELETE' })
+  const res = await apiFetch('/core/v1/ai/config', { method: 'DELETE' })
   if (!res.ok) throw new Error(await errMessage(res, 'DELETE /core/v1/ai/config'))
   return (await res.json()) as AIConfig
 }
@@ -79,7 +80,7 @@ export async function streamChat(
     onTool?: (t: ToolActivity) => void
   },
 ): Promise<void> {
-  const res = await fetch('/core/v1/ai/chat', {
+  const res = await apiFetch('/core/v1/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, model: opts.model }),

@@ -17,11 +17,14 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that l
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MOCKTAIL_URL` | Yes | Base URL of your Mocktail instance (e.g. `http://localhost:6625`) |
-| `MOCKTAIL_API_KEY` | No | API key, sent as `X-API-Key` header |
+| `MOCKTAIL_ADMIN_KEY` | No | Admin key, sent as `X-Admin-Key`. **Required if the instance sets `MOCKTAIL_ADMIN_KEY`** — this server calls the management API (`/core/v1/*`), which the admin key gates. |
+| `MOCKTAIL_API_KEY` | No | API key, sent as `X-API-Key`. Only relevant if a proxy in front of Mocktail requires it — the management endpoints this server uses are gated by the admin key, not this. |
 
 > **Note:** If you're running Mocktail behind a reverse proxy or custom domain (via `MOCKTAIL_BASE_URL`), use that host as `MOCKTAIL_URL` (e.g. `MOCKTAIL_URL=https://api.mycompany.com`).
 
 ## Setup
+
+> The `MOCKTAIL_ADMIN_KEY` in the examples below is only needed if your instance sets it (it gates the management API this server uses). For a default (open) Mocktail, drop that line.
 
 ### npx (Recommended)
 
@@ -29,7 +32,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that l
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:6625 \
-  -e MOCKTAIL_API_KEY=your-api-key \
+  -e MOCKTAIL_ADMIN_KEY=your-admin-key \
   -- npx mocktail-mcp
 ```
 
@@ -42,7 +45,7 @@ claude mcp add mocktail \
       "args": ["mocktail-mcp"],
       "env": {
         "MOCKTAIL_URL": "http://localhost:6625",
-        "MOCKTAIL_API_KEY": "your-api-key"
+        "MOCKTAIL_ADMIN_KEY": "your-admin-key"
       }
     }
   }
@@ -61,7 +64,7 @@ cd mcp-server && npm install
 ```bash
 claude mcp add mocktail \
   -e MOCKTAIL_URL=http://localhost:6625 \
-  -e MOCKTAIL_API_KEY=your-api-key \
+  -e MOCKTAIL_ADMIN_KEY=your-admin-key \
   -- node /absolute/path/to/mcp-server/index.js
 ```
 
@@ -74,7 +77,7 @@ claude mcp add mocktail \
       "args": ["/absolute/path/to/mcp-server/index.js"],
       "env": {
         "MOCKTAIL_URL": "http://localhost:6625",
-        "MOCKTAIL_API_KEY": "your-api-key"
+        "MOCKTAIL_ADMIN_KEY": "your-admin-key"
       }
     }
   }

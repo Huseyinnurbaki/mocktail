@@ -3,6 +3,8 @@ import { mockToDraft, newDraft, type Draft, type Mock } from './lib/mocks'
 import { useMocks } from './lib/useMocks'
 import { useTheme } from './lib/theme'
 import { deleteMock, fetchHealth, saveMock } from './lib/api'
+import { onAuthRequired } from './lib/auth'
+import { AdminGate } from './components/AdminGate'
 import { downloadMocks } from './lib/export'
 import { useResizable } from './hooks/useResizable'
 import { useSend } from './hooks/useSend'
@@ -39,6 +41,13 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [port, setPort] = useState<number | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  // Any 401 from the management API means MOCKTAIL_ADMIN_KEY is set and we don't have a valid key —
+  // show the passcode prompt so the user can paste it (in addition to the #admin_key= URL flow).
+  const [needsAuth, setNeedsAuth] = useState(false)
+  useEffect(() => {
+    onAuthRequired(() => setNeedsAuth(true))
+  }, [])
 
   // Read the backend's actual listen port for the status pill (once, when reachable).
   useEffect(() => {
@@ -127,6 +136,7 @@ export default function App() {
 
   return (
     <div className="relative flex h-full flex-col bg-bg text-fg">
+      {needsAuth && <AdminGate />}
       <TopBar
         connected={!error}
         port={port ?? undefined}

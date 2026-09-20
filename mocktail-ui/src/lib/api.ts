@@ -1,5 +1,6 @@
 import type { Draft, HeadersConfig, Method, Mock, RandomizeConfig } from './mocks'
 import { errMessage } from './http'
+import { apiFetch } from './auth'
 
 /** Backend record shape from `GET /core/v1/apis` (see mocktail-api/core/core.go). */
 interface ApiRecord {
@@ -40,7 +41,7 @@ function toMock(a: ApiRecord): Mock {
 export async function fetchMocks(signal?: AbortSignal): Promise<Mock[]> {
   // no-store: this is refetched right after mutations (e.g. the assistant creating a mock); the
   // browser must not serve a cached list, or the new/changed mock won't appear until a hard refresh.
-  const res = await fetch('/core/v1/apis', { signal, cache: 'no-store' })
+  const res = await apiFetch('/core/v1/apis', { signal, cache: 'no-store' })
   if (!res.ok) throw new Error(`GET /core/v1/apis → ${res.status}`)
   const data = (await res.json()) as ApiRecord[]
   return Array.isArray(data) ? data.map(toMock) : []
@@ -57,13 +58,13 @@ interface SavePayload {
 }
 
 export async function deleteMock(id: number): Promise<void> {
-  const res = await fetch(`/core/v1/api/${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/core/v1/api/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(await errMessage(res, `DELETE /core/v1/api/${id}`))
 }
 
 /** Runs a response object through a config server-side and returns the generated object. */
 async function bakeOnce(response: unknown, cfg: RandomizeConfig): Promise<unknown> {
-  const res = await fetch('/core/v1/preview', {
+  const res = await apiFetch('/core/v1/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ Response: response, Randomize: cfg }),
@@ -91,14 +92,14 @@ export interface LogEntry {
 }
 
 export async function fetchLogs(): Promise<LogEntry[]> {
-  const res = await fetch('/core/v1/logs')
+  const res = await apiFetch('/core/v1/logs')
   if (!res.ok) throw new Error(`GET /core/v1/logs → ${res.status}`)
   const d = (await res.json()) as { logs?: LogEntry[] }
   return d.logs ?? []
 }
 
 export async function clearLogs(): Promise<void> {
-  await fetch('/core/v1/logs', { method: 'DELETE' })
+  await apiFetch('/core/v1/logs', { method: 'DELETE' })
 }
 
 /** The port the backend actually bound to (for the status pill). */
@@ -112,7 +113,7 @@ export async function fetchHealth(): Promise<{ port?: number }> {
 export async function importMocks(text: string): Promise<ImportResult> {
   const parsed = JSON.parse(text)
   const body = Array.isArray(parsed) ? { Apis: parsed } : parsed
-  const res = await fetch('/core/v1/import', {
+  const res = await apiFetch('/core/v1/import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -124,7 +125,7 @@ export async function importMocks(text: string): Promise<ImportResult> {
 
 /** Runs the response through the randomize config server-side for a live sample. */
 export async function previewMock(body: string, config: RandomizeConfig): Promise<string> {
-  const res = await fetch('/core/v1/preview', {
+  const res = await apiFetch('/core/v1/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ Response: JSON.parse(body.trim() || '{}'), Randomize: config }),
@@ -187,7 +188,7 @@ export async function saveMock(d: Draft): Promise<Mock> {
 
   const isNew = d.id === null
   const url = isNew ? '/core/v1/api' : `/core/v1/api/${d.id}`
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method: isNew ? 'POST' : 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

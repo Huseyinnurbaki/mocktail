@@ -11,6 +11,9 @@ const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), 
 
 const MOCKTAIL_URL = process.env.MOCKTAIL_URL;
 const MOCKTAIL_API_KEY = process.env.MOCKTAIL_API_KEY || "";
+// This server calls the management API (/core/v1/*), which is gated by MOCKTAIL_ADMIN_KEY
+// (X-Admin-Key), not MOCKTAIL_API_KEY. Set this to match the instance's admin key.
+const MOCKTAIL_ADMIN_KEY = process.env.MOCKTAIL_ADMIN_KEY || "";
 
 if (!MOCKTAIL_URL) {
   console.error("MOCKTAIL_URL environment variable is required");
@@ -25,6 +28,11 @@ async function mocktailRequest(path, options = {}) {
   const base = MOCKTAIL_URL.replace(/\/+$/, "");
   const url = `${base}${path}`;
   const headers = { "Content-Type": "application/json" };
+  // /core/v1/* is gated by the admin key; the API key is kept for forward-compat / proxies that
+  // require it, but it is the admin key that actually unlocks these management endpoints.
+  if (MOCKTAIL_ADMIN_KEY) {
+    headers["X-Admin-Key"] = MOCKTAIL_ADMIN_KEY;
+  }
   if (MOCKTAIL_API_KEY) {
     headers["X-API-Key"] = MOCKTAIL_API_KEY;
   }
