@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg: oklch(0.205 0.03 168); --bg-2: oklch(0.255 0.032 166);
+    --ink: oklch(0.95 0.02 140); --soft: oklch(0.76 0.02 140); --faint: oklch(0.60 0.02 140);
+    --line: oklch(0.34 0.02 165); --card: oklch(0.255 0.03 166);
+    --leaf: oklch(0.76 0.15 150); --leaf-2: oklch(0.84 0.16 142); --lime: oklch(0.86 0.16 122);
+    --sans: "SF Pro Rounded", ui-rounded, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body {
+    font-family: var(--sans); color: var(--ink); position: relative;
+    background:
+      radial-gradient(1200px 720px at 50% -12%, oklch(0.30 0.06 156) 0%, transparent 60%),
+      radial-gradient(900px 700px at 88% 118%, oklch(0.28 0.05 150) 0%, transparent 55%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* oversized flower watermark, barely there — brand texture */
+  .mark-bg { position: absolute; right: -160px; bottom: -220px; width: 820px; height: 820px;
+             color: var(--leaf); opacity: .05; transform: rotate(-8deg); }
+  .mark-bg svg { width: 100%; height: 100%; }
+
+  .stage { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column;
+           align-items: center; justify-content: center; text-align: center; padding: 134px; }
+
+  .lockup { display: inline-flex; align-items: center; gap: 20px; margin-bottom: 54px; }
+  .lockup .flower { width: 62px; height: 62px; color: var(--leaf); }
+  .lockup .flower svg { width: 100%; height: 100%; display: block; }
+  .lockup .name { font-size: 44px; font-weight: 750; letter-spacing: -0.02em; }
+
+  h1 { font-size: 116px; line-height: 1.0; font-weight: 780; letter-spacing: -0.035em; }
+  h1 .grad { background: linear-gradient(118deg, var(--leaf), var(--lime));
+             -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .sub { margin-top: 40px; font-size: 30px; font-weight: 500; color: var(--soft);
+         max-width: 1120px; line-height: 1.45; }
+  .sub b { color: var(--ink); font-weight: 650; }
+
+  .cmd { margin-top: 62px; display: inline-flex; align-items: center; gap: 16px;
+         font-family: var(--mono); font-size: 26px; color: var(--ink);
+         background: color-mix(in oklch, var(--card) 80%, transparent);
+         border: 1px solid var(--line); border-radius: 18px; padding: 20px 32px; }
+  .cmd .p { color: var(--leaf-2); }
+
+  .foot { position: absolute; bottom: 88px; left: 0; right: 0; display: flex; justify-content: center;
+          align-items: center; gap: 22px; font-size: 24px; color: var(--faint); font-weight: 500; }
+  .foot .url { color: var(--leaf-2); font-weight: 650; }
+  .foot .dot { color: var(--line); }
+</style>
+</head>
+<body>
+  <div class="mark-bg">
+    <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+      <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)"/>
+    </svg>
+  </div>
+
+  <div class="stage">
+    <div class="lockup">
+      <span class="flower">
+        <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+          <path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(36 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(72 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(108 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(144 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(180 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(216 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(252 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(288 24 24)"/><path d="M24 24 19.40 5.56A19 19 0 0 1 28.60 5.56Z" transform="rotate(324 24 24)"/>
+        </svg>
+      </span>
+      <span class="name">Mocktail</span>
+    </div>
+
+    <h1>Backends aren't ready.<br><span class="grad">Mocktail is.</span></h1>
+
+    <p class="sub">Let an <b>AI agent</b> build your mocks — right from the dashboard or any <b>MCP</b> client.</p>
+
+    <div class="cmd"><span class="p">$</span> brew install --cask Huseyinnurbaki/tap/mocktail</div>
+  </div>
+
+  <div class="foot">
+    <span class="url">getmocktail.com</span>
+    <span class="dot">·</span>
+    <span>open source · self-hosted</span>
+  </div>
+</body>
+</html>
