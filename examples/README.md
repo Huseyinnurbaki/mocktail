@@ -30,6 +30,8 @@ docker compose -f docker-compose.basic.yml up -d
 | `MOCKTAIL_ADMIN_KEY` | (unset = open) | Auth on the **management API** (`/core/v1/*`). `unset`=off, `<value>`=that key, `auto`=random per launch (printed as a ready URL). Gates the AI endpoints too. |
 | `MOCKTAIL_AI_API_KEY_ANTHROPIC` | (unset) | AI provider key, **per provider** (e.g. `_ANTHROPIC`), server-side only. In containers set it here; on desktop enter it in Settings (OS keychain). When set, it wins and the Settings field is read-only. The generic `MOCKTAIL_AI_API_KEY` still works as a **deprecated** fallback. |
 | `MOCKTAIL_AI_MODEL` | provider default | Optional: pin a model id (else the Settings choice, else the recommended default). |
+| `MOCKTAIL_LOG_BUFFER_MB` | `64` | Memory for the **Live** traffic log; oldest requests drop past this. The process can use ~2× under heavy load. |
+| `MOCKTAIL_LOG_BODY_KB` | `1024` | Largest request/response body kept per log entry; bigger ones are truncated in the log only. |
 
 > **Provider selection is a Settings dropdown, not an env var** — there is intentionally no
 > `MOCKTAIL_AI_PROVIDER`. Env only injects the secret key (headless/container) + an optional model pin.

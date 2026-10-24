@@ -18,7 +18,11 @@ export const FAQ: { group: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'What is the Live view?',
-        a: 'The ◉ Live button (top bar, or ⌘L) streams the real requests hitting your mocks — method, status, latency, and response — newest first.',
+        a: 'The ◉ Live button (top bar, or ⌘L) streams the real requests hitting your mocks — newest first. Select one to see what the client sent (query, headers, body) and what Mocktail answered.',
+      },
+      {
+        q: 'Why is a body truncated, or a request missing, in Live?',
+        a: 'The Live log lives in memory. Each stored body is capped at 1 MB and history at 64 MB in total (oldest requests drop first) — clients always get the full response. Raise MOCKTAIL_LOG_BODY_KB and MOCKTAIL_LOG_BUFFER_MB to keep more.',
       },
     ],
   },

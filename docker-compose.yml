@@ -27,3 +27,8 @@ services:
       # MOCKTAIL_CORS_METHODS: GET,POST,PUT,PATCH,DELETE,OPTIONS
       # MOCKTAIL_CORS_HEADERS: Content-Type,Authorization,X-API-Key
       # MOCKTAIL_CORS_CREDENTIALS: "false"
+
+      # [optional] Live traffic log memory: total MB kept (default 64) and max KB per stored body
+      # (default 1024; bigger bodies are truncated in the log only)
+      # MOCKTAIL_LOG_BUFFER_MB: "64"
+      # MOCKTAIL_LOG_BODY_KB: "1024"

@@ -53,7 +53,7 @@ export function RightPanel({
       // The drag sets the width directly, floored at 260px and capped at 60vw so the catalog
       // list always keeps ≥40vw. Persisted, so a dragged width sticks across sessions. Hidden < md.
       style={{ width: `clamp(260px, ${width}px, 55vw)` }}
-      className="hidden shrink-0 flex-col overflow-hidden border-l border-border md:flex"
+      className="hidden shrink-0 flex-col overflow-hidden md:flex" // the ResizeHandle draws the left divider
     >
       <div className="flex shrink-0 border-b border-border">
         {tabBtn('preview', 'Preview')}

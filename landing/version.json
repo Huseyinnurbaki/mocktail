@@ -1,9 +1,9 @@
 {
-  "version": "4.0.3",
+  "version": "4.1.0",
   "url": "https://getmocktail.com/#install",
   "highlights": [
-    "Assistant can now set custom response headers on your mocks",
-    "Fixes a stale catalog list after the assistant creates or edits a mock",
-    "Plus everything in v4.0: AI assistant, response headers, live traffic"
+    "See what your client sent: request body, headers and query in Live traffic",
+    "Live traffic stays smooth under heavy load, with resizable panels and no horizontal scrolling",
+    "Log memory is capped by size — tune it with MOCKTAIL_LOG_BUFFER_MB / MOCKTAIL_LOG_BODY_KB"
   ]
 }

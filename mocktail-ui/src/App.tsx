@@ -7,6 +7,7 @@ import { onAuthRequired } from './lib/auth'
 import { AdminGate } from './components/AdminGate'
 import { downloadMocks } from './lib/export'
 import { useResizable } from './hooks/useResizable'
+import { ResizeHandle } from './components/ResizeHandle'
 import { useSend } from './hooks/useSend'
 import { useCatalogShortcuts } from './hooks/useCatalogShortcuts'
 import { useSearchSuggest } from './hooks/useSearchSuggest'
@@ -56,7 +57,7 @@ export default function App() {
       .then((h) => h.port && setPort(h.port))
       .catch(() => {})
   }, [error, port])
-  const { width: previewWidth, startResize } = useResizable('mocktail-preview-width', 460, 260, 1200)
+  const preview = useResizable('mocktail-preview-width', 460, 260, 1200, 0.55)
   const { result: sendResult, busy: sendBusy, err: sendErr, run } = useSend(selectedId)
 
   const rows = useMemo(() => {
@@ -177,10 +178,11 @@ export default function App() {
           />
         </main>
 
-        <div
-          onMouseDown={startResize}
-          title="Drag to resize"
-          className="hidden w-[5px] shrink-0 cursor-col-resize hover:bg-accent/50 md:block"
+        <ResizeHandle
+          onPointerDown={preview.startResize}
+          nudge={preview.nudge}
+          reset={preview.reset}
+          className="hidden md:block"
         />
         <RightPanel
           mock={selectedMock}
@@ -189,7 +191,7 @@ export default function App() {
           result={sendResult}
           busy={sendBusy}
           err={sendErr}
-          width={previewWidth}
+          width={preview.width}
           port={port ?? undefined}
           tab={rightTab}
           setTab={setRightTab}
@@ -218,7 +220,7 @@ export default function App() {
         />
       )}
 
-      {liveOpen && <LiveView onClose={() => setLiveOpen(false)} />}
+      {liveOpen && <LiveView port={port} onClose={() => setLiveOpen(false)} />}
 
       {ctx && (
         <ContextMenu

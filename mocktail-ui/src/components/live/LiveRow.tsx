@@ -1,6 +1,8 @@
 import { memo } from 'react'
 import { MethodBadge } from '../MethodBadge'
 import { StatusBadge } from './StatusBadge'
+import { PathText } from '../PathText'
+import { OverflowTooltip } from '../OverflowTooltip'
 
 /** One traffic row — memoized on primitive props so unchanged rows skip re-render across polls. */
 export const LiveRow = memo(function LiveRow({
@@ -10,7 +12,7 @@ export const LiveRow = memo(function LiveRow({
   duration,
   time,
   selected,
-  index,
+  id,
   onSelect,
 }: {
   method?: string
@@ -19,13 +21,13 @@ export const LiveRow = memo(function LiveRow({
   duration?: string
   time: string
   selected: boolean
-  index: number
-  onSelect: (i: number) => void
+  id: number
+  onSelect: (id: number) => void
 }) {
   return (
     <button
-      data-live-row={index}
-      onClick={() => onSelect(index)}
+      data-live-row={id}
+      onClick={() => onSelect(id)}
       style={selected ? { boxShadow: 'inset 2px 0 0 var(--accent)' } : undefined}
       className={`flex w-full items-center gap-3 border-b border-border-subtle px-[18px] py-[9px] text-left focus:outline-none ${
         selected ? 'bg-accent-tint' : 'hover:bg-surface-sunken'
@@ -33,7 +35,9 @@ export const LiveRow = memo(function LiveRow({
     >
       <MethodBadge method={method} />
       <StatusBadge status={status} />
-      <span className="flex-1 truncate font-mono text-[13px]">{path}</span>
+      <OverflowTooltip text={path} className="flex flex-1">
+        <PathText path={path} keepTail className="flex-1 text-[13px]" />
+      </OverflowTooltip>
       <span className="shrink-0 font-mono text-[11.5px] text-muted">{duration}</span>
       <span className="w-[64px] shrink-0 text-right font-mono text-[11.5px] text-muted">{time}</span>
     </button>

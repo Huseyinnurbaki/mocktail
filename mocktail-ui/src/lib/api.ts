@@ -80,6 +80,8 @@ export interface ImportResult {
 }
 
 export interface LogEntry {
+  /** Monotonic per server run; stable across polls and eviction. */
+  id: number
   timestamp: string
   message: string
   type: string
@@ -87,15 +89,43 @@ export interface LogEntry {
   path?: string
   status?: number
   duration?: string
+  /** Full size of the body the client sent; `requestBody` holds at most the server's body limit. */
+  requestSize?: number
+  requestTruncated?: boolean
+  /** Only on full entries from fetchLogEntry — list polls return summaries without these. */
+  requestQuery?: string
+  requestBody?: string
+  requestHeaders?: Record<string, string>
+  /** Full size of the served body; `responseBody` holds at most the server's body limit. */
+  responseSize?: number
+  responseTruncated?: boolean
+  /** Only on full entries from fetchLogEntry — list polls return summaries without these. */
   responseBody?: string
   responseHeaders?: Record<string, string>
 }
 
-export async function fetchLogs(): Promise<LogEntry[]> {
-  const res = await apiFetch('/core/v1/logs')
+export interface LogsPage {
+  logs: LogEntry[]
+  /** Changes when the server restarts (and IDs restart with it). */
+  epoch: string
+  /** Oldest ID the server still holds; anything older was evicted or cleared. */
+  firstId: number
+}
+
+/** Summaries of entries newer than `after`, oldest first (at most the newest `limit`). */
+export async function fetchLogs(after: number, limit: number): Promise<LogsPage> {
+  const res = await apiFetch(`/core/v1/logs?after=${after}&limit=${limit}`)
   if (!res.ok) throw new Error(`GET /core/v1/logs → ${res.status}`)
-  const d = (await res.json()) as { logs?: LogEntry[] }
-  return d.logs ?? []
+  const d = (await res.json()) as Partial<LogsPage>
+  return { logs: d.logs ?? [], epoch: d.epoch ?? '', firstId: d.firstId ?? 0 }
+}
+
+/** One full entry (body + headers), or null once the server has evicted it. */
+export async function fetchLogEntry(id: number): Promise<LogEntry | null> {
+  const res = await apiFetch(`/core/v1/logs/${id}`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`GET /core/v1/logs/${id} → ${res.status}`)
+  return (await res.json()) as LogEntry
 }
 
 export async function clearLogs(): Promise<void> {

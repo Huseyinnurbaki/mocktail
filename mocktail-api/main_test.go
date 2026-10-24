@@ -21,6 +21,7 @@ import (
 
 	"mocktail-api/core"
 	"mocktail-api/database"
+	"mocktail-api/logger"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ncruces/go-sqlite3/gormlite"
@@ -365,4 +366,117 @@ func waitForServer(t *testing.T, url string) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	t.Fatalf("server at %s did not come up within deadline", url)
+}
+
+func TestSkipRequestLog(t *testing.T) {
+	cases := map[string]bool{
+		// Mock traffic and management calls are logged.
+		"/mocktail/orders":    false,
+		"/mocktail/data.json": false,
+		"/core/v1/api":        false,
+		"/core/v1/api/3":      false,
+		"/core/v1/import":     false,
+		// The dashboard's own files, health, and its polling/AI endpoints are not.
+		"/":                    true,
+		"/index.html":          true,
+		"/assets/index-abc.js": true,
+		"/favicon.svg":         true,
+		"/health":              true,
+		"/core/v1/logs":        true,
+		"/core/v1/logs/42":     true,
+		"/core/v1/apis":        true,
+		"/core/v1/ai/chat":     true,
+	}
+	for path, want := range cases {
+		if got := skipRequestLog(path); got != want {
+			t.Errorf("skipRequestLog(%q) = %v, want %v", path, got, want)
+		}
+	}
+}
+
+func TestRedactQuery(t *testing.T) {
+	cases := map[string]string{
+		"":                           "",
+		"page=2&sort=name":           "page=2&sort=name",
+		"api_key=s3cret&page=2":      "api_key=REDACTED&page=2",
+		"page=2&ADMIN_KEY=x":         "page=2&ADMIN_KEY=REDACTED",
+		"api%5Fkey=s3cret":           "api%5Fkey=REDACTED", // encoded name is still caught
+		"q=api_key%3Dnot-a-key&flag": "q=api_key%3Dnot-a-key&flag",
+		"api_key":                    "api_key=REDACTED",
+	}
+	for in, want := range cases {
+		if got := redactQuery(in); got != want {
+			t.Errorf("redactQuery(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestRedactHeader(t *testing.T) {
+	if got := redactHeader("X-Api-Key", "s3cret"); got != redactedValue {
+		t.Errorf("X-Api-Key not redacted: %q", got)
+	}
+	if got := redactHeader("X-Admin-Key", "s3cret"); got != redactedValue {
+		t.Errorf("X-Admin-Key not redacted: %q", got)
+	}
+	if got := redactHeader("Authorization", "Bearer abc"); got != "Bearer abc" {
+		t.Errorf("client headers must pass through untouched, got %q", got)
+	}
+}
+
+// requestLogger records what the client sent (body, headers, query) next to the response, with
+// Mocktail's own keys redacted.
+func TestRequestLoggerCapturesRequest(t *testing.T) {
+	logger.GetGlobalBuffer().Clear()
+	app := fiber.New()
+	app.Use(requestLogger)
+	app.Post("/mocktail/orders", func(c *fiber.Ctx) error {
+		return c.Status(201).JSON(fiber.Map{"id": 7})
+	})
+
+	req := httptest.NewRequest("POST", "/mocktail/orders?page=2&api_key=s3cret", strings.NewReader(`{"item":"book","qty":2}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer abc")
+	req.Header.Set("X-API-Key", "s3cret")
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	logs := logger.GetGlobalBuffer().GetLast(1)
+	if len(logs) != 1 {
+		t.Fatalf("expected one log entry, got %d", len(logs))
+	}
+	e := logs[0]
+	if e.RequestBody != `{"item":"book","qty":2}` || e.RequestSize != 23 {
+		t.Errorf("request body not captured: %q (size %d)", e.RequestBody, e.RequestSize)
+	}
+	if e.RequestQuery != "page=2&api_key=REDACTED" {
+		t.Errorf("query = %q, want the api_key redacted", e.RequestQuery)
+	}
+	if e.RequestHeaders["Authorization"] != "Bearer abc" || e.RequestHeaders["Content-Type"] != "application/json" {
+		t.Errorf("client headers missing: %v", e.RequestHeaders)
+	}
+	if e.RequestHeaders["X-Api-Key"] != redactedValue {
+		t.Errorf("X-API-Key not redacted: %v", e.RequestHeaders)
+	}
+	if e.Status != 201 || e.ResponseBody != `{"id":7}` {
+		t.Errorf("response side lost: status=%d body=%q", e.Status, e.ResponseBody)
+	}
+}
+
+func TestRequestLoggerSkipsDashboardFiles(t *testing.T) {
+	logger.GetGlobalBuffer().Clear()
+	app := fiber.New()
+	app.Use(requestLogger)
+	app.Get("/assets/app.js", func(c *fiber.Ctx) error { return c.SendString("console.log(1)") })
+
+	resp, err := app.Test(httptest.NewRequest("GET", "/assets/app.js", nil), -1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if n := len(logger.GetGlobalBuffer().GetAll()); n != 0 {
+		t.Errorf("dashboard asset was logged (%d entries)", n)
+	}
 }

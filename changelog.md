@@ -4,6 +4,72 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
+## [4.1.0] - 2026-10-24
+
+See what your client sent, a Live view that holds up under heavy traffic, and security fixes.
+
+### ⬆️ Upgrading
+
+Nothing to migrate — same database, ports, URLs and env vars; just pull `4.1.0` (or update the
+app) and restart. A few behaviour changes worth knowing:
+
+- **The Live view now shows request headers, including your clients' `Authorization` and
+  `Cookie`.** Mocktail's own keys are redacted, but tokens your apps send to mocks are visible to
+  anyone who can open the dashboard. If your dashboard is reachable by others, protect it with
+  `MOCKTAIL_ADMIN_KEY` (and use test credentials against mocks).
+- **`GET /core/v1/logs` returns summaries only.** `responseBody` / `responseHeaders` (and the new
+  request fields) moved to **`GET /core/v1/logs/:id`**; the list accepts `?after=<id>&limit=<n>`
+  (`?lines=` still works) and returns up to 1000 entries. The dashboard and MCP server are updated —
+  only your own scripts that read bodies from the list need changing.
+- **Bodies over 1 MB are truncated in the Live log** (clients still get the full response). Raise
+  `MOCKTAIL_LOG_BODY_KB` to keep more.
+- **Log history is capped by memory (64 MB), not 500 entries** — usually far more history. Set
+  `MOCKTAIL_LOG_BUFFER_MB` to change it; the process can use about twice that under heavy load.
+- **Building from source needs Go 1.26** (was 1.25) — fetched automatically with Go's default
+  `GOTOOLCHAIN=auto`. Docker images and release binaries are unaffected.
+
+### 🔒 Security
+
+- **Backend:** Upgraded Go toolchain from `go1.26.1` to `go1.26.10`, and the Docker build now
+  tracks the latest `golang:1.26` patch release (fixes Go standard-library CVEs including
+  CVE-2026-56857, CVE-2026-78663, CVE-2026-78660, CVE-2026-94439, CVE-2026-94440, CVE-2026-56866,
+  CVE-2026-97032, CVE-2026-78667, CVE-2026-78669, CVE-2026-97031)
+- **Backend:** Upgraded `golang.org/x/net` from `v0.56.0` to `v0.61.0`, `golang.org/x/text` from
+  `v0.38.0` to `v0.43.0`, `golang.org/x/crypto` from `v0.53.0` to `v0.58.0`, and
+  `github.com/valyala/fasthttp` from `v1.52.0` to `v1.76.0`
+
+### ✨ Added
+
+- **See what the client sent.** The Live view's detail panel now has **Request | Response** tabs:
+  the request's query params, headers and body alongside what Mocktail answered. It opens on Request
+  when the client sent a body, and once you pick a tab it sticks as you move between requests (and
+  across reloads). Mocktail's own keys (`X-API-Key`, `X-Admin-Key`, `?api_key=`, `?admin_key=`) are
+  shown as `REDACTED`. ([#56](https://github.com/Huseyinnurbaki/mocktail/issues/56))
+
+### ⚡ Improved
+
+- **Resizable panels with a real handle.** The catalog's side panel divider now has a visible grip
+  and a wider grab area (and works with touch, double-click to reset, ←/→ when focused). The Live
+  view's detail panel is resizable the same way, and its width is remembered.
+- **No more horizontal scrolling in JSON views.** Long values wrap to the panel's width, with
+  continuation lines indented under their own line.
+- **Long endpoints stay readable.** Paths in the catalog and Live lists are cut in the middle
+  (`/api/v2/organiz…/deployments`) so the last segment stays visible; hovering a cut-off path shows
+  it in full in a quick tooltip. The Live detail header wraps the full path instead of cutting it off
+  and has a **Copy URL** button that copies the exact URL the client hit, query string included.
+- **Live traffic stays smooth under load.** The dashboard used to re-download every logged request —
+  full response bodies included — every 1.5s. It now polls only new request summaries and fetches a
+  body when you select a row, so a busy or large-payload stream no longer freezes the page. Selection
+  no longer jumps once old entries start rolling off.
+- **Log memory is capped by size, not count.** The in-memory request log now holds up to
+  `MOCKTAIL_LOG_BUFFER_MB` (default 64) instead of a fixed 500 entries, and caps each stored body at
+  `MOCKTAIL_LOG_BODY_KB` (default 1024). Truncated bodies are labeled in the Live view.
+- **JSON bodies in the Live view are always indented** — including compact single-line payloads and
+  bodies the log truncated mid-document, which used to show as one unreadable line. Only bodies over
+  4 MB start unformatted (one click to format).
+- **`GET /core/v1/logs`** now returns summaries (no `responseBody`/`responseHeaders`) and accepts
+  `?after=<id>&limit=<n>`; fetch one full entry with **`GET /core/v1/logs/:id`**.
+
 ## [4.0.4] - 2026-09-19
 
 Admin-key auth now actually works in the dashboard and MCP server.

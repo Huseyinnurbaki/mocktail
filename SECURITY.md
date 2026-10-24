@@ -43,6 +43,7 @@ Some behaviors are intentional or depend on deployment configuration:
 
 - **The dashboard and management API (`/core/v1/*`) are open by default.** Set `MOCKTAIL_ADMIN_KEY` to protect management endpoints, and `MOCKTAIL_API_KEY` to require authentication for served mocks (`/mocktail/*`). Simply exposing an instance without authentication to an untrusted network is not, by itself, considered a vulnerability.
 - **AI provider keys** are stored server-side only — in the OS keychain on desktop or via an environment variable in containers — and are never returned to the browser. Setting a key is restricted to local (loopback) sessions. Keys are never embedded in the binary.
+- **The Live traffic view shows what clients send to your mocks** — request bodies, query strings and headers, including `Authorization` and `Cookie` — kept in memory only (never written to disk) and visible to anyone who can open the dashboard. Mocktail's own keys (`X-API-Key`, `X-Admin-Key`, `?api_key=`, `?admin_key=`) are redacted. Protect the dashboard with `MOCKTAIL_ADMIN_KEY` if others can reach it, and use test credentials against mocks.
 - **Mock responses are user-defined content** and are served as configured. Mocktail does not sanitize user-provided mock response JSON.
 
 

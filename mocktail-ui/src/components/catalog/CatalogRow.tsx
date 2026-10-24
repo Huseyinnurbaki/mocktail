@@ -2,6 +2,7 @@ import type { Mock } from '../../lib/mocks'
 import { statusColor } from '../../lib/format'
 import { MethodBadge } from '../MethodBadge'
 import { PathText } from '../PathText'
+import { OverflowTooltip } from '../OverflowTooltip'
 
 export function CatalogRow({
   mock,
@@ -27,7 +28,9 @@ export function CatalogRow({
       }`}
     >
       <MethodBadge method={mock.method} />
-      <PathText path={mock.path} title={mock.path} className="min-w-0 flex-1 truncate pr-4 text-[13.5px]" />
+      <OverflowTooltip text={mock.path} className="flex flex-1 pr-4">
+        <PathText path={mock.path} keepTail className="min-w-0 flex-1 truncate text-[13.5px]" />
+      </OverflowTooltip>
       <span className={`font-mono text-[12px] ${statusColor(mock.status)}`}>{mock.status}</span>
       <span
         className={`w-[64px] text-right font-mono text-[12px] ${mock.delayMs > 0 ? 'text-warning' : 'text-muted'}`}

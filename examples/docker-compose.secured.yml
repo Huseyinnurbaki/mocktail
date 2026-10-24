@@ -2,7 +2,7 @@
 # Run:  docker compose -f docker-compose.secured.yml up -d   →   http://localhost:6625
 services:
   mocktail:
-    image: hhaluk/mocktail:4.0.2
+    image: hhaluk/mocktail:4.1.0
     container_name: mocktail
     ports:
       - "6625:6625"
@@ -28,6 +28,11 @@ services:
       # dropdown (no env var for it); env just injects the secret key + an optional model pin.
       # MOCKTAIL_AI_API_KEY_ANTHROPIC: "sk-ant-..."   # per provider; generic MOCKTAIL_AI_API_KEY still works (deprecated)
       # MOCKTAIL_AI_MODEL: "claude-..."   # else the Settings choice / recommended model from the live list
+
+      # Live traffic log memory — the dashboard's Live view shows request headers/bodies, so protect
+      # it with MOCKTAIL_ADMIN_KEY if others can reach it. Defaults: 64 MB total, 1024 KB per body.
+      # MOCKTAIL_LOG_BUFFER_MB: "64"
+      # MOCKTAIL_LOG_BODY_KB: "1024"
 
       # ── Planned (designed, NOT yet wired — see ../roadmap.md) ──────
       # Postgres instead of SQLite.

@@ -50,7 +50,7 @@ mocktail
 ## Run Mocktail in a Docker container 🐳
 
 ```console
-docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:4.0.2
+docker run -p 6625:6625 -v $(pwd)/db:/db -d hhaluk/mocktail:4.1.0
 ```
 
 The `-v $(pwd)/db:/db` flag mounts a local directory to persist your mock data.
@@ -87,7 +87,7 @@ The database is automatically persisted in `./mocktail-api/db/` on your host mac
 - **Custom Status Codes** - Return any HTTP status (200, 404, 500, etc.) to test error handling
 - **Response Headers** - Set custom headers per mock, including a `Content-Type` override (e.g. `application/problem+json`)
 - **Response Delays** - Add 0-30000ms delay to simulate network latency and loading states
-- **Live Traffic** - A filterable stream of real requests hitting your mocks (method / status / path), with the served response, headers, and keyboard navigation
+- **Live Traffic** - A filterable stream of real requests hitting your mocks (method / status / path), with what the client sent (query, headers, body) next to the served response, and keyboard navigation
 - **Randomize** - Generate realistic fake data with 20+ faker types plus fixed values, per-field configuration, and live preview — static by default, fresh on each request when enabled
 - **JSON Editor** - CodeMirror 6 editor with syntax highlighting, error detection, and code folding
 - **Code Examples** - Instantly generate cURL, Node.js, Python, and Go code snippets for any endpoint
@@ -223,6 +223,15 @@ Path to the SQLite database file.
 MOCKTAIL_DB_PATH=/var/lib/mocktail/apis.db
 ```
 
+**`MOCKTAIL_LOG_BUFFER_MB`** / **`MOCKTAIL_LOG_BODY_KB`** (optional)
+
+Memory used by the **Live** traffic log. Mocktail keeps recent requests in memory until they add up to `MOCKTAIL_LOG_BUFFER_MB` (default **`64`**), then drops the oldest. Under heavy traffic the whole process can use roughly twice this (Go's garbage collector lets the heap grow before collecting), so size it against your container's memory limit. Each stored body is capped at `MOCKTAIL_LOG_BODY_KB` (default **`1024`**, i.e. 1 MB); larger bodies are truncated in the log only — the client still gets the full response.
+
+```bash
+MOCKTAIL_LOG_BUFFER_MB=32   # smaller footprint, e.g. in a tight container
+MOCKTAIL_LOG_BODY_KB=4096   # keep bodies up to 4 MB
+```
+
 **`MOCKTAIL_BASE_URL`** (optional)
 
 Override the Mocktail URL displayed in the dashboard. Useful when deploying behind a reverse proxy or custom domain.
@@ -270,7 +279,7 @@ MOCKTAIL_CORS_CREDENTIALS=true
 docker run -p 6625:6625 \
   -e MOCKTAIL_CORS_ORIGINS=https://myapp.com \
   -e MOCKTAIL_CORS_CREDENTIALS=true \
-  hhaluk/mocktail:4.0.2
+  hhaluk/mocktail:4.1.0
 ```
 
 **Docker Compose Example:**
@@ -278,7 +287,7 @@ docker run -p 6625:6625 \
 ```yaml
 services:
   mocktail:
-    image: hhaluk/mocktail:4.0.2
+    image: hhaluk/mocktail:4.1.0
     ports:
       - "6625:6625"
     environment:

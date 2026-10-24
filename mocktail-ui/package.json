@@ -1,6 +1,6 @@
 {
   "name": "mocktail-ui",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "private": true,
   "type": "module",
   "scripts": {

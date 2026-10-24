@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, StateEffect, StateField, RangeSetBuilder, type Text } from '@codemirror/state'
-import { Decoration, WidgetType, type DecorationSet } from '@codemirror/view'
+import { Decoration, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from '@codemirror/view'
 import { json } from '@codemirror/lang-json'
 import { HighlightStyle, syntaxHighlighting, syntaxTree } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
@@ -96,6 +96,53 @@ const highlightField = StateField.define<{ deco: DecorationSet; keys: Highlight[
   provide: (f) => EditorView.decorations.from(f, (v) => v.deco),
 })
 
+// ---- Hanging indent for wrapped lines ---------------------------------------
+
+// With line wrapping on, a wrapped line would otherwise continue at column 0. This pads each line by
+// its own leading whitespace and pulls the first row back with a negative text-indent, so the
+// continuation rows line up under the line's content. Only visible lines are decorated, so it stays
+// cheap on huge bodies. (6px is CodeMirror's default .cm-line left padding.)
+const indentDecos = new Map<number, Decoration>()
+const indentDeco = (n: number) => {
+  let d = indentDecos.get(n)
+  if (!d) {
+    d = Decoration.line({ attributes: { style: `padding-left: calc(${n}ch + 6px); text-indent: -${n}ch` } })
+    indentDecos.set(n, d)
+  }
+  return d
+}
+
+function buildHangingIndent(view: EditorView): DecorationSet {
+  const b = new RangeSetBuilder<Decoration>()
+  let last = -1
+  for (const { from, to } of view.visibleRanges) {
+    for (let pos = from; pos <= to; ) {
+      const line = view.state.doc.lineAt(pos)
+      if (line.from > last) {
+        let n = 0
+        while (n < line.length && (line.text[n] === ' ' || line.text[n] === '\t')) n++
+        if (n > 0) b.add(line.from, line.from, indentDeco(n))
+        last = line.from
+      }
+      pos = line.to + 1
+    }
+  }
+  return b.finish()
+}
+
+const hangingIndent = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet
+    constructor(view: EditorView) {
+      this.decorations = buildHangingIndent(view)
+    }
+    update(u: ViewUpdate) {
+      if (u.docChanged || u.viewportChanged) this.decorations = buildHangingIndent(u.view)
+    }
+  },
+  { decorations: (p) => p.decorations },
+)
+
 // ---- Click → JSON path ------------------------------------------------------
 
 const VALUE_NODES = new Set(['Object', 'Array', 'String', 'Number', 'True', 'False', 'Null'])
@@ -161,11 +208,15 @@ function pathAtClick(state: EditorState, pos: number): string | null {
 
 // ---- Component --------------------------------------------------------------
 
+// Stable default: a fresh `[]` per render would re-fire the highlights effect on every parent
+// re-render (e.g. each Live poll), forcing an editor update — ~100ms on a 1 MB single-line body.
+const NO_HIGHLIGHTS: Highlight[] = []
+
 /** Controlled CodeMirror 6 JSON editor themed to the Mocktail tokens. */
 export function CodeEditor({
   value,
   onChange,
-  highlights = [],
+  highlights = NO_HIGHLIGHTS,
   onSelectField,
   readOnly = false,
 }: {
@@ -191,6 +242,9 @@ export function CodeEditor({
       syntaxHighlighting(highlight),
       highlightField,
       theme,
+      // Wrap long lines to whatever width the panel has — never a horizontal scrollbar.
+      EditorView.lineWrapping,
+      hangingIndent,
       EditorView.updateListener.of((u) => {
         if (u.docChanged) {
           onChangeRef.current(u.state.doc.toString())
@@ -241,5 +295,5 @@ export function CodeEditor({
     view.current?.dispatch({ effects: setHighlights.of(highlights) })
   }, [highlights])
 
-  return <div ref={host} className="h-full overflow-auto" />
+  return <div ref={host} className="h-full overflow-y-auto overflow-x-hidden" />
 }

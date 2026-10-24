@@ -1,6 +1,6 @@
 {
   "name": "mocktail-mcp",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "description": "MCP server for managing Mocktail mock API endpoints",
   "type": "module",
   "bin": {

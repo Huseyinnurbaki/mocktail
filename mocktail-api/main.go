@@ -14,6 +14,7 @@ import (
 	"mocktail-api/mocktail"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -127,6 +128,7 @@ func setupRoutes(app *fiber.App) {
 	coreApi.Post("/preview", core.PreviewApi)
 	coreApi.Delete("/api/:id", core.DeleteApiByKey)
 	coreApi.Get("/logs", core.GetLogs)
+	coreApi.Get("/logs/:id", core.GetLog)
 	coreApi.Delete("/logs", core.ClearLogs)
 
 	// AI assistant — provider-backed chat + model listing + key config. Behind the admin gate
@@ -240,6 +242,99 @@ Common environment variables:
 Docs: https://getmocktail.com
 `
 
+// skipRequestLog reports whether a request stays out of the request log: anything that isn't mock
+// traffic or the management API (the dashboard's own files — /, /assets/*, fonts — and /health),
+// plus the dashboard's polling and AI endpoints. Logging the dashboard's JS bundle on every page
+// load would eat the log's byte budget and push real traffic out.
+func skipRequestLog(path string) bool {
+	if !strings.HasPrefix(path, "/mocktail") && !strings.HasPrefix(path, "/core/") {
+		return true
+	}
+	return strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" ||
+		strings.HasPrefix(path, "/core/v1/ai")
+}
+
+// requestLogger records each served request — what the client sent and what Mocktail answered —
+// in the in-memory log the Live view reads.
+func requestLogger(c *fiber.Ctx) error {
+	path := c.Path()
+	if skipRequestLog(path) {
+		return c.Next()
+	}
+
+	// Process request
+	start := time.Now()
+	err := c.Next()
+
+	// Log request/response with structured data
+	duration := time.Since(start)
+	status := c.Response().StatusCode()
+
+	// What the client sent — Mocktail's own keys redacted. The raw body (not c.Body(), which
+	// would decompress a Content-Encoding'd payload) is copied and size-capped by the logger.
+	reqHeaders := map[string]string{}
+	c.Request().Header.VisitAll(func(k, v []byte) {
+		reqHeaders[string(k)] = redactHeader(string(k), string(v))
+	})
+
+	// Capture the response headers actually served (custom Content-Type, X-*, etc.).
+	respHeaders := map[string]string{}
+	c.Response().Header.VisitAll(func(k, v []byte) {
+		respHeaders[string(k)] = string(v)
+	})
+
+	logger.LogRequest(logger.Exchange{
+		// Create string copies to prevent Fiber buffer reuse
+		Method:          string([]byte(c.Method())),
+		Path:            string([]byte(path)),
+		Query:           redactQuery(string(c.Request().URI().QueryString())),
+		Status:          status,
+		Duration:        duration.Round(time.Millisecond).String(),
+		RequestHeaders:  reqHeaders,
+		RequestBody:     c.Request().Body(),
+		ResponseHeaders: respHeaders,
+		ResponseBody:    c.Response().Body(),
+	})
+
+	return err
+}
+
+// Mocktail's own credentials (see apiKeyMiddleware / adminAuthMiddleware) never reach the request
+// log in the clear — the Live view shows them as redactedValue.
+const redactedValue = "REDACTED"
+
+var (
+	secretHeaders = map[string]bool{"x-api-key": true, "x-admin-key": true}
+	secretParams  = map[string]bool{"api_key": true, "admin_key": true}
+)
+
+// redactHeader returns v, or redactedValue if k is one of Mocktail's key headers.
+func redactHeader(k, v string) string {
+	if secretHeaders[strings.ToLower(k)] {
+		return redactedValue
+	}
+	return v
+}
+
+// redactQuery masks Mocktail's key params in a raw query string, leaving the rest byte-for-byte.
+func redactQuery(q string) string {
+	if q == "" {
+		return q
+	}
+	parts := strings.Split(q, "&")
+	for i, p := range parts {
+		k, _, _ := strings.Cut(p, "=")
+		name := k
+		if dk, err := url.QueryUnescape(k); err == nil {
+			name = dk
+		}
+		if secretParams[strings.ToLower(name)] {
+			parts[i] = k + "=" + redactedValue
+		}
+	}
+	return strings.Join(parts, "&")
+}
+
 // handleCLIFlags handles --version/--help and reports whether the program should exit early.
 func handleCLIFlags() bool {
 	if len(os.Args) < 2 {
@@ -290,51 +385,7 @@ func main() {
 		AllowCredentials: strings.ToLower(os.Getenv("MOCKTAIL_CORS_CREDENTIALS")) == "true",
 	}))
 
-	// Request logging middleware
-	app.Use(func(c *fiber.Ctx) error {
-		// Skip logging for static files, health check, logs endpoint, and catalog polling
-		path := c.Path()
-		if path == "/health" || path == "/" || strings.HasPrefix(path, "/static") ||
-		   strings.HasPrefix(path, "/core/v1/logs") || path == "/core/v1/apis" ||
-		   strings.HasPrefix(path, "/core/v1/ai") {
-			return c.Next()
-		}
-
-		// Process request
-		start := time.Now()
-		err := c.Next()
-
-		// Log request/response with structured data
-		duration := time.Since(start)
-		status := c.Response().StatusCode()
-		responseBody := ""
-
-		// Skip response body for /core/v1/apis (too large)
-		if path != "/core/v1/apis" {
-			responseBody = string(c.Response().Body())
-		}
-
-		// Create string copies to prevent Fiber buffer reuse
-		method := string([]byte(c.Method()))
-		pathCopy := string([]byte(path))
-
-		// Capture the response headers actually served (custom Content-Type, X-*, etc.).
-		respHeaders := map[string]string{}
-		c.Response().Header.VisitAll(func(k, v []byte) {
-			respHeaders[string(k)] = string(v)
-		})
-
-		logger.LogRequest(
-			method,
-			pathCopy,
-			status,
-			duration.Round(time.Millisecond).String(),
-			responseBody,
-			respHeaders,
-		)
-
-		return err
-	})
+	app.Use(requestLogger)
 
 	// Log configuration on startup
 	logger.Log("=== Mocktail Configuration ===")

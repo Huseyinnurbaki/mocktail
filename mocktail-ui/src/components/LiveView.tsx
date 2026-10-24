@@ -1,15 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { METHODS } from '../lib/mocks'
-import { beautify } from '../lib/format'
-import { pathMatches, statusClass, strip, toggleIn } from '../lib/live'
-import { useLiveLogs } from '../hooks/useLiveLogs'
-import { CodeEditor } from './CodeEditor'
+import { formatBytes } from '../lib/format'
+import {
+  defaultTab,
+  loadTab,
+  pathMatches,
+  queryPairs,
+  requestUrl,
+  saveTab,
+  statusClass,
+  strip,
+  toggleIn,
+  type DetailTab,
+} from '../lib/live'
+import { useLiveLogs, useLogEntry } from '../hooks/useLiveLogs'
+import { useResizable } from '../hooks/useResizable'
+import { ResizeHandle } from './ResizeHandle'
 import { MethodBadge } from './MethodBadge'
 import { StatusBadge } from './live/StatusBadge'
 import { PathFilter } from './live/PathFilter'
 import { LiveRow } from './live/LiveRow'
+import { HeaderList } from './live/HeaderList'
+import { BodyView } from './live/BodyView'
 
 const CAP = 300
+const LIST_MIN_PX = 440 // keep in sync with the aside's calc(100vw-440px)
 const STATUS_CLASSES = ['2xx', '3xx', '4xx', '5xx']
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
@@ -27,10 +42,15 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   )
 }
 
-/** Live request stream — list of mock traffic on the left, response detail on the right. */
-export function LiveView({ onClose }: { onClose: () => void }) {
+/** Live request stream — list of mock traffic on the left, request/response detail on the right. */
+export function LiveView({ port, onClose }: { port: number | null; onClose: () => void }) {
   const { logs, error, paused, setPaused, clear } = useLiveLogs()
-  const [selectedI, setSelectedI] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  // null until the user picks a tab; from then on that tab sticks across rows (and reloads).
+  const [pickedTab, setPickedTab] = useState<DetailTab | null>(loadTab)
+  const [copied, setCopied] = useState(false)
+  // The request list keeps at least LIST_MIN_PX, so long paths never get squeezed to nothing.
+  const panel = useResizable('mocktail-live-width', 480, 320, 1400, 0.7, LIST_MIN_PX)
   const [methodFilter, setMethodFilter] = useState<Set<string>>(new Set())
   const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set())
   const [pathFilter, setPathFilter] = useState<Set<string>>(new Set())
@@ -45,10 +65,7 @@ export function LiveView({ onClose }: { onClose: () => void }) {
 
   // Only mock traffic — exclude the dashboard's own /core/v1 calls.
   const allReq = useMemo(
-    () =>
-      logs
-        .map((l, i) => ({ ...l, i }))
-        .filter((l) => l.type === 'request' && (l.path ?? '').startsWith('/mocktail')),
+    () => logs.filter((l) => l.type === 'request' && (l.path ?? '').startsWith('/mocktail')),
     [logs],
   )
 
@@ -87,16 +104,23 @@ export function LiveView({ onClose }: { onClose: () => void }) {
   }, [allReq, methodFilter, statusFilter, pathFilter])
 
   const shown = requests.length > CAP ? requests.slice(0, CAP) : requests
-  const selected = selectedI == null ? null : allReq.find((l) => l.i === selectedI) ?? null
+  const selected = selectedId == null ? null : allReq.find((l) => l.id === selectedId) ?? null
+  const detail = useLogEntry(selected ? selected.id : null)
+  const tab = pickedTab ?? (selected ? defaultTab(selected) : 'response')
+
+  function pickTab(t: DetailTab) {
+    setPickedTab(t)
+    saveTab(t)
+  }
   const hasFilters = methodFilter.size > 0 || statusFilter.size > 0 || pathFilter.size > 0
 
-  const onSelect = useCallback((i: number) => setSelectedI(i), [])
+  const onSelect = useCallback((id: number) => setSelectedId(id), [])
 
   // Refs so the key handler stays mounted-once but reads the latest list/selection.
   const shownRef = useRef(shown)
   shownRef.current = shown
-  const selectedIRef = useRef(selectedI)
-  selectedIRef.current = selectedI
+  const selectedIdRef = useRef(selectedId)
+  selectedIdRef.current = selectedId
 
   // ↑/↓ move the selection through the visible list.
   useEffect(() => {
@@ -107,22 +131,22 @@ export function LiveView({ onClose }: { onClose: () => void }) {
       const list = shownRef.current
       if (list.length === 0) return
       e.preventDefault()
-      const cur = list.findIndex((l) => l.i === selectedIRef.current)
+      const cur = list.findIndex((l) => l.id === selectedIdRef.current)
       let next: number
       if (cur < 0) next = e.key === 'ArrowDown' ? 0 : list.length - 1
       else next = e.key === 'ArrowDown' ? cur + 1 : cur - 1
       next = Math.max(0, Math.min(list.length - 1, next))
-      setSelectedI(list[next].i)
+      onSelect(list[next].id)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [onSelect])
 
   // Keep the selected row in view when navigating by keyboard.
   useEffect(() => {
-    if (selectedI == null) return
-    document.querySelector(`[data-live-row="${selectedI}"]`)?.scrollIntoView({ block: 'nearest' })
-  }, [selectedI])
+    if (selectedId == null) return
+    document.querySelector(`[data-live-row="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [selectedId])
 
   function clearFilters() {
     setMethodFilter(new Set())
@@ -132,7 +156,7 @@ export function LiveView({ onClose }: { onClose: () => void }) {
 
   async function onClear() {
     await clear()
-    setSelectedI(null)
+    setSelectedId(null)
   }
 
   return (
@@ -219,63 +243,128 @@ export function LiveView({ onClose }: { onClose: () => void }) {
           ) : (
             shown.map((l) => (
               <LiveRow
-                key={l.i}
-                index={l.i}
+                key={l.id}
+                id={l.id}
                 method={l.method}
                 status={l.status}
                 path={strip(l.path)}
                 duration={l.duration}
                 time={l.timestamp.split(' ')[1] ?? l.timestamp}
-                selected={selectedI === l.i}
+                selected={selectedId === l.id}
                 onSelect={onSelect}
               />
             ))
           )}
         </div>
 
-        {/* detail */}
+        <ResizeHandle
+          onPointerDown={panel.startResize}
+          nudge={panel.nudge}
+          reset={panel.reset}
+          className="hidden lg:block"
+        />
+
+        {/* detail — a full-screen overlay below lg; a resizable side panel from lg up */}
         <aside
+          style={{ '--live-w': `${panel.width}px` } as React.CSSProperties}
           className={`${
             selected ? 'flex' : 'hidden'
-          } absolute inset-0 z-30 flex-col border-l border-border bg-bg lg:static lg:z-auto lg:flex lg:w-[42%] lg:min-w-[320px] lg:max-w-[560px] lg:shrink-0`}
+          } absolute inset-0 z-30 min-w-0 flex-col bg-bg lg:static lg:z-auto lg:flex lg:w-[clamp(320px,var(--live-w),min(70vw,calc(100vw-440px)))] lg:shrink-0`}
         >
           {selected ? (
             <>
               <div className="flex items-center gap-2 border-b border-border px-4 py-3">
                 <button
-                  onClick={() => setSelectedI(null)}
+                  onClick={() => setSelectedId(null)}
                   className="shrink-0 text-[13px] text-muted hover:text-fg lg:hidden"
                 >
                   ←
                 </button>
                 <MethodBadge method={selected.method} />
                 <StatusBadge status={selected.status} />
-                <span className="min-w-0 flex-1 truncate font-mono text-[13px]">{strip(selected.path)}</span>
+                {/* Long paths wrap instead of being cut off — the header is the one place the full path shows. */}
+                <span className="min-w-0 flex-1 font-mono text-[13px] [overflow-wrap:anywhere]">{strip(selected.path)}</span>
               </div>
-              <div className="flex gap-4 border-b border-border px-4 py-2 font-mono text-[11.5px] text-muted">
+              <div className="flex items-center gap-4 border-b border-border px-4 py-2 font-mono text-[11.5px] text-muted">
                 <span>⏱ {selected.duration}</span>
                 <span>{selected.timestamp}</span>
+                {/* The full URL the client hit, query included — waits for the detail (summaries carry no query). */}
+                <button
+                  disabled={!detail.entry}
+                  onClick={() => {
+                    if (!detail.entry) return
+                    void navigator.clipboard?.writeText(requestUrl(port, selected.path ?? '', detail.entry.requestQuery))
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1000)
+                  }}
+                  className={`ml-auto font-sans text-[11px] transition-colors duration-150 disabled:opacity-40 ${
+                    copied ? 'text-accent' : 'text-accent-text hover:text-accent'
+                  }`}
+                >
+                  Copy URL<span className="inline-block w-[11px] text-center">{copied ? '✓' : ''}</span>
+                </button>
               </div>
-              {selected.responseHeaders && Object.keys(selected.responseHeaders).length > 0 && (
-                <div className="shrink-0 border-b border-border px-4 py-2">
-                  <div className="mb-1 text-[10px] uppercase tracking-[0.06em] text-muted">Response headers</div>
-                  <div className="flex max-h-[120px] flex-col gap-[2px] overflow-auto font-mono text-[11px]">
-                    {Object.entries(selected.responseHeaders).map(([k, v]) => (
-                      <div key={k} className="flex gap-2">
-                        <span className="shrink-0 text-muted">{k}:</span>
-                        <span className="min-w-0 break-all">{v}</span>
-                      </div>
+              <div className="flex shrink-0 border-b border-border">
+                {(['request', 'response'] as const).map((t) => {
+                  const size = (t === 'request' ? selected.requestSize : selected.responseSize) ?? 0
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => pickTab(t)}
+                      className={`flex-1 border-b-2 py-2 text-[12.5px] ${
+                        tab === t ? 'border-accent text-fg' : 'border-transparent text-muted hover:text-fg'
+                      }`}
+                    >
+                      {t === 'request' ? 'Request' : 'Response'}
+                      {size > 0 && <span className="ml-1.5 font-mono text-[11px] text-muted">{formatBytes(size)}</span>}
+                    </button>
+                  )
+                })}
+              </div>
+              {detail.entry ? (
+                tab === 'request' ? (
+                  <>
+                    <HeaderList title="Query" entries={queryPairs(detail.entry.requestQuery)} />
+                    <HeaderList title="Request headers" entries={Object.entries(detail.entry.requestHeaders ?? {})} />
+                    <BodyView
+                      key={`${selected.id}-request`}
+                      text={detail.entry.requestBody ?? ''}
+                      size={selected.requestSize ?? 0}
+                      truncated={!!selected.requestTruncated}
+                      fullBodyNote="Mocktail received the full body"
+                      empty="No request body"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <HeaderList title="Response headers" entries={Object.entries(detail.entry.responseHeaders ?? {})} />
+                    <BodyView
+                      key={`${selected.id}-response`}
+                      text={detail.entry.responseBody ?? ''}
+                      size={selected.responseSize ?? 0}
+                      truncated={!!selected.responseTruncated}
+                      fullBodyNote="the client got the full body"
+                      empty="No response body"
+                    />
+                  </>
+                )
+              ) : (
+                <div className="flex flex-1 items-center justify-center px-6 text-center text-[13px] text-muted">
+                  {detail.error ??
+                    (detail.evicted ? (
+                      <span>
+                        This request has rolled out of the log. Raise{' '}
+                        <code className="font-mono text-fg">MOCKTAIL_LOG_BUFFER_MB</code> to keep more history.
+                      </span>
+                    ) : (
+                      'Loading…'
                     ))}
-                  </div>
                 </div>
               )}
-              <div className="min-h-0 flex-1">
-                <CodeEditor value={beautify(selected.responseBody ?? '')} onChange={() => {}} readOnly />
-              </div>
             </>
           ) : (
             <div className="flex h-full items-center justify-center px-6 text-center text-[13px] text-muted">
-              Select a request to inspect its response
+              Select a request to inspect it
             </div>
           )}
         </aside>
